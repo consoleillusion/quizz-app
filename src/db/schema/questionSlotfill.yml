@@ -1,48 +1,47 @@
 ---
 $schema: "https://json-schema.org/draft/2020-12/schema"
 title: "Question Slotfill"
-type: object
+x-question-type: "slotfill"
+type: "object"
 additionalProperties: false
-description: 'Many-to-many: a set of slots, marked ⟦1⟧, ⟦2⟧ … in q or x.text, is filled from a shared token bank. Each slot takes one token; a token may fill several slots or none, and the bank may hold more or fewer tokens than there are slots. Ordering and matching questions can also be written this way, with positions or items as slots.'
-required: []
+description: "Slots marked ⟦1⟧, ⟦2⟧ … in text or exhibit are filled from a shared token bank. Each slot takes one token; a token may fill several slots or none, and the bank may hold more tokens than there are slots."
+required: ["text", "tokens", "gaps", "objectives"]
 properties:
+  text: { $ref: "./common/schema.yml#/$defs/text" }
+  exhibit: { $ref: "./common/schema.yml#/$defs/exhibit" }
   reuse_tokens:
     type: "boolean"
     default: true
+    description: "Whether a token stays in the bank after it is placed."
   tokens:
     type: "array"
-    description: 'The token bank available to the learner: words, values, paths or other strings.'
-    additionalProperties: false
-    default: []
-    items:
-      type: "string"
+    description: "The token bank available to the learner: words, values, paths or other strings."
+    minItems: 2
+    uniqueItems: true
+    items: { type: "string", minLength: 1 }
   gaps:
     type: "array"
-    description: "One answer per slot, in slot-number order. The same token may appear in several answers."
-    additionalProperties: false
-    default: []
+    description: "One entry per slot, in slot-number order."
+    minItems: 1
     items:
       type: "object"
       additionalProperties: false
+      required: ["accepted_tokens"]
       properties:
         accepted_tokens:
           type: "array"
-          description: "Tokens accepted for this slot, if any. Each must be one of the question's k tokens."
+          description: "Tokens accepted for this slot. Each must be one of tokens."
+          minItems: 1
           uniqueItems: true
-          default: []
-          items:
-            type: "string"
+          items: { type: "string" }
         points:
           type: "number"
+          default: 1
           description: "Points awarded for filling this slot correctly."
         explanation:
           type: "string"
           description: "Explanation for the correct token in this slot."
-  text:
-    $ref: './common/schema.yml#/$defs/text'
-  bloom:
-    $ref: './common/schema.yml#/$defs/bloom'
-  objectives:
-    $ref: './common/schema.yml#/$defs/objectives'
-  links:
-    $ref: './common/schema.yml#/$defs/links'
+  explanation: { $ref: "./common/schema.yml#/$defs/explanation" }
+  objectives: { $ref: "./common/schema.yml#/$defs/objectives" }
+  bloom: { $ref: "./common/schema.yml#/$defs/bloom" }
+  links: { $ref: "./common/schema.yml#/$defs/links" }

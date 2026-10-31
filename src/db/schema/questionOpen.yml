@@ -1,23 +1,28 @@
 ---
 $schema: "https://json-schema.org/draft/2020-12/schema"
 title: "Question Open"
+x-question-type: "open"
 type: "object"
 additionalProperties: false
-description:  "Exact word, number, etc"
+description: "Free entry: the learner types an exact word, number or value."
+required: ["text", "answers", "objectives"]
 properties:
+  text: { $ref: "./common/schema.yml#/$defs/text" }
+  exhibit: { $ref: "./common/schema.yml#/$defs/exhibit" }
+  answer_type:
+    type: "string"
+    enum: ["string", "number", "integer"]
+    default: "string"
+    description: "How the entered value is compared."
+  case_sensitive:
+    type: "boolean"
+    default: false
   answers:
     type: "array"
-    description: "The answer to be entered by user"
-    answerType:
-      enum: ["string", "number", "integer"]
-      default: "string"
-    items:
-      description: "A list of correct answers"
-  text:
-    $ref: './common/schema.yml#/$defs/text'
-  bloom:
-    $ref: './common/schema.yml#/$defs/bloom'
-  objectives:
-    $ref: './common/schema.yml#/$defs/objectives'
-  links:
-    $ref: './common/schema.yml#/$defs/links'
+    description: "Accepted answers."
+    minItems: 1
+    items: { type: "string", minLength: 1 }
+  explanation: { $ref: "./common/schema.yml#/$defs/explanation" }
+  objectives: { $ref: "./common/schema.yml#/$defs/objectives" }
+  bloom: { $ref: "./common/schema.yml#/$defs/bloom" }
+  links: { $ref: "./common/schema.yml#/$defs/links" }

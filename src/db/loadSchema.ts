@@ -1,26 +1,11 @@
-import $RefParser from "@apidevtools/json-schema-ref-parser";
+import $RefParser from "@apidevtools/json-schema-ref-parser"
 import {join} from "path"
 
-export async function loadSchema(directory: string = join(import.meta.dirname, "./schema")) {
-  const schemas = [];
-  const glob = new Bun.Glob("*.yml");
+export const schemaDir = join(import.meta.dirname, "schema")
 
-  for await (const file of glob.scan({
-    cwd: directory,
-    onlyFiles: true,
-  })) {
-    const schema = await $RefParser.dereference(`${directory}/${file}`, {
-      resolve: {
-        file: { order: 1 },
-      },
-      dereference: {
-        circular: "ignore",
-      },
-    });
-
-    schemas.push(schema);
-  }
-
-  return schemas;
+export async function loadSchema(directory: string = schemaDir) {
+  // Purpose: read and dereference every table schema (top-level *.yml) in the schema folder
+  const files = (await Array.fromAsync(new Bun.Glob("*.yml").scan({cwd: directory, onlyFiles: true}))).sort()
+  return Promise.all(files.map(file =>
+    $RefParser.dereference(join(directory, file), {dereference: {circular: "ignore"}})))
 }
-

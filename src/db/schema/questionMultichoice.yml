@@ -1,21 +1,20 @@
 ---
 $schema: "https://json-schema.org/draft/2020-12/schema"
 title: "Question Multichoice"
+x-question-type: "multichoice"
 type: "object"
 additionalProperties: false
-description: 'Single answer: the learner selects exactly one option. Exactly one option should carry positive points.'
-required: ["text"]
+description: "Single answer: the learner selects exactly one option. Exactly one option carries positive points."
+required: ["text", "options", "objectives"]
 properties:
-  answers:
-    type: array
-    description: "The available answers."
-    items:
-      $ref: './common/schema.yml#/$defs/option'
-  text:
-    $ref: './common/schema.yml#/$defs/text'
-  bloom:
-    $ref: './common/schema.yml#/$defs/bloom'
-  objectives:
-    $ref: './common/schema.yml#/$defs/objectives'
-  links:
-    $ref: './common/schema.yml#/$defs/links'
+  text: { $ref: "./common/schema.yml#/$defs/text" }
+  exhibit: { $ref: "./common/schema.yml#/$defs/exhibit" }
+  options:
+    type: "array"
+    description: "The available answers, in authored order. The UI may shuffle them."
+    minItems: 2
+    items: { $ref: "./common/schema.yml#/$defs/option" }
+  explanation: { $ref: "./common/schema.yml#/$defs/explanation" }
+  objectives: { $ref: "./common/schema.yml#/$defs/objectives" }
+  bloom: { $ref: "./common/schema.yml#/$defs/bloom" }
+  links: { $ref: "./common/schema.yml#/$defs/links" }

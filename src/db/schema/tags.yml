@@ -1,9 +1,0 @@
----
-title: "tags"
-description: "Tags/categories to identify/search question sets"
-properties:
-  name:
-    type: "string"
-  question_set_id:
-    type: "string"
-    format: "uuid"

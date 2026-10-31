@@ -1,46 +1,32 @@
 ---
 $schema: "https://json-schema.org/draft/2020-12/schema"
 title: "Question Set"
-description: "A set of Questions"
 type: "object"
-required: ["id","title"]
+additionalProperties: false
+description: "A named, ordered collection of questions. Membership lives in question_set_item, so sets can share questions."
+required: ["slug", "title"]
+x-unique: [["slug"]]
 properties:
+  slug:
+    type: "string"
+    pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+    description: "URL-safe identifier, e.g. netconf or quiz-3."
   title:
     type: "string"
-    description: "Title"
-    default: ""
+    minLength: 1
   description:
-    description: "Description of this question set."
     type: "string"
+    default: ""
+  exam:
+    type: "string"
+    description: "Exam code the set targets, e.g. 300-435."
     default: ""
   difficulty:
     type: "string"
-    description: "A string describing the difficulty"
     default: ""
-  count:
-    type: "integer"
-    description: "The number of questions in the question set."
-    default: 0
-    readOnly: true
-  randomize_option_order:
-    type: "boolean"
-    description: "Whether to randomize the order of choices in the question set."
-    default: false
   randomize_question_order:
     type: "boolean"
-    description: "Whether to randomize the order of questions in the question set."
     default: false
-
-  questions:
-    type: "array"
-    description: "An Array of question ids"
-    default: []
-    items:
-      type: "string"
-      format: "uuid"
-  tags:
-    type: "array"
-    description: "Searchable tags/categories for this question set."
-    default: []
-    items:
-      type: "string"
+  randomize_option_order:
+    type: "boolean"
+    default: true

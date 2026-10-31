@@ -1,18 +1,24 @@
 ---
 $schema: "https://json-schema.org/draft/2020-12/schema"
 title: "Question Order"
+x-question-type: "order"
 type: "object"
 additionalProperties: false
-description:  "Arrange the order of items"
-required: ["text"]
+description: "Arrange the items into the correct sequence."
+required: ["text", "items", "answer", "objectives"]
 properties:
-  answers:
-    type: "string"
-  text:
-    $ref: './common/schema.yml#/$defs/text'
-  bloom:
-    $ref: './common/schema.yml#/$defs/bloom'
-  objectives:
-    $ref: './common/schema.yml#/$defs/objectives'
-  links:
-    $ref: './common/schema.yml#/$defs/links'
+  text: { $ref: "./common/schema.yml#/$defs/text" }
+  exhibit: { $ref: "./common/schema.yml#/$defs/exhibit" }
+  items:
+    $ref: "./common/schema.yml#/$defs/strings"
+    description: "The items in their initial (scrambled) display order."
+  answer:
+    type: "array"
+    description: "0-based indexes into items, in the correct sequence."
+    minItems: 2
+    uniqueItems: true
+    items: { type: "integer", minimum: 0 }
+  explanation: { $ref: "./common/schema.yml#/$defs/explanation" }
+  objectives: { $ref: "./common/schema.yml#/$defs/objectives" }
+  bloom: { $ref: "./common/schema.yml#/$defs/bloom" }
+  links: { $ref: "./common/schema.yml#/$defs/links" }

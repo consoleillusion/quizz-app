@@ -1,0 +1,30 @@
+---
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: "User Answer"
+type: "object"
+additionalProperties: false
+description: "One answer a user gave. Mirrored to IndexedDB in the browser and kept in sync."
+required: ["user_id", "question_type", "question_id", "answer", "answered_at"]
+properties:
+  user_id:
+    type: "string"
+    format: "uuid"
+    x-references: "user"
+  question_set_id:
+    type: "string"
+    format: "uuid"
+    x-references: "question_set"
+    description: "The set the question was answered in, if any."
+  question_type: { $ref: "./common/schema.yml#/$defs/question_type" }
+  question_id:
+    type: "string"
+    format: "uuid"
+  answer:
+    type: "array"
+    description: "Option indexes (multichoice, multiselect), response or item indexes (match, order), tokens (slotfill) or the typed value (open)."
+  points:
+    type: "number"
+    description: "Points awarded."
+  answered_at:
+    type: "string"
+    format: "date-time"

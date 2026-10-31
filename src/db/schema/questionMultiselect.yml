@@ -1,24 +1,24 @@
 ---
 $schema: "https://json-schema.org/draft/2020-12/schema"
 title: "Question Multiselect"
+x-question-type: "multiselect"
 type: "object"
 additionalProperties: false
-description: 'Multiple answers: the learner selects exactly s options. Exactly s options should carry positive points.'
-required: []
+description: "Multiple answers: the learner selects exactly number_of_selections options. That many options carry positive points."
+required: ["text", "options", "number_of_selections", "objectives"]
 properties:
+  text: { $ref: "./common/schema.yml#/$defs/text" }
+  exhibit: { $ref: "./common/schema.yml#/$defs/exhibit" }
   number_of_selections:
     type: "integer"
-    description: "The number of selections required."
+    minimum: 2
+    description: "The number of options the learner must select."
   options:
     type: "array"
-    description: "The available answers."
-    items:
-      $ref: './common/schema.yml#/$defs/option'
-  text:
-    $ref: './common/schema.yml#/$defs/text'
-  bloom:
-    $ref: './common/schema.yml#/$defs/bloom'
-  objectives:
-    $ref: './common/schema.yml#/$defs/objectives'
-  links:
-    $ref: './common/schema.yml#/$defs/links'
+    description: "The available answers, in authored order. The UI may shuffle them."
+    minItems: 3
+    items: { $ref: "./common/schema.yml#/$defs/option" }
+  explanation: { $ref: "./common/schema.yml#/$defs/explanation" }
+  objectives: { $ref: "./common/schema.yml#/$defs/objectives" }
+  bloom: { $ref: "./common/schema.yml#/$defs/bloom" }
+  links: { $ref: "./common/schema.yml#/$defs/links" }

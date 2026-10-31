@@ -2,18 +2,18 @@
 $schema: "https://json-schema.org/draft/2020-12/schema"
 title: "User"
 type: "object"
+additionalProperties: false
+required: ["username"]
+x-unique: [["username"], ["email"]]
 properties:
-
   email:
-    description: "Users Email"
+    description: "User's email"
     type: "string"
     format: "email"
-
   username:
-    description: "Users prefered name"
+    description: "User's preferred name"
     type: "string"
     minLength: 1
-
-  publicKey:
-    description: "Users Public Key"
+  public_key:
+    description: "User's public key"
     $ref: "./common/jwk.yml"

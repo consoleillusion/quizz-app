@@ -1,0 +1,27 @@
+---
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: "Question Match"
+x-question-type: "match"
+type: "object"
+additionalProperties: false
+description: "One-to-one matching: each prompt is paired with exactly one response."
+required: ["text", "prompts", "responses", "answer", "objectives"]
+properties:
+  text: { $ref: "./common/schema.yml#/$defs/text" }
+  exhibit: { $ref: "./common/schema.yml#/$defs/exhibit" }
+  prompts:
+    $ref: "./common/schema.yml#/$defs/strings"
+    description: "Left-hand items, shown in this order."
+  responses:
+    $ref: "./common/schema.yml#/$defs/strings"
+    description: "Right-hand items, in authored order. The UI may shuffle them."
+  answer:
+    type: "array"
+    description: "For each prompt (same order), the 0-based index of its matching response."
+    minItems: 2
+    uniqueItems: true
+    items: { type: "integer", minimum: 0 }
+  explanation: { $ref: "./common/schema.yml#/$defs/explanation" }
+  objectives: { $ref: "./common/schema.yml#/$defs/objectives" }
+  bloom: { $ref: "./common/schema.yml#/$defs/bloom" }
+  links: { $ref: "./common/schema.yml#/$defs/links" }

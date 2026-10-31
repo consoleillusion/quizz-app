@@ -1,0 +1,13 @@
+---
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: "Table Schema"
+type: "object"
+additionalProperties: false
+description: "The dereferenced JSON Schema each table was generated from, written by init.ts."
+required: ["table_name", "jsonschema"]
+x-unique: [["table_name"]]
+properties:
+  table_name:
+    type: "string"
+  jsonschema:
+    type: "object"
