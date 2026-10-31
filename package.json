@@ -14,10 +14,12 @@
     "db:seed": "bun src/db/seed.ts",
     "db:check": "bun src/db/seed.ts --check",
     "db:sql": "bun src/db/init.ts --print",
-    "test": "bun test src"
+    "test": "bun test src",
+    "start": "HOST=0.0.0.0 PORT=${PORT:-4359} bun ./dist/server/entry.mjs"
   },
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^16.0.5",
+    "@astrojs/node": "^11.1.9",
     "@astrojs/svelte": "^9.1.2",
     "@serenity-kit/opaque": "^1.1.0",
     "@tursodatabase/database": "^0.8.3",

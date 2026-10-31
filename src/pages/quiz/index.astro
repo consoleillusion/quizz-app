@@ -1,0 +1,75 @@
+---
+// /quiz: the quiz collection.
+//   GET  /quiz[?page=&limit=]   cards (HTML) or {items, total, page, limit, pages, links} (JSON)
+//   POST /quiz                  create a quiz from a form or a JSON body
+import Layout from "../../layouts/Layout.astro"
+import SchemaForm from "../../components/SchemaForm.astro"
+import {HttpError, collection, json, jsonError, methodNotAllowed, pageParams, seeOther, readBody, wantsJson} from "../../lib/rest.ts"
+import {createQuiz, listQuizzes} from "../../lib/quizzes.ts"
+
+const allow = ["GET", "POST"]
+const {request, url} = Astro
+if (!allow.includes(request.method)) return methodNotAllowed(allow)
+const asJson = wantsJson(request)
+
+let formErrors: {field: string, message: string}[] = []
+let formValues: Record<string, unknown> = {}
+if (request.method === "POST") {
+  try {
+    formValues = await readBody(request, "quiz")
+    const quiz = await createQuiz(formValues)
+    return asJson ? json(quiz, 201, {location: quiz.url}) : seeOther(quiz.url)
+  } catch (e) {
+    if (!(e instanceof HttpError)) throw e
+    if (asJson) return jsonError(e)
+    formErrors = e.errors.length ? e.errors : [{field: "", message: e.message}]
+    Astro.response.status = e.status
+  }
+}
+
+const paging = pageParams(url)
+const {items, total} = await listQuizzes(paging)
+const page = collection(url, items, total, paging)
+if (asJson) return json(page)
+---
+<Layout title="Quizzes">
+  <h1>Quizzes</h1>
+  <p>{total} quizzes · page {page.page} of {page.pages} · <a href={`${url.pathname}?format=json&page=${page.page}&limit=${page.limit}`}>JSON</a></p>
+
+  <ul class="cards">
+    {page.items.map(quiz => (
+      <li>
+        <article>
+          <h3><a href={quiz.url}>{quiz.title}</a></h3>
+          <p>{quiz.description}</p>
+          <small>{quiz.question_count} questions{quiz.tags.length ? ` · ${quiz.tags.join(", ")}` : ""}</small><br />
+          <small data-progress={quiz.id} data-total={quiz.question_count}></small>
+        </article>
+      </li>
+    ))}
+  </ul>
+
+  <nav class="bar" aria-label="Pages">
+    {page.links.prev ? <a href={page.links.prev} rel="prev">← Previous</a> : <span>← Previous</span>}
+    <span>Page {page.page} of {page.pages}</span>
+    {page.links.next ? <a href={page.links.next} rel="next">Next →</a> : <span>Next →</span>}
+  </nav>
+
+  <details open={formErrors.length > 0}>
+    <summary>Create a quiz</summary>
+    <SchemaForm table="quiz" action="/quiz" submit="Create quiz" values={formValues} errors={formErrors}
+      optional={["slug"]} hint={{slug: "Leave blank to make one from the title. Used in the quiz's URL, /quiz/<slug>."}} />
+  </details>
+</Layout>
+
+<script>
+  import {loadAnswers} from "../../lib/progress.ts"
+
+  const showProgress = async (el: HTMLElement) => {
+    // Purpose: fill one card's progress line from the answers saved in this browser
+    const answers = await loadAnswers(el.dataset.progress!)
+    if (!answers.length) return
+    el.textContent = `${answers.length}/${el.dataset.total} answered, ${answers.filter(a => a.correct).length} correct`
+  }
+  document.querySelectorAll<HTMLElement>("[data-progress]").forEach(showProgress)
+</script>

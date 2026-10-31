@@ -1,5 +1,5 @@
 <script lang="ts">
-  // The quiz for one question set: navigation, shuffling, saving answers and feedback.
+  // The quiz for one quiz: navigation, shuffling, saving answers and feedback.
   // Runs client-only (client:only) because shuffles and IndexedDB are browser-side.
   import {onMount} from "svelte"
   import {grade} from "../lib/grade.ts"
@@ -12,7 +12,7 @@
   import Slotfill from "./questions/Slotfill.svelte"
   import Open from "./questions/Open.svelte"
 
-  let {set, questions} = $props()
+  let {quiz, questions} = $props()
 
   const components: Record<string, any> = {multichoice: Multichoice, multiselect: Multiselect, match: Match, order: Order, slotfill: Slotfill, open: Open}
   const typeLabels: Record<string, string> = {multichoice: "Single choice", multiselect: "Multiple choice", match: "Matching", order: "Ordering", slotfill: "Fill the gaps", open: "Short answer"}
@@ -41,32 +41,32 @@
   }
 
   function arrange() {
-    // Purpose: set question order and per-question option order, shuffling where the set asks for it
-    order = set.randomize_question_order ? shuffled(indexes(questions.length)) : indexes(questions.length)
+    // Purpose: set question order and per-question option order, shuffling where the quiz asks for it
+    order = quiz.randomize_question_order ? shuffled(indexes(questions.length)) : indexes(questions.length)
     displays = Object.fromEntries(questions.map((x: any) => {
       const list = x.options ?? x.responses
-      return [x.id, list && set.randomize_option_order ? shuffled(indexes(list.length)) : undefined]
+      return [x.id, list && quiz.randomize_option_order ? shuffled(indexes(list.length)) : undefined]
     }))
   }
 
   async function submit(answer: any[]) {
     // Purpose: grade the current question's answer, then keep and persist it
     const {correct, points} = grade(q, answer)
-    const record: AnswerRecord = {question_set_id: set.id, question_type: q.type, question_id: q.id, answer, points, correct, answered_at: new Date().toISOString()}
+    const record: AnswerRecord = {quiz_id: quiz.id, question_type: q.type, question_id: q.id, answer, points, correct, answered_at: new Date().toISOString()}
     answers[q.id] = record
     await saveAnswer($state.snapshot(record))
   }
 
   function go(to: number) {
-    // Purpose: move to a question position, clamped to the set
+    // Purpose: move to a question position, clamped to the quiz
     pos = Math.max(0, Math.min(order.length - 1, to))
     document.getElementById("question")?.scrollIntoView({block: "nearest"})
   }
 
   async function restart() {
-    // Purpose: clear saved answers for this set and start again with a fresh shuffle
-    if (!confirm("Clear your answers for this set and start again?")) return
-    await clearAnswers(set.id)
+    // Purpose: clear saved answers for this quiz and start again with a fresh shuffle
+    if (!confirm("Clear your answers for this quiz and start again?")) return
+    await clearAnswers(quiz.id)
     answers = {}
     arrange()
     go(0)
@@ -86,10 +86,10 @@
   }
 
   onMount(async () => {
-    // Purpose: arrange the set and restore saved answers, then resume at the first unanswered question
+    // Purpose: arrange the quiz and restore saved answers, then resume at the first unanswered question
     arrange()
     const ids = new Set(questions.map((x: any) => x.id))
-    answers = Object.fromEntries((await loadAnswers(set.id)).filter(r => ids.has(r.question_id)).map(r => [r.question_id, r]))
+    answers = Object.fromEntries((await loadAnswers(quiz.id)).filter(r => ids.has(r.question_id)).map(r => [r.question_id, r]))
     const firstOpen = order.findIndex(i => !answers[questions[i].id])
     pos = firstOpen === -1 ? 0 : firstOpen
     ready = true

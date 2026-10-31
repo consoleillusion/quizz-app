@@ -10,10 +10,10 @@ properties:
     type: "string"
     format: "uuid"
     x-references: "user"
-  question_set_id:
+  quiz_id:
     type: "string"
     format: "uuid"
-    x-references: "question_set"
+    x-references: "quiz"
     description: "The set the question was answered in, if any."
   question_type: { $ref: "./common/schema.yml#/$defs/question_type" }
   question_id:

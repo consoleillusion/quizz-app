@@ -1,0 +1,57 @@
+---
+// A form generated from a table's JSON Schema: one native input per property, with the
+// schema's constraints (required, pattern, lengths, ranges, enums) as HTML attributes.
+// x-widget: "textarea" on a property renders a textarea.
+import {sentenceCase} from "change-case"
+import {schemas} from "../lib/schemas.ts"
+
+interface Props {
+  table: string, action: string, submit: string,
+  values?: Record<string, unknown>, errors?: {field: string, message: string}[],
+  optional?: string[], hint?: Record<string, string>,
+}
+const {table, action, submit, values = {}, errors = [], optional = [], hint = {}} = Astro.props
+const schema = schemas[table]
+const required: string[] = schema.required ?? []
+const fields = (Object.entries(schema.properties) as [string, any][]).filter(([, x]) => !x.readOnly && !x["x-references"])
+const errorFor = (name: string) =>
+  // Purpose: the error messages for one field, joined
+  errors.filter(e => e.field === name).map(e => e.message).join("; ")
+const valueOf = (name: string, x: any) =>
+  // Purpose: the field's submitted value, falling back to its schema default
+  values[name] ?? x.default ?? ""
+---
+<form method="post" action={action} novalidate={false}>
+  {errors.some(e => !fields.some(([name]) => name === e.field)) && (
+    <p class="bad">{errors.filter(e => !fields.some(([name]) => name === e.field)).map(e => e.message).join("; ")}</p>
+  )}
+  {fields.map(([name, x]) => {
+    const id = `${table}-${name}`
+    const isRequired = required.includes(name) && !optional.includes(name)
+    const help = hint[name] ?? x.description
+    return x.type === "boolean" ? (
+      <p>
+        <label><input type="checkbox" id={id} name={name} value="true" checked={Boolean(valueOf(name, x))} /> {sentenceCase(name)}</label>
+        {errorFor(name) && <small class="bad">{errorFor(name)}</small>}
+      </p>
+    ) : (
+      <p>
+        <label for={id}>{sentenceCase(name)}{isRequired && " *"}</label>
+        {x.enum ? (
+          <select id={id} name={name} required={isRequired}>
+            {x.enum.map((v: string) => <option value={v} selected={valueOf(name, x) === v}>{v}</option>)}
+          </select>
+        ) : x["x-widget"] === "textarea" ? (
+          <textarea id={id} name={name} required={isRequired} minlength={x.minLength} maxlength={x.maxLength} rows="3">{valueOf(name, x)}</textarea>
+        ) : x.type === "integer" || x.type === "number" ? (
+          <input type="number" id={id} name={name} required={isRequired} min={x.minimum} max={x.maximum} step={x.type === "integer" ? 1 : "any"} value={valueOf(name, x)} />
+        ) : (
+          <input type="text" id={id} name={name} required={isRequired} minlength={x.minLength} maxlength={x.maxLength} pattern={x.pattern} value={valueOf(name, x)} />
+        )}
+        {help && <small>{help}</small>}
+        {errorFor(name) && <small class="bad">{errorFor(name)}</small>}
+      </p>
+    )
+  })}
+  <button>{submit}</button>
+</form>

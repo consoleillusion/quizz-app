@@ -97,11 +97,11 @@ export const questionViewSQL = (schemas: any[]) =>
     .map(s => `SELECT id, ${sqlString(s["x-question-type"])} AS question_type, ${questionColumns.join(", ")} FROM ${tableName(s)}`)
     .join("\nUNION ALL\n")
 
-export const questionSetSummarySQL = () =>
-  // Purpose: render a view of each question set with its question count
-  `CREATE VIEW IF NOT EXISTS question_set_summary AS
+export const quizSummarySQL = () =>
+  // Purpose: render a view of each quiz with its question count
+  `CREATE VIEW IF NOT EXISTS quiz_summary AS
 SELECT s.id, s.slug, s.title, s.description, s.exam, s.difficulty, count(i.id) AS question_count
-FROM question_set s LEFT JOIN question_set_item i ON i.question_set_id = s.id
+FROM quiz s LEFT JOIN quiz_question i ON i.quiz_id = s.id
 GROUP BY s.id`
 
 const refersToQuestions = (schema: any) =>
@@ -164,7 +164,7 @@ export const databaseSQL = (schemas: any[]) => {
   return [
     ...tables.map(createTableSQL),
     questionViewSQL(tables),
-    questionSetSummarySQL(),
+    quizSummarySQL(),
     ...tables.map(updatedAtTriggerSQL),
     ...chain(questionRefTriggersSQL, referencing),
     ...tables.filter(isQuestionTable).map(questionDeleteTriggerSQL(referencing)),

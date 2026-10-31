@@ -2,7 +2,7 @@ import Ajv2020 from "ajv/dist/2020.js"
 import addFormats from "ajv-formats"
 import {tableName} from "./ddl.ts"
 
-export const extensionKeywords = ["x-references", "x-unique", "x-question-type"]
+export const extensionKeywords = ["x-references", "x-unique", "x-question-type", "x-widget"]
 
 export const makeValidators = (schemas: any[]) => {
   // Purpose: compile one ajv validator per table, keyed by table name
@@ -15,3 +15,10 @@ export const makeValidators = (schemas: any[]) => {
 export const errorText = (errors: any[] = []) =>
   // Purpose: flatten ajv errors into one readable line
   errors.map(e => `${e.instancePath || "/"} ${e.message}`).join("; ")
+
+export const errorsByField = (errors: any[] = []) =>
+  // Purpose: turn ajv errors into {field, message} pairs, naming the offending property
+  errors.map(e => ({
+    field: e.params?.missingProperty ?? e.params?.additionalProperty ?? e.instancePath.split("/")[1] ?? "",
+    message: e.keyword === "additionalProperties" ? `unknown field ${e.params.additionalProperty}` : e.message,
+  }))

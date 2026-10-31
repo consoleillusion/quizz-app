@@ -1,0 +1,21 @@
+---
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: "Quiz Question"
+type: "object"
+additionalProperties: false
+description: "Places one question at a position in a quiz. question_id points into the table named by question_type."
+required: ["quiz_id", "question_type", "question_id", "position"]
+x-unique: [["quiz_id", "position"], ["quiz_id", "question_type", "question_id"]]
+properties:
+  quiz_id:
+    type: "string"
+    format: "uuid"
+    x-references: "quiz"
+  question_type: { $ref: "./common/schema.yml#/$defs/question_type" }
+  question_id:
+    type: "string"
+    format: "uuid"
+  position:
+    type: "integer"
+    minimum: 1
+    description: "1-based position within the set."

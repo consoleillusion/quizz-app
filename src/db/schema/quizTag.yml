@@ -1,0 +1,16 @@
+---
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: "Quiz Tag"
+type: "object"
+additionalProperties: false
+description: "Searchable tags/categories for quizzes."
+required: ["quiz_id", "name"]
+x-unique: [["quiz_id", "name"]]
+properties:
+  quiz_id:
+    type: "string"
+    format: "uuid"
+    x-references: "quiz"
+  name:
+    type: "string"
+    minLength: 1

@@ -1,22 +1,23 @@
 ---
 $schema: "https://json-schema.org/draft/2020-12/schema"
-title: "Question Set"
+title: "Quiz"
 type: "object"
 additionalProperties: false
-description: "A named, ordered collection of questions. Membership lives in question_set_item, so sets can share questions."
+description: "A named, ordered collection of questions. Membership lives in quiz_question, so quizzes can share questions."
 required: ["slug", "title"]
 x-unique: [["slug"]]
 properties:
   slug:
     type: "string"
     pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
-    description: "URL-safe identifier, e.g. netconf or quiz-3."
+    description: "URL-safe identifier, e.g. netconf or quiz-3. Used in the quiz's URL, /quiz/<slug>."
   title:
     type: "string"
     minLength: 1
   description:
     type: "string"
     default: ""
+    x-widget: "textarea"
   exam:
     type: "string"
     description: "Exam code the set targets, e.g. 300-435."

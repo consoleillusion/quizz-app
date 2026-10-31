@@ -1,8 +1,8 @@
-// Load every question set in ./question_sets into the database.
+// Load every quiz in ./quizzes into the database.
 //   bun src/db/seed.ts            validate everything, then upsert questions and rebuild set membership
 //   bun src/db/seed.ts --check    validate only; write nothing
 //   bun src/db/seed.ts --prune    also delete questions no set references
-// Each folder holds set.yml (set metadata) and questions.json (compact questions).
+// Each folder holds quiz.yml (quiz metadata) and questions.json (compact questions).
 // Question ids are UUIDv5 of the question's content, so re-seeding is idempotent and a
 // question that appears in several sets is stored once.
 import {basename, dirname, join} from "path"
@@ -13,7 +13,7 @@ import {rules} from "./rules.ts"
 import {fromCompact} from "./seed/compact.ts"
 
 const args = new Set(Bun.argv.slice(2))
-const setsDir = join(import.meta.dirname, "question_sets")
+const quizzesDir = join(import.meta.dirname, "quizzes")
 const QUESTION_NAMESPACE = "8a3d6f0e-5c2b-4e71-9f4a-2b7c1d9e0a55"
 
 const questionId = (type: string, row: object) =>
@@ -22,10 +22,10 @@ const questionId = (type: string, row: object) =>
 
 const readSets = async () => {
   // Purpose: read each set folder's metadata and questions
-  const files = (await Array.fromAsync(new Bun.Glob("*/set.yml").scan({cwd: setsDir}))).sort()
+  const files = (await Array.fromAsync(new Bun.Glob("*/quiz.yml").scan({cwd: quizzesDir}))).sort()
   return Promise.all(files.map(async file => {
-    const dir = join(setsDir, dirname(file))
-    const {tags = [], ...meta} = Bun.YAML.parse(await Bun.file(join(dir, "set.yml")).text()) as any
+    const dir = join(quizzesDir, dirname(file))
+    const {tags = [], ...meta} = Bun.YAML.parse(await Bun.file(join(dir, "quiz.yml")).text()) as any
     return {slug: basename(dir), meta, tags, compact: await Bun.file(join(dir, "questions.json")).json()}
   }))
 }
@@ -34,7 +34,7 @@ const prepareSet = (validators: Record<string, any>, questionTables: Record<stri
   // Purpose: convert and validate one set's questions, collecting every problem
   const problems: string[] = []
   const metaRow = {slug: set.slug, ...set.meta}
-  if (!validators.question_set(metaRow)) problems.push(`${set.slug}/set.yml: ${errorText(validators.question_set.errors)}`)
+  if (!validators.quiz(metaRow)) problems.push(`${set.slug}/quiz.yml: ${errorText(validators.quiz.errors)}`)
   const questions = set.compact.map((q: any, i: number) => {
     const {type, row} = fromCompact(set.meta.exam)(q)
     const table = questionTables[type]
@@ -60,7 +60,7 @@ const insertSQL = (table: string, columns: string[], conflict: string) =>
 
 const writeSets = async (db: any, schemas: Record<string, any>, sets: any[]) => {
   // Purpose: upsert questions and sets, then rebuild each set's items and tags, in one transaction
-  const setJson = jsonColumns(schemas.question_set)
+  const setJson = jsonColumns(schemas.quiz)
   await db.exec("BEGIN")
   try {
     let inserted = 0
@@ -73,13 +73,13 @@ const writeSets = async (db: any, schemas: Record<string, any>, sets: any[]) => 
       }
       const metaCols = Object.keys(set.metaRow)
       const updates = metaCols.filter(c => c !== "slug").map(c => `${c} = excluded.${c}`).join(", ")
-      const {id: setId} = await db.prepare(insertSQL("question_set", metaCols, `ON CONFLICT (slug) DO UPDATE SET ${updates} RETURNING id`))
+      const {id: setId} = await db.prepare(insertSQL("quiz", metaCols, `ON CONFLICT (slug) DO UPDATE SET ${updates} RETURNING id`))
         .get(toParams(setJson, set.metaRow))
-      await db.prepare("DELETE FROM question_set_item WHERE question_set_id = ?").run([setId])
-      await db.prepare("DELETE FROM question_set_tag WHERE question_set_id = ?").run([setId])
-      const item = db.prepare("INSERT INTO question_set_item (question_set_id, question_type, question_id, position) VALUES (?, ?, ?, ?)")
+      await db.prepare("DELETE FROM quiz_question WHERE quiz_id = ?").run([setId])
+      await db.prepare("DELETE FROM quiz_tag WHERE quiz_id = ?").run([setId])
+      const item = db.prepare("INSERT INTO quiz_question (quiz_id, question_type, question_id, position) VALUES (?, ?, ?, ?)")
       for (const [i, q] of set.questions.entries()) await item.run([setId, q.type, q.id, i + 1])
-      const tag = db.prepare("INSERT INTO question_set_tag (question_set_id, name) VALUES (?, ?)")
+      const tag = db.prepare("INSERT INTO quiz_tag (quiz_id, name) VALUES (?, ?)")
       for (const name of set.tags) await tag.run([setId, name])
     }
     await db.exec("COMMIT")
@@ -92,7 +92,7 @@ const writeSets = async (db: any, schemas: Record<string, any>, sets: any[]) => 
 
 const orphanSQL = (table: string, type: string, verb: "SELECT count(*) AS n" | "DELETE") =>
   // Purpose: select or delete questions in one table that no set references
-  `${verb} FROM ${table} WHERE id NOT IN (SELECT question_id FROM question_set_item WHERE question_type = '${type}')`
+  `${verb} FROM ${table} WHERE id NOT IN (SELECT question_id FROM quiz_question WHERE question_type = '${type}')`
 
 const main = async () => {
   // Purpose: validate all sets, then write them unless --check was given
@@ -104,7 +104,7 @@ const main = async () => {
   const problems = sets.flatMap(s => s.problems)
   const total = sets.reduce((n, s) => n + s.questions.length, 0)
   const unique = new Set(sets.flatMap(s => s.questions.map((q: any) => q.id))).size
-  console.log(`${sets.length} sets, ${total} questions (${unique} unique)`)
+  console.log(`${sets.length} quizzes, ${total} questions (${unique} unique)`)
   if (problems.length) {
     console.error(`${problems.length} problems; nothing written:\n  ${problems.join("\n  ")}`)
     process.exit(1)
@@ -113,11 +113,11 @@ const main = async () => {
 
   const {db} = await import("./db.ts")
   const inserted = await writeSets(db, schemas, sets)
-  console.log(`Wrote ${sets.length} sets; ${inserted} new questions (${unique - inserted} already present).`)
+  console.log(`Wrote ${sets.length} quizzes; ${inserted} new questions (${unique - inserted} already present).`)
   for (const [type, table] of Object.entries(questionTables)) {
     const sql = orphanSQL(table, type, args.has("--prune") ? "DELETE" : "SELECT count(*) AS n")
     if (args.has("--prune")) { const r = await db.prepare(sql).run(); if (r.changes) console.log(`Pruned ${r.changes} from ${table}`) }
-    else { const {n} = await db.prepare(sql).get(); if (n) console.log(`${table}: ${n} questions in no set (run with --prune to delete)`) }
+    else { const {n} = await db.prepare(sql).get(); if (n) console.log(`${table}: ${n} questions in no quiz (run with --prune to delete)`) }
   }
 }
 
