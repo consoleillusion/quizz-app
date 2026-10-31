@@ -1,0 +1,11 @@
+---
+title: "Question Set Item"
+description: "Items that belong to a question set. Its for joins between a Question Set and Questions"
+type: "object"
+properties:
+  question_set_id:
+    type: "string"
+    format: "uuid"
+  question_id:
+    type: "string"
+    format: "uuid"

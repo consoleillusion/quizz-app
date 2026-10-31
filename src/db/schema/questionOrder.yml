@@ -1,0 +1,18 @@
+---
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: "Question Order"
+type: "object"
+additionalProperties: false
+description:  "Arrange the order of items"
+required: ["text"]
+properties:
+  answers:
+    type: "string"
+  text:
+    $ref: './common/schema.yml#/$defs/text'
+  bloom:
+    $ref: './common/schema.yml#/$defs/bloom'
+  objectives:
+    $ref: './common/schema.yml#/$defs/objectives'
+  links:
+    $ref: './common/schema.yml#/$defs/links'

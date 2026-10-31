@@ -1,0 +1,23 @@
+---
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: "Question Open"
+type: "object"
+additionalProperties: false
+description:  "Exact word, number, etc"
+properties:
+  answers:
+    type: "array"
+    description: "The answer to be entered by user"
+    answerType:
+      enum: ["string", "number", "integer"]
+      default: "string"
+    items:
+      description: "A list of correct answers"
+  text:
+    $ref: './common/schema.yml#/$defs/text'
+  bloom:
+    $ref: './common/schema.yml#/$defs/bloom'
+  objectives:
+    $ref: './common/schema.yml#/$defs/objectives'
+  links:
+    $ref: './common/schema.yml#/$defs/links'

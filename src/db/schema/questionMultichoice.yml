@@ -1,0 +1,21 @@
+---
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: "Question Multichoice"
+type: "object"
+additionalProperties: false
+description: 'Single answer: the learner selects exactly one option. Exactly one option should carry positive points.'
+required: ["text"]
+properties:
+  answers:
+    type: array
+    description: "The available answers."
+    items:
+      $ref: './common/schema.yml#/$defs/option'
+  text:
+    $ref: './common/schema.yml#/$defs/text'
+  bloom:
+    $ref: './common/schema.yml#/$defs/bloom'
+  objectives:
+    $ref: './common/schema.yml#/$defs/objectives'
+  links:
+    $ref: './common/schema.yml#/$defs/links'

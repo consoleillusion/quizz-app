@@ -1,0 +1,19 @@
+---
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: "User"
+type: "object"
+properties:
+
+  email:
+    description: "Users Email"
+    type: "string"
+    format: "email"
+
+  username:
+    description: "Users prefered name"
+    type: "string"
+    minLength: 1
+
+  publicKey:
+    description: "Users Public Key"
+    $ref: "./common/jwk.yml"

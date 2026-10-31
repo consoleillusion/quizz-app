@@ -1,0 +1,48 @@
+---
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: "Question Slotfill"
+type: object
+additionalProperties: false
+description: 'Many-to-many: a set of slots, marked ⟦1⟧, ⟦2⟧ … in q or x.text, is filled from a shared token bank. Each slot takes one token; a token may fill several slots or none, and the bank may hold more or fewer tokens than there are slots. Ordering and matching questions can also be written this way, with positions or items as slots.'
+required: []
+properties:
+  reuse_tokens:
+    type: "boolean"
+    default: true
+  tokens:
+    type: "array"
+    description: 'The token bank available to the learner: words, values, paths or other strings.'
+    additionalProperties: false
+    default: []
+    items:
+      type: "string"
+  gaps:
+    type: "array"
+    description: "One answer per slot, in slot-number order. The same token may appear in several answers."
+    additionalProperties: false
+    default: []
+    items:
+      type: "object"
+      additionalProperties: false
+      properties:
+        accepted_tokens:
+          type: "array"
+          description: "Tokens accepted for this slot, if any. Each must be one of the question's k tokens."
+          uniqueItems: true
+          default: []
+          items:
+            type: "string"
+        points:
+          type: "number"
+          description: "Points awarded for filling this slot correctly."
+        explanation:
+          type: "string"
+          description: "Explanation for the correct token in this slot."
+  text:
+    $ref: './common/schema.yml#/$defs/text'
+  bloom:
+    $ref: './common/schema.yml#/$defs/bloom'
+  objectives:
+    $ref: './common/schema.yml#/$defs/objectives'
+  links:
+    $ref: './common/schema.yml#/$defs/links'

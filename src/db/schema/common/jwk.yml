@@ -1,0 +1,27 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: Ed25519 JSON Web Key
+type: object
+additionalProperties: false
+properties:
+  kty:
+    type: string
+    const: OKP
+  crv:
+    type: string
+    const: Ed25519
+  x:
+    type: string
+    pattern: "^[A-Za-z0-9_-]{43}$"
+    description: Base64url-encoded 32-byte public key
+  use:
+    type: string
+    const: sig
+  kid:
+    type: string
+    minLength: 1
+required:
+  - kty
+  - crv
+  - x
+  - use
+  - kid

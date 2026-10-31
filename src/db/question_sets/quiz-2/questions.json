@@ -1,0 +1,863 @@
+[
+ {
+  "g": 1,
+  "t": "1.1",
+  "p": "IOS XE supports openconfig-interfaces but doesn't implement a few of its leaves. How does the device tell clients which parts are missing?",
+  "o": [
+   "It can't advertise the model at all, because OpenConfig requires every leaf",
+   "It returns empty values for those leaves without telling the client",
+   "It publishes a deviation module that marks those nodes as not supported",
+   "It moves the unsupported leaves into the Cisco-IOS-XE-native namespace"
+  ],
+  "a": 2,
+  "e": "Deviation modules declare where an implementation differs from a model, for example nodes marked not-supported. Clients find them in the device's capabilities or YANG library."
+ },
+ {
+  "g": 1,
+  "t": "1.2",
+  "p": "A RESTCONF client doesn't know the API root path on a new device. How does RFC 8040 let it find the root?",
+  "o": [
+   "GET /restconf/data/ietf-yang-library:modules-state, which lists the root",
+   "GET /.well-known/host-meta, which returns a link with rel=\"restconf\"",
+   "Read the SSH login banner, which prints the RESTCONF root path",
+   "GET /api/v1/root, which every RESTCONF server must answer"
+  ],
+  "a": 1,
+  "e": "The host-meta document points to the RESTCONF root, which is /restconf on IOS XE. The YANG library lists modules, not the root."
+ },
+ {
+  "g": 1,
+  "t": "1.3",
+  "p": "This body is POSTed to /restconf/data/ietf-interfaces:interfaces to create Loopback7. The type is the softwareLoopback identity from the iana-if-type module. Which body is valid?",
+  "o": [
+   "{\"ietf-interfaces:interface\": [{\"name\": \"Loopback7\", \"type\": \"softwareLoopback\", \"enabled\": true}]}",
+   "{\"ietf-interfaces:interface\": [{\"name\": \"Loopback7\", \"type\": {\"iana-if-type\": \"softwareLoopback\"}, \"enabled\": true}]}",
+   "{\"ietf-interfaces:interface\": [{\"name\": \"Loopback7\", \"type\": \"iana-if-type:softwareLoopback\", \"enabled\": true}]}",
+   "{\"ietf-interfaces:interface\": [{\"name\": \"Loopback7\", \"type\": \"iana-if-type:softwareLoopback\", \"enabled\": \"true\"}]}"
+  ],
+  "a": 2,
+  "e": "An identityref value from another module is prefixed with that module's name, and a boolean is a JSON literal, not a string.",
+  "c": "module: ietf-interfaces\n  +--rw interfaces\n     +--rw interface* [name]\n        +--rw name       string\n        +--rw type       identityref\n        +--rw enabled?   boolean"
+ },
+ {
+  "g": 1,
+  "t": "1.4",
+  "p": "The module's namespace is urn:example:dns. Which edit-config payload removes only server 10.0.0.53?",
+  "o": [
+   "<config><dns xmlns=\"urn:example:dns\"><server operation=\"remove\"><address>10.0.0.53</address></server></dns></config>",
+   "<config xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\"><dns xmlns=\"urn:example:dns\"><server><address nc:operation=\"delete\">10.0.0.53</address></server></dns></config>",
+   "<config xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\"><dns xmlns=\"urn:example:dns\"><server nc:operation=\"delete\"><address>10.0.0.53</address></server></dns></config>",
+   "<config xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\"><dns xmlns=\"urn:example:dns\" nc:operation=\"delete\"><server><address>10.0.0.53</address></server></dns></config>"
+  ],
+  "a": 2,
+  "e": "The operation attribute goes on the list entry and uses the NETCONF base namespace. On the container it would delete every server, and a key leaf can't be deleted on its own.",
+  "c": "module: example-dns\n  +--rw dns\n     +--rw server* [address]\n        +--rw address   inet:ip-address\n        +--rw port?     uint16"
+ },
+ {
+  "g": 1,
+  "t": "1.5",
+  "p": "Which statement about this tree is correct?",
+  "o": [
+   "clear-flaps is a configurable container, and port-flap is a list of ports that have flapped",
+   "port-flap is an RPC that clients call to read the flap counter of one port",
+   "flaps is configuration that clients reset by writing 0 to it, so the clear-flaps operation is redundant",
+   "clear-flaps is an operation that takes a port name, and port-flap is an event the device can send"
+  ],
+  "a": 3,
+  "e": "x marks an RPC or action, w marks its input, and n marks a notification. flaps is ro, so it's state data that clients can't write.",
+  "c": "module: example-ports\n  +--rw ports\n     +--rw port* [name]\n        +--rw name     string\n        +--ro flaps?   uint32\n\n  rpcs:\n    +---x clear-flaps\n       +---w input\n          +---w name   string\n\n  notifications:\n    +---n port-flap\n       +--ro name   string"
+ },
+ {
+  "g": 1,
+  "t": "1.5",
+  "p": "Which two statements about this tree are correct? (Choose two.)",
+  "o": [
+   "bfd is a presence container, so interval must be set whenever bfd exists",
+   "Each member value must match the name of an interface that exists",
+   "min-links is mandatory, because the model gives it no default value",
+   "bfd exists only on devices that support the lag-bfd feature",
+   "member is a list keyed by interface name, so it needs its own key leaf"
+  ],
+  "a": [
+   1,
+   3
+  ],
+  "e": "-> marks a leafref, which must point at an existing value, and member* without a key is a leaf-list. {lag-bfd}? marks a feature condition, and ! marks a presence container that means something even when it's empty.",
+  "c": "module: example-lag\n  +--rw lags\n     +--rw lag* [id]\n        +--rw id           uint8\n        +--rw member*      -> /if:interfaces/interface/name\n        +--rw min-links?   uint8\n        +--rw bfd!         {lag-bfd}?\n           +--rw interval?   uint16",
+  "y": "m"
+ },
+ {
+  "g": 2,
+  "t": "2.1",
+  "p": "What does use_textfsm=True change in this function?",
+  "o": [
+   "Netmiko sends the command over NETCONF instead of SSH and returns the reply as an XML element tree",
+   "It returns a list of dicts parsed with an ntc-templates template, one per interface",
+   "The device sends JSON instead of text, so no parsing happens in Python",
+   "The output stays one string, so the list comprehension raises a TypeError"
+  ],
+  "a": 1,
+  "e": "With use_textfsm, Netmiko runs the output through the matching ntc-templates template and returns structured rows. If no template matches, it returns the raw string.",
+  "c": "from netmiko import ConnectHandler\n\ndef down_ports(dev):\n    # Purpose: list interfaces whose status is down\n    with ConnectHandler(**dev) as conn:\n        rows = conn.send_command(\"show ip interface brief\", use_textfsm=True)\n    return [r for r in rows if r[\"status\"] == \"down\"]"
+ },
+ {
+  "g": 2,
+  "t": "2.1",
+  "p": "send_command(\"show tech-support\") raises ReadTimeout on a large switch, although the command finishes fine on the CLI. What's the fix?",
+  "o": [
+   "Send terminal length 0 first, because paging is what stops the output from finishing",
+   "Set fast_cli=True on the connection so the output arrives sooner",
+   "Pass a longer read_timeout, such as read_timeout=300, to that send_command call",
+   "Use send_command_timing, which never waits for the prompt and always returns the full output"
+  ],
+  "a": 2,
+  "e": "In Netmiko 4, read_timeout sets how long send_command waits for the prompt, and the default of 10 seconds is too short for long output. Netmiko already turns off paging when the session opens."
+ },
+ {
+  "g": 2,
+  "t": "2.2",
+  "p": "The script ends without sending another commit. What happens to the change?",
+  "o": [
+   "It's rolled back when the session closes, because no confirming commit was sent",
+   "It's rolled back after 120 seconds, even though the session has already closed",
+   "It stays only in the candidate datastore, because a confirmed commit doesn't touch running",
+   "It stays in running-config, because the first commit already made it permanent"
+  ],
+  "a": 0,
+  "e": "Without a confirming commit, the device restores the previous configuration when the timeout expires or when the session that issued the commit closes, whichever comes first. The persist parameter lets a later session confirm it.",
+  "c": "with manager.connect(**params) as m:\n    m.edit_config(target=\"candidate\", config=CFG)\n    m.commit(confirmed=True, timeout=\"120\")\n    print(\"change applied\")\n# the with block closes the NETCONF session here"
+ },
+ {
+  "g": 2,
+  "t": "2.2",
+  "p": "Before using the candidate datastore, a script should check that the device supports it. Which check fits?",
+  "o": [
+   "Check that the device runs IOS XE 17 or later, which always enables candidate",
+   "Call m.get_config(source=\"candidate\") and treat any reply as support",
+   "Look for Cisco-IOS-XE-native in the YANG module list, which includes candidate",
+   "Look for urn:ietf:params:netconf:capability:candidate:1.0 in m.server_capabilities"
+  ],
+  "a": 3,
+  "e": "Devices announce their NETCONF capabilities in the hello, and ncclient exposes them as server_capabilities. IOS XE only offers candidate after netconf-yang feature candidate-datastore is configured."
+ },
+ {
+  "g": 2,
+  "t": "2.3",
+  "p": "A script needs only the operational state under a RESTCONF resource, without its configuration. Which query parameter does that?",
+  "o": [
+   "?with-defaults=state-only",
+   "?depth=state",
+   "?fields=oper",
+   "?content=nonconfig"
+  ],
+  "a": 3,
+  "e": "content takes config, nonconfig or all (the default). depth limits nesting levels, fields selects named nodes, and with-defaults controls how default values are reported."
+ },
+ {
+  "g": 2,
+  "t": "2.3",
+  "p": "This request returns 415 Unsupported Media Type. What's the fix?",
+  "o": [
+   "Change Accept to application/json, since the body is plain JSON",
+   "Add Content-Type: application/yang-data+json to the headers",
+   "Use PUT instead, because PATCH can't change a single leaf",
+   "Use data=json.dumps(body) instead of json=, since json= isn't allowed with PATCH"
+  ],
+  "a": 1,
+  "e": "json= sets Content-Type to application/json, which the device rejects for a YANG data body. Accept only affects the reply, and PATCH can target a leaf.",
+  "c": "r = requests.patch(f\"{base}/data/Cisco-IOS-XE-native:native/hostname\",\n                   json={\"Cisco-IOS-XE-native:hostname\": \"EDGE-09\"},\n                   auth=auth, verify=\"corp-ca.pem\",\n                   headers={\"Accept\": \"application/yang-data+json\"})\nprint(r.status_code)   # 415"
+ },
+ {
+  "g": 2,
+  "t": "2.3",
+  "p": "Loopback10 has a description and an IPv4 address. A RESTCONF PUT to its Cisco-IOS-XE-native URL sends only the name and a new description. What happens to the address?",
+  "o": [
+   "It's kept, because RESTCONF never deletes a leaf that the request body leaves out",
+   "It's removed, because PUT replaces the whole target resource with the body",
+   "The request fails with 409, because the interface already exists",
+   "It's kept, because PUT merges the body into the existing configuration"
+  ],
+  "a": 1,
+  "e": "PUT replaces the target, so anything missing from the body is deleted. PATCH merges, and only POST returns 409 for an existing resource."
+ },
+ {
+  "g": 2,
+  "t": "2.4",
+  "p": "The interface already has description PRINTER but no access VLAN. What does this task send?",
+  "o": [
+   "interface GigabitEthernet1/0/5 followed by switchport access vlan 30",
+   "Nothing, because the description already matches and the task stops there",
+   "Both lines under the interface, because ios_config always sends every listed line",
+   "Only switchport access vlan 30, in global configuration mode without the parent"
+  ],
+  "a": 0,
+  "e": "ios_config compares the lines with the running config under the parent and sends only what's missing, with the parent line first so the command lands in the right mode.",
+  "c": "- name: Set access port\n  cisco.ios.ios_config:\n    parents: interface GigabitEthernet1/0/5\n    lines:\n      - description PRINTER\n      - switchport access vlan 30"
+ },
+ {
+  "g": 2,
+  "t": "2.4",
+  "p": "A playbook must read the current VLAN configuration from switches as structured data, without changing anything. Which cisco.ios.ios_vlans state fits?",
+  "o": [
+   "state: merged",
+   "state: gathered",
+   "state: rendered",
+   "state: parsed"
+  ],
+  "a": 1,
+  "e": "gathered reads the device and returns structured facts. parsed converts config text you supply without contacting the device, rendered produces commands offline, and merged makes changes."
+ },
+ {
+  "g": 2,
+  "t": "2.5",
+  "p": "What does this ZTP script do?",
+  "o": [
+   "It applies the three lines in configuration mode, prints the output, then saves the configuration",
+   "It sends the lines to the DHCP server, which pushes them back to the switch over TFTP",
+   "It writes the lines to a file on flash, which the switch loads at its next reload",
+   "It only prints the commands, because ZTP scripts can't change the configuration"
+  ],
+  "a": 0,
+  "e": "In Guest Shell, the cli module's configure functions apply lines in config mode and execute runs EXEC commands. The p variants also print the output.",
+  "c": "import cli\n\ndef main():\n    # Purpose: apply base configuration during ZTP\n    cli.configurep([\"hostname BR12-SW1\",\n                    \"ip domain name corp.example\",\n                    \"crypto key generate rsa modulus 2048\"])\n    cli.executep(\"write memory\")\n\nmain()"
+ },
+ {
+  "g": 2,
+  "t": "2.5",
+  "p": "A lab switch that already has a startup configuration is reloaded to test ZTP, but ZTP doesn't start. Why?",
+  "o": [
+   "ZTP only runs when the switch boots with no startup configuration",
+   "ZTP only runs on the first boot after manufacture, so this switch can't use it again",
+   "ZTP waits 24 hours after a reload before it asks DHCP for a script",
+   "ZTP needs a PnP license, which is removed when the switch is reloaded"
+  ],
+  "a": 0,
+  "e": "Erase the startup configuration (write erase) and reload to trigger ZTP again. It isn't limited to the first boot and needs no special license."
+ },
+ {
+  "g": 2,
+  "t": "2.6",
+  "p": "A script that creates VLANs gets this reply. What's wrong?",
+  "o": [
+   "The token has expired, so the script must log in again",
+   "The body is XML, but the Content-Type header says JSON",
+   "The VLAN already exists, so the script must use PATCH instead",
+   "The VLAN ID is outside the range the YANG model allows for id"
+  ],
+  "a": 3,
+  "e": "invalid-value means a value breaks a constraint in the model, here the range of the id leaf. An existing item gives data-exists, bad credentials give 401, and a media type mismatch gives 415.",
+  "c": "HTTP/1.1 400 Bad Request\n{\n  \"errors\": {\n    \"error\": [{\n      \"error-type\": \"application\",\n      \"error-tag\": \"invalid-value\",\n      \"error-path\": \"/Cisco-IOS-XE-native:native/vlan/Cisco-IOS-XE-vlan:vlan-list[id='4095']\"\n    }]\n  }\n}"
+ },
+ {
+  "g": 2,
+  "t": "2.6",
+  "p": "ncclient times out connecting to a switch on port 830, but SSH on port 22 works. Which two should be checked? (Choose two.)",
+  "o": [
+   "restconf is configured, because NETCONF runs on top of the HTTPS server",
+   "netconf-yang is configured, so the NETCONF agent listens on 830",
+   "hostkey_verify is True, because ncclient times out on unknown host keys",
+   "An ACL or firewall between the script and the switch permits TCP 830",
+   "Guest Shell is running, because the NETCONF agent runs inside it"
+  ],
+  "a": [
+   1,
+   3
+  ],
+  "e": "A timeout means nothing answered on 830: either the agent isn't running or the path is blocked. NETCONF doesn't need RESTCONF or Guest Shell, and a host key problem gives an error rather than a timeout.",
+  "y": "m"
+ },
+ {
+  "g": 2,
+  "t": "2.7",
+  "p": "When does this applet run, and what does it do?",
+  "o": [
+   "Every 2 hours, it saves the running configuration to a file on bootflash",
+   "Every day at 02:00, it saves the running configuration to a file on bootflash",
+   "On the 2nd of each month, it adds the running configuration to the end of a file",
+   "Two minutes after each reload, it copies the running configuration to startup"
+  ],
+  "a": 1,
+  "e": "Cron fields are minute, hour, day of month, month and day of week, so 0 2 * * * means 02:00 every day. | redirect overwrites the file, unlike | append.",
+  "c": "event manager applet NIGHTLY-BACKUP\n event timer cron cron-entry \"0 2 * * *\"\n action 1.0 cli command \"enable\"\n action 2.0 cli command \"show running-config | redirect bootflash:nightly.cfg\"\n action 3.0 syslog msg \"Nightly config copy saved\""
+ },
+ {
+  "g": 2,
+  "t": "2.7",
+  "p": "Which two statements about the Python cli module in IOS XE Guest Shell are true? (Choose two.)",
+  "o": [
+   "cli.configure() applies a list of configuration lines to the device",
+   "It can only run show commands, so configuration changes need NETCONF",
+   "It's available only inside EEM Tcl policies, not in Python scripts",
+   "cli.cli() runs an EXEC command and returns its output as a string",
+   "It opens an SSH session to the device, so it needs a username and password"
+  ],
+  "a": [
+   0,
+   3
+  ],
+  "e": "The cli module talks to IOS XE from inside Guest Shell without logging in. It can run EXEC commands and apply configuration.",
+  "y": "m"
+ },
+ {
+  "g": 3,
+  "t": "3.1",
+  "p": "An unclaimed device appears in Catalyst Center Plug and Play. Which API claims it to a site with an image and a template?",
+  "o": [
+   "PUT /dna/intent/api/v1/site/{siteId}/device with the PnP device ID",
+   "POST /dna/intent/api/v1/onboarding/pnp-device/import with the device ID",
+   "POST /dna/intent/api/v1/network-device with the device's serial number",
+   "POST /dna/intent/api/v1/onboarding/pnp-device/site-claim"
+  ],
+  "a": 3,
+  "e": "site-claim assigns a PnP device to a site with its image and configuration. pnp-device/import adds devices to the PnP list ahead of time, and network-device adds devices that are already reachable to inventory."
+ },
+ {
+  "g": 3,
+  "t": "3.1",
+  "p": "Put the Catalyst SD-WAN plug-and-play onboarding steps for a new WAN edge in order.",
+  "o": [
+   "2, 1, 4, 3",
+   "2, 4, 1, 3",
+   "4, 2, 1, 3",
+   "2, 4, 3, 1"
+  ],
+  "a": 1,
+  "e": "The serial must be listed before the edge can be redirected, the edge must reach the Validator before it can find the Manager, and the Manager can only push configuration once the edge connects to it.",
+  "y": "o",
+  "s": [
+   "The edge authenticates to the SD-WAN Validator, which tells it how to reach SD-WAN Manager and the Controllers",
+   "The device's serial number is added in Plug and Play Connect and synced to SD-WAN Manager",
+   "SD-WAN Manager pushes the edge's configuration from its configuration group or template",
+   "The edge boots and contacts the Plug and Play Connect cloud service to find its Validator"
+  ]
+ },
+ {
+  "g": 3,
+  "t": "3.1",
+  "p": "Fifty new branch networks need the same MX and MS configuration, kept in one place so later changes reach every branch. Which Dashboard API approach fits?",
+  "o": [
+   "Copy the settings into each network with a script, then rerun it whenever something changes",
+   "Create each network with copyFromNetworkId, so later changes to the source reach the copies",
+   "Create a configuration template and bind each network to it with POST /networks/{networkId}/bind",
+   "Claim every branch's devices into one network, so all fifty branches share its configuration"
+  ],
+  "a": 2,
+  "e": "Bound networks follow the template, so a change to the template reaches all of them. Copying settings is a one-time copy that drifts afterwards."
+ },
+ {
+  "g": 3,
+  "t": "3.2",
+  "p": "This Command Runner request completes. Where does the script get the show version output?",
+  "o": [
+   "From the device directly, because Command Runner only checks the syntax",
+   "From GET /dna/intent/api/v1/network-device/{id}/config, where the output is stored",
+   "From GET /dna/intent/api/v1/file/{fileId}, with the fileId from the finished task",
+   "From the POST response itself, under response.output"
+  ],
+  "a": 2,
+  "e": "Command Runner is asynchronous. The finished task's progress holds a fileId, and that file holds each command's output for each device.",
+  "c": "r = requests.post(f\"{base}/dna/intent/api/v1/network-device-poller/cli/read-request\",\n                  headers=hdr, verify=\"ca.pem\",\n                  json={\"commands\": [\"show version\"], \"deviceUuids\": [dev_id]})\ntask_id = r.json()[\"response\"][\"taskId\"]"
+ },
+ {
+  "g": 3,
+  "t": "3.2",
+  "p": "No API key is passed to DashboardAPI here. Where does the SDK get it?",
+  "o": [
+   "From the MERAKI_DASHBOARD_API_KEY environment variable",
+   "It doesn't need one, because getOrganizations is a public call that any client can make",
+   "It prompts for the key on the console the first time it runs",
+   "From a meraki.cfg file in the user's home directory"
+  ],
+  "a": 0,
+  "e": "The SDK reads MERAKI_DASHBOARD_API_KEY when no key is passed, which keeps the key out of the code. Every Dashboard API call needs a key.",
+  "c": "import meraki\n\ndef org_names():\n    # Purpose: list the organizations this API key can reach\n    dashboard = meraki.DashboardAPI(suppress_logging=True)\n    return [o[\"name\"] for o in dashboard.organizations.getOrganizations()]"
+ },
+ {
+  "g": 3,
+  "t": "3.2",
+  "p": "A script needs every device in the SD-WAN overlay with its system IP and reachability. Which SD-WAN Manager API returns that?",
+  "o": [
+   "GET /dataservice/device",
+   "GET /dataservice/template/device",
+   "GET /dataservice/statistics/approute",
+   "GET /dataservice/client/token"
+  ],
+  "a": 0,
+  "e": "/dataservice/device lists devices with fields such as system-ip and reachability. The template endpoint lists device templates, client/token returns the XSRF token, and approute holds tunnel statistics."
+ },
+ {
+  "g": 3,
+  "t": "3.2",
+  "p": "Which body creates endpoint 00:11:22:33:44:55 in an existing identity group through ISE ERS?",
+  "o": [
+   "{\"ERSEndPoint\": {\"mac\": \"00:11:22:33:44:55\", \"groupId\": \"<group-id>\", \"staticGroupAssignment\": true}}",
+   "{\"mac\": \"00:11:22:33:44:55\", \"groupId\": \"<group-id>\", \"staticGroupAssignment\": true}",
+   "{\"endpoint\": {\"mac\": \"00:11:22:33:44:55\", \"group\": \"<group-name>\"}}",
+   "{\"ERSEndPoint\": {\"name\": \"00:11:22:33:44:55\", \"groupName\": \"<group-name>\", \"staticGroupAssignment\": \"yes\"}}"
+  ],
+  "a": 0,
+  "e": "ERS bodies wrap the object in a member named for its type, such as ERSEndPoint. The endpoint is identified by mac and its group by groupId, and staticGroupAssignment stops profiling from moving it.",
+  "c": "body = ________\nr = requests.post(f\"https://{ise}:9060/ers/config/endpoint\",\n                  auth=(ers_user, ers_pw), json=body, verify=\"ise-ca.pem\",\n                  headers={\"Accept\": \"application/json\"})"
+ },
+ {
+  "g": 3,
+  "t": "3.3",
+  "p": "What does this template render?",
+  "o": [
+   "ip name-server 10.1.1.53 10.2.1.53 / ip domain name corp.example",
+   "ip name-server 10.1.1.53 / ip name-server 10.2.1.53 / ip domain name CORP.Example",
+   "ip name-server 10.1.1.53 10.2.1.53 / ip domain name CORP.Example",
+   "ip name-server ['10.1.1.53', '10.2.1.53'] / ip domain name corp.example"
+  ],
+  "a": 0,
+  "e": "join places the list items in one string with the given separator, and lower converts the text to lowercase.",
+  "c": "{# dns = [\"10.1.1.53\", \"10.2.1.53\"], domain = \"CORP.Example\" #}\nip name-server {{ dns | join(\" \") }}\nip domain name {{ domain | lower }}"
+ },
+ {
+  "g": 3,
+  "t": "3.3",
+  "p": "What does the hyphen in {%- if shutdown %} do?",
+  "o": [
+   "It marks the block as a comment that isn't rendered",
+   "It removes the whitespace, including newlines, before the tag",
+   "It removes the whitespace, including newlines, after the tag",
+   "It negates the condition, so the block renders when shutdown is false"
+  ],
+  "a": 1,
+  "e": "A hyphen on the left side of a tag trims whitespace before it, and one on the right (-%}) trims whitespace after it. Jinja2 negates a condition with not."
+ },
+ {
+  "g": 3,
+  "t": "3.3",
+  "p": "What does this template render?",
+  "o": [
+   "vlan 30 name print, then vlan 10 name users",
+   "vlan 10 name users, vlan 20 name voice, then vlan 30 name print",
+   "vlan 10 name users, then vlan 30 name print",
+   "vlan 10 name USERS, then vlan 30 name PRINT"
+  ],
+  "a": 2,
+  "e": "sort(attribute=\"id\") orders by id, the if clause on the for loop skips VOICE, and lower changes the names to lowercase.",
+  "c": "{# vlans = [{\"id\": 30, \"name\": \"PRINT\"},\n            {\"id\": 10, \"name\": \"USERS\"},\n            {\"id\": 20, \"name\": \"VOICE\"}] #}\n{% for v in vlans | sort(attribute=\"id\") if v.name != \"VOICE\" %}\nvlan {{ v.id }}\n name {{ v.name | lower }}\n{% endfor %}"
+ },
+ {
+  "g": 3,
+  "t": "3.4",
+  "p": "What does this task do?",
+  "o": [
+   "It sends 10 GET requests at once and keeps the first one that has an endTime",
+   "It repeats the GET every 5 seconds until the task has an endTime, giving up after 10 retries",
+   "It waits 50 seconds, then sends a single GET and fails if endTime is missing",
+   "It repeats the GET every 10 seconds until the task has an endTime, giving up after 5 retries"
+  ],
+  "a": 1,
+  "e": "until reruns the task until the condition is true, retries sets how many times, and delay sets the seconds between attempts. A Catalyst Center task gets an endTime when it finishes.",
+  "c": "- name: Wait for the Catalyst Center task to finish\n  ansible.builtin.uri:\n    url: \"https://{{ cc_host }}/dna/intent/api/v1/task/{{ task_id }}\"\n    headers:\n      X-Auth-Token: \"{{ token }}\"\n  register: task\n  until: task.json.response.endTime is defined\n  retries: 10\n  delay: 5"
+ },
+ {
+  "g": 3,
+  "t": "3.4",
+  "p": "A playbook of cisco.meraki modules with state: present runs twice, with no change to its variables. What should the second run report for those tasks?",
+  "o": [
+   "changed, because each run sends the same API calls again to the Dashboard",
+   "skipped, because Ansible caches the results of the first run",
+   "ok, with changed=false, because the Dashboard already matches",
+   "failed, because the objects already exist in the Dashboard"
+  ],
+  "a": 2,
+  "e": "Modules compare the desired state with what the API returns and only make calls when they differ. That idempotence makes playbooks safe to rerun."
+ },
+ {
+  "g": 3,
+  "t": "3.4",
+  "p": "How should later uri tasks reuse this SD-WAN Manager session?",
+  "o": [
+   "Send the header Authorization: Bearer \"{{ login.json.token }}\" on every request",
+   "Nothing extra, because uri keeps cookies between tasks automatically",
+   "Send the header X-Auth-Token: \"{{ login.content }}\" on every request",
+   "Send the header Cookie: \"{{ login.cookies_string }}\", plus X-XSRF-TOKEN on changes"
+  ],
+  "a": 3,
+  "e": "j_security_check sets a JSESSIONID cookie, and each uri task is a separate request, so the cookie must be passed on. POST, PUT and DELETE also need the XSRF token.",
+  "c": "- name: Log in to SD-WAN Manager\n  ansible.builtin.uri:\n    url: \"https://{{ vmanage }}/j_security_check\"\n    method: POST\n    body_format: form-urlencoded\n    body:\n      j_username: \"{{ sdwan_user }}\"\n      j_password: \"{{ sdwan_pass }}\"\n  register: login"
+ },
+ {
+  "g": 3,
+  "t": "3.5",
+  "p": "Security wants a list of devices whose running configuration has drifted from what Catalyst Center intends. Which API fits?",
+  "o": [
+   "GET /dna/intent/api/v1/compliance with complianceStatus=NON_COMPLIANT",
+   "GET /dna/intent/api/v1/site-health, filtered on low health scores",
+   "GET /dna/intent/api/v1/network-device with reachabilityStatus=Unreachable",
+   "GET /dna/intent/api/v1/image/importation, filtered on golden images"
+  ],
+  "a": 0,
+  "e": "The compliance API reports status per device and category, including running configuration, images and PSIRTs. Reachability and health don't show configuration drift."
+ },
+ {
+  "g": 3,
+  "t": "3.5",
+  "p": "A script must block one client from a Meraki network. Which call does that?",
+  "o": [
+   "DELETE /networks/{networkId}/clients/{clientId}, which bans the client",
+   "PUT /devices/{serial}/switch/ports/{portId} with enabled set to false, for every port",
+   "POST /networks/{networkId}/clients/{clientId}/quarantine",
+   "PUT /networks/{networkId}/clients/{clientId}/policy with devicePolicy set to Blocked"
+  ],
+  "a": 3,
+  "e": "The client policy endpoint sets a client to Normal, Whitelisted, Blocked or Group policy. There's no client delete or quarantine call, and disabling ports affects everyone on them."
+ },
+ {
+  "g": 3,
+  "t": "3.5",
+  "p": "Which two statements describe ISE pxGrid 2.0? (Choose two.)",
+  "o": [
+   "Clients are approved accounts that discover services over REST and subscribe over WebSocket",
+   "It's the ISE REST API for creating endpoints and network devices, and it listens on TCP port 9060",
+   "Clients subscribe to topics such as session updates and receive changes as they happen",
+   "It only works with Cisco products, so other vendors' SIEMs can't use it",
+   "It works by polling, so it needs a script that runs every few minutes"
+  ],
+  "a": [
+   0,
+   2
+  ],
+  "e": "pxGrid shares context in real time through publish and subscribe. ERS on port 9060 is the configuration API, and many third-party products integrate through pxGrid.",
+  "y": "m"
+ },
+ {
+  "g": 3,
+  "t": "3.6",
+  "p": "Why does r.json() fail although the status is 200?",
+  "o": [
+   "The XSRF token is missing, which makes every GET request return HTML",
+   "The device list is too large, so it must be read with stream=True",
+   "The login failed, so SD-WAN Manager returned its HTML login page instead of JSON",
+   "SD-WAN Manager returns XML unless the Accept header asks for JSON"
+  ],
+  "a": 2,
+  "e": "A failed j_security_check login doesn't raise an error, and later calls get the HTML login page with status 200. Check that the login response body is empty and that a JSESSIONID cookie was set.",
+  "c": "s = requests.Session()\ns.post(f\"{base}/j_security_check\",\n       data={\"j_username\": user, \"j_password\": \"wrong-pass\"}, verify=\"ca.pem\")\nr = s.get(f\"{base}/dataservice/device\", verify=\"ca.pem\")\nprint(r.status_code)   # 200\nr.json()               # JSONDecodeError"
+ },
+ {
+  "g": 3,
+  "t": "3.6",
+  "p": "A Catalyst Center script raises SSLError: CERTIFICATE_VERIFY_FAILED. The controller's certificate comes from the company's internal CA. What's the right fix?",
+  "o": [
+   "Pass the internal CA bundle with verify=\"corp-ca.pem\", or add the CA to the trust store",
+   "Get a new token, because expired tokens cause certificate errors",
+   "Change the base URL to http:// so no certificate is needed",
+   "Set verify=False on every request, which is safe on internal networks"
+  ],
+  "a": 0,
+  "e": "The client won't trust the internal CA until it's given that CA. Turning off verification exposes credentials to interception, and an expired token gives 401, not a TLS error."
+ },
+ {
+  "g": 4,
+  "t": "4.1",
+  "p": "In what order does AEtest run these sections?",
+  "o": [
+   "CommonSetup, then BgpCheck, then CommonCleanup",
+   "Alphabetically by class: BgpCheck, CommonCleanup, then CommonSetup",
+   "BgpCheck, then CommonSetup, then CommonCleanup",
+   "BgpCheck only, because setup and cleanup sections must be called by hand"
+  ],
+  "a": 0,
+  "e": "AEtest always runs CommonSetup first and CommonCleanup last, with the Testcases in between in the order they're defined.",
+  "c": "from pyats import aetest\n\nclass CommonSetup(aetest.CommonSetup):\n    @aetest.subsection\n    def connect(self, testbed):\n        # Purpose: connect to every device once before testing\n        testbed.connect()\n\nclass BgpCheck(aetest.Testcase):\n    @aetest.test\n    def neighbors_up(self, testbed):\n        # Purpose: fail if any BGP neighbor isn't established\n        ...\n\nclass CommonCleanup(aetest.CommonCleanup):\n    @aetest.subsection\n    def disconnect(self, testbed):\n        # Purpose: close every connection after testing\n        for d in testbed.devices.values():\n            d.disconnect()"
+ },
+ {
+  "g": 4,
+  "t": "4.1",
+  "p": "What does dev.parse() return here?",
+  "o": [
+   "A pandas DataFrame with one row for each OSPF neighbor and one column for each field",
+   "The raw CLI text, split into a list of lines",
+   "An XML element tree read from the device over NETCONF",
+   "A nested dict from a Genie parser, so fields are read by key"
+  ],
+  "a": 3,
+  "e": "Genie parsers turn show output into dictionaries that follow a schema, so scripts don't need their own screen scraping. The connection is still the CLI.",
+  "c": "out = dev.parse(\"show ip ospf neighbor\")\nfor intf, data in out[\"interfaces\"].items():\n    for nbr, info in data[\"neighbors\"].items():\n        print(intf, nbr, info[\"state\"])"
+ },
+ {
+  "g": 4,
+  "t": "4.2",
+  "p": "Automation tools on the corporate network must reach routers running in a CML lab. Which CML feature provides that?",
+  "o": [
+   "Nothing, because CML lab devices are always reachable from the LAN",
+   "An external connector node, in bridge or NAT mode",
+   "A pyATS node placed inside the lab, which proxies traffic into it",
+   "An unmanaged switch node, which forwards lab traffic to the internet"
+  ],
+  "a": 1,
+  "e": "External connectors link a lab to the outside network in bridge or NAT mode. Unmanaged switches only connect nodes inside the lab."
+ },
+ {
+  "g": 4,
+  "t": "4.2",
+  "p": "Put the steps of a CI pipeline that tests a change in a CML lab in order.",
+  "o": [
+   "1, 3, 4, 2",
+   "3, 1, 2, 4",
+   "3, 1, 4, 2",
+   "3, 4, 1, 2"
+  ],
+  "a": 2,
+  "e": "Tests only make sense once the nodes have converged, and the lab is removed at the end so it doesn't hold resources.",
+  "y": "o",
+  "s": [
+   "Wait until the nodes have booted and the routing has converged",
+   "Stop, wipe and remove the lab",
+   "Import the topology and start the lab",
+   "Run the pyATS tests against the lab devices"
+  ]
+ },
+ {
+  "g": 4,
+  "t": "4.3",
+  "p": "A golden image has been distributed to a group of switches through Catalyst Center. Which API call installs it and reloads them?",
+  "o": [
+   "POST /dna/intent/api/v1/image/importation/source/url",
+   "POST /dna/intent/api/v1/image/distribution",
+   "POST /dna/intent/api/v1/image/activation/device",
+   "PUT /dna/intent/api/v1/network-device/sync"
+  ],
+  "a": 2,
+  "e": "Activation installs the image and reloads the device, usually in a scheduled window. Importation loads the image into the repository, distribution copies it to devices, and sync only refreshes inventory."
+ },
+ {
+  "g": 4,
+  "t": "4.3",
+  "p": "An SD-WAN Manager software upgrade request returns an action ID. How does a script find out whether the upgrade worked?",
+  "o": [
+   "Read the ID as the new software version that the edge router is now running",
+   "Wait for the edge to reboot, because the Manager has no status API for upgrades",
+   "Poll GET /dataservice/device/action/status/{id} until the action finishes",
+   "Call GET /dataservice/client/token with the ID to read the action log"
+  ],
+  "a": 2,
+  "e": "Device actions such as upgrades run asynchronously, and the action status endpoint reports their progress and result for each device."
+ },
+ {
+  "g": 4,
+  "t": "4.4",
+  "p": "A dashboard needs counts of healthy and poor wired and wireless clients across the network from Catalyst Center. Which API fits?",
+  "o": [
+   "GET /dna/intent/api/v1/client-health",
+   "GET /dna/intent/api/v1/client-detail",
+   "GET /dna/intent/api/v1/network-device",
+   "GET /dna/intent/api/v1/topology/physical-topology"
+  ],
+  "a": 0,
+  "e": "client-health returns overall scores and counts by client type. client-detail covers one client by MAC address, and the others return inventory and topology."
+ },
+ {
+  "g": 4,
+  "t": "4.4",
+  "p": "Users report slow access to a SaaS application from one branch. Which platform's API can show where along the path the latency and loss appear?",
+  "o": [
+   "pyATS, which learns the SaaS provider's routing tables",
+   "ThousandEyes, from agent-to-server test results",
+   "Meraki's device statuses API, which reports latency to every SaaS application",
+   "Catalyst Center's site-health API, which measures internet paths hop by hop"
+  ],
+  "a": 1,
+  "e": "ThousandEyes agents test toward the application and report path visualization with per-hop latency and loss, including across networks you don't own."
+ },
+ {
+  "g": 4,
+  "t": "4.5",
+  "p": "What does update-policy on-change do in this subscription?",
+  "o": [
+   "It sends updates on a fixed default period of 5 seconds",
+   "It turns the subscription on only after the receiver's address changes",
+   "It sends the whole interface table whenever any configuration changes",
+   "It sends an update when an interface's oper-status changes, instead of on a timer"
+  ],
+  "a": 3,
+  "e": "On-change subscriptions push data when the value changes, and only work for paths that support on-change. Periodic subscriptions use update-policy periodic with an interval in centiseconds.",
+  "c": "telemetry ietf subscription 210\n encoding encode-kvgpb\n filter xpath /interfaces-ios-xe-oper:interfaces/interface/oper-status\n stream yang-push\n update-policy on-change\n receiver ip address 10.9.0.50 57000 protocol grpc-tcp"
+ },
+ {
+  "g": 4,
+  "t": "4.5",
+  "p": "A configured telemetry subscription is created over RESTCONF with the Cisco-IOS-XE-mdt-cfg model instead of the CLI. How does it behave?",
+  "o": [
+   "It can only use NETCONF as the transport for its telemetry updates",
+   "Like a dynamic subscription: it ends when the RESTCONF request completes",
+   "It streams the data back in the RESTCONF response instead of to a receiver",
+   "Like a CLI one: it's saved in the running configuration and dials out to its receiver"
+  ],
+  "a": 3,
+  "e": "The CLI, NETCONF and RESTCONF all edit the same configuration, so the subscription persists and dials out. Only establish-subscription creates a dynamic, session-bound subscription."
+ },
+ {
+  "g": 4,
+  "t": "4.6",
+  "p": "Put the steps of Meraki webhook alerting in order.",
+  "o": [
+   "1, 3, 4, 2",
+   "3, 1, 2, 4",
+   "1, 3, 2, 4",
+   "1, 2, 3, 4"
+  ],
+  "a": 2,
+  "e": "Alerts can only target a webhook server once it's registered, and the receiver only gets payloads for alerts it's a recipient of.",
+  "y": "o",
+  "s": [
+   "Register the receiver's URL and shared secret as a webhook server in the network",
+   "An alert condition occurs, and Meraki POSTs the payload to the receiver",
+   "Add the webhook server as a recipient for the chosen alerts",
+   "The receiver checks the shared secret, then processes the alert"
+  ]
+ },
+ {
+  "g": 4,
+  "t": "4.6",
+  "p": "A Catalyst Center webhook receiver takes 30 seconds to process each event, and some events arrive twice. Which two changes help? (Choose two.)",
+  "o": [
+   "Return a 2xx response at once, and process the event from a queue",
+   "Ask Catalyst Center to send all events in one daily batch instead",
+   "Record each event's ID, and skip any event already processed",
+   "Change the destination to http://, so the controller can send faster",
+   "Return 500 after processing, so the controller knows it was handled"
+  ],
+  "a": [
+   0,
+   2
+  ],
+  "e": "Senders retry when a reply is slow or missing, which causes duplicates. Acknowledge quickly, process asynchronously, and make processing idempotent by event ID.",
+  "y": "m"
+ },
+ {
+  "g": 5,
+  "t": "5.1",
+  "p": "What does AI Endpoint Analytics in Catalyst Center do?",
+  "o": [
+   "It classifies endpoints using telemetry and ML, and can share the labels with ISE for policy",
+   "It replaces 802.1X by letting endpoints join once they're classified",
+   "It predicts hardware failures from each switch's age and the warranty data in inventory",
+   "It writes switch configuration for new endpoints and pushes it without review"
+  ],
+  "a": 0,
+  "e": "Endpoint Analytics profiles devices from many signals, including deep packet inspection and ML grouping, so policy can depend on what a device is. It doesn't replace authentication or change configuration by itself."
+ },
+ {
+  "g": 5,
+  "t": "5.1",
+  "p": "Which two are realistic uses of AI in controller-based platforms such as Catalyst Center, Meraki and ThousandEyes? (Choose two.)",
+  "o": [
+   "Giving the assistant more rights than the admin who's using it",
+   "Guaranteeing that no outages occur, so change windows and rollback plans aren't needed",
+   "Answering natural-language questions about the network from controller data",
+   "Learning normal behavior and raising issues when metrics deviate from it",
+   "Predicting device state without any telemetry, so collection can stop"
+  ],
+  "a": [
+   2,
+   3
+  ],
+  "e": "Baselining with anomaly detection, and assistants that query controller data, are common features. They still depend on telemetry and the user's permissions, and they don't guarantee uptime.",
+  "y": "m"
+ },
+ {
+  "g": 5,
+  "t": "5.2",
+  "p": "An AI assistant generated this function. What should a reviewer require before it's used?",
+  "o": [
+   "Add a comment saying the code was AI-generated, so that it's safe to run",
+   "Load credentials from a vault or environment, and verify TLS with the device CA",
+   "Nothing, because the assistant tested the code before it showed it",
+   "Replace PATCH with PUT, because PUT is always safer for VLAN changes"
+  ],
+  "a": 1,
+  "e": "Hard-coded credentials and verify=False are common in generated code. Review it as you would code from any other author, then test it in a lab.",
+  "c": "def push_vlan(host, vlan):\n    # Purpose: create a VLAN through RESTCONF\n    url = f\"https://{host}/restconf/data/Cisco-IOS-XE-native:native/vlan\"\n    return requests.patch(url, auth=(\"admin\", \"Cisco123!\"), verify=False,\n                          headers=HDRS, json=vlan_body(vlan))"
+ },
+ {
+  "g": 5,
+  "t": "5.2",
+  "p": "How can a team validate an AI-generated function that parses show output, without touching any devices?",
+  "o": [
+   "Write unit tests that feed it saved outputs and check the parsed results",
+   "Run it once in production during a quiet period and watch for errors",
+   "Ask the same assistant whether the function is correct, and accept a yes",
+   "Check that the code runs without syntax errors, which shows that it parses correctly"
+  ],
+  "a": 0,
+  "e": "Saved outputs, including edge cases, make tests repeatable and safe. Asking the model to grade its own work, or only checking syntax, doesn't show the logic is right."
+ },
+ {
+  "g": 5,
+  "t": "5.3",
+  "p": "An engineer wants to add a third-party MCP server found online to an agent that holds Catalyst Center credentials. Which two controls reduce the risk? (Choose two.)",
+  "o": [
+   "Give it separate read-only credentials and limit its network access",
+   "Review the server's code and pin a known version before installing it",
+   "Let it update itself to the newest version on every start, for its fixes",
+   "Trust its tool descriptions, since they come from the server's own author",
+   "Share the agent's admin token with it, so it never fails for missing rights"
+  ],
+  "a": [
+   0,
+   1
+  ],
+  "e": "A malicious or compromised server can steal credentials or hide instructions in its tool descriptions (tool poisoning). Vet and pin it, and limit what it can reach.",
+  "y": "m"
+ },
+ {
+  "g": 5,
+  "t": "5.3",
+  "p": "An AI troubleshooting assistant answers from an internal wiki that anyone can edit, and engineers act on its advice. What's the main risk?",
+  "o": [
+   "The assistant will refuse to answer questions that the wiki doesn't cover",
+   "Someone can plant false or harmful steps in the wiki, which the assistant repeats",
+   "The wiki's pages will make the model respond more slowly than usual",
+   "The wiki will use up the model's licence quota faster than device data does"
+  ],
+  "a": 1,
+  "e": "This is data poisoning of the assistant's knowledge source. Control who can edit it, review changes, and keep people verifying actions."
+ },
+ {
+  "g": 5,
+  "t": "5.4",
+  "p": "How does an AI client use this?",
+  "o": [
+   "It reads inventory://{site}/devices literally, which returns every site at once",
+   "It can't, because MCP resources can't take any parameters",
+   "It calls site_devices as a tool, with site in the tool's arguments",
+   "It reads a URI such as inventory://akl/devices, and FastMCP passes akl as site"
+  ],
+  "a": 3,
+  "e": "A URI with placeholders makes a resource template. The values in the URI are passed to the matching function parameters, and the result comes back as resource content.",
+  "c": "@mcp.resource(\"inventory://{site}/devices\")\ndef site_devices(site: str) -> list[dict]:\n    \"\"\"List the devices at one site.\"\"\"\n    # Purpose: return the device list for one site\n    return lookup_site(site)"
+ },
+ {
+  "g": 5,
+  "t": "5.4",
+  "p": "A FastMCP server must be reachable by agents running on other machines. How should it be run?",
+  "o": [
+   "As a cron job that writes tool results to a shared folder",
+   "mcp.run(transport=\"stdio\", port=8000), which listens on the network",
+   "mcp.run() with the default stdio transport, with its port opened in the firewall",
+   "mcp.run(transport=\"http\", port=8000), behind TLS and authentication"
+  ],
+  "a": 3,
+  "e": "stdio connects one local client that starts the server as a subprocess. HTTP (streamable HTTP) serves remote clients, and it should be protected like any other API."
+ },
+ {
+  "g": 5,
+  "t": "5.4",
+  "p": "Which arguments appear in this tool's input schema for the AI client?",
+  "o": [
+   "host and ctx, so the client has to build a Context object and send it with each call",
+   "None, because async tools don't publish an input schema",
+   "Only ctx, because host is read from the docstring",
+   "Only host, because FastMCP injects ctx and leaves it out of the schema"
+  ],
+  "a": 3,
+  "e": "FastMCP recognizes the Context type hint and fills it in at call time, giving the tool logging and progress methods. Only the other parameters become tool arguments.",
+  "c": "from fastmcp import FastMCP, Context\n\nmcp = FastMCP(\"netops\")\n\n@mcp.tool()\nasync def ping_device(host: str, ctx: Context) -> str:\n    \"\"\"Ping a device from the automation server.\"\"\"\n    # Purpose: ping one device and report the result\n    await ctx.info(f\"pinging {host}\")\n    return await run_ping(host)"
+ }
+]

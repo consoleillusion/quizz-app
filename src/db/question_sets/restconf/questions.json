@@ -1,0 +1,933 @@
+[
+ {
+  "g": 1,
+  "t": "1.2",
+  "p": "Match each GET query parameter with its effect.",
+  "o": [
+   "1-c, 2-a, 3-b, 4-d",
+   "1-a, 2-b, 3-c, 4-d",
+   "1-d, 2-b, 3-a, 4-c",
+   "1-c, 2-b, 3-a, 4-d"
+  ],
+  "a": 3,
+  "e": "content takes config, nonconfig or all (the default). depth counts the target as level 1. fields picks descendants, with ; separating them and parentheses grouping a node's children. with-defaults=report-all adds default leaves that the server would otherwise leave out.",
+  "y": "x",
+  "s": [
+   "content=nonconfig",
+   "depth=2",
+   "fields=interface(name;enabled)",
+   "with-defaults=report-all"
+  ],
+  "r": [
+   "Returns only the named descendants of the target",
+   "Returns the target and its direct children, but nothing deeper",
+   "Returns only state data, without configuration",
+   "Also returns leaves that are still at their YANG default"
+  ]
+ },
+ {
+  "g": 1,
+  "t": "1.2",
+  "p": "Which request runs the ping RPC?",
+  "o": [
+   "POST /restconf/data/example-net:ping",
+   "POST /restconf/operations/example-net:ping",
+   "GET /restconf/operations/example-net:ping?destination=10.1.1.1",
+   "PUT /restconf/operations/example-net:ping"
+  ],
+  "a": 1,
+  "e": "RPCs are invoked with POST under /restconf/operations, with any input in an example-net:input body. Actions, which belong to a data node, are POSTed to that node's URL under /restconf/data. A GET on an operation resource returns 405.",
+  "c": "module: example-net\n  ...\n  rpcs:\n    +---x ping\n       +---w input\n       |  +---w destination    string\n       |  +---w count?         uint8\n       +--ro output\n          +--ro success-rate?   uint8"
+ },
+ {
+  "g": 1,
+  "t": "1.2",
+  "p": "Loopback99 doesn't exist yet. What does this request do?",
+  "o": [
+   "It creates Loopback99 and returns 201 Created with the new entry's URL in a Location header",
+   "It fails, because PATCH never creates its target. A PATCH to the interfaces container could create the entry.",
+   "It fails with 409 Conflict, because PATCH can only change leaves that already hold a value",
+   "It creates Loopback99, because PATCH merges the body into the datastore whether or not the target already exists"
+  ],
+  "a": 1,
+  "e": "RFC 8040 says that if the PATCH target doesn't exist, the server must not create it. Merging into a parent that does exist can create children, so PATCH the interfaces container, or use PUT or POST.",
+  "c": "PATCH /restconf/data/ietf-interfaces:interfaces/interface=Loopback99\nContent-Type: application/yang-data+json\n\n{\"ietf-interfaces:interface\": [{\"name\": \"Loopback99\",\n  \"type\": \"iana-if-type:softwareLoopback\", \"description\": \"TEST\"}]}"
+ },
+ {
+  "g": 1,
+  "t": "1.2",
+  "p": "Which two statements about RESTCONF PUT are true? (Choose two.)",
+  "o": [
+   "It returns 409 Conflict when the target resource already exists",
+   "If the target doesn't exist, PUT creates it",
+   "insert and point can position a new entry in an ordered-by user list",
+   "Sending a different key value in the body renames the list entry",
+   "It merges the body into the target, keeping child nodes the body leaves out"
+  ],
+  "a": [
+   1,
+   2
+  ],
+  "e": "PUT creates or replaces its target. Like POST, it accepts insert and point for ordered-by user lists. It can't change keys: a body key that differs from the URL is a 400 error. 409 for an existing resource is POST behavior, and merging is PATCH.",
+  "y": "m"
+ },
+ {
+  "g": 1,
+  "t": "1.2",
+  "p": "A client sends OPTIONS to a RESTCONF data resource. Which response header lists the methods it can use there?",
+  "o": [
+   "Access-Control-Allow-Methods",
+   "Content-Type",
+   "Accept-Patch",
+   "Allow"
+  ],
+  "a": 3,
+  "e": "Allow lists the methods, such as GET, HEAD, OPTIONS, POST, PUT, PATCH and DELETE. Accept-Patch, which RFC 8040 also requires in the OPTIONS response, lists the media types PATCH accepts, not the methods. Access-Control-Allow-Methods is a CORS header for browsers."
+ },
+ {
+  "g": 1,
+  "t": "1.2",
+  "p": "A script must check whether Loopback50 exists on hundreds of switches without downloading its configuration. Which request fits?",
+  "o": [
+   "HEAD on the entry's URL: same status as a GET, 200 or 404, but no body",
+   "OPTIONS on the entry's URL, which returns 404 if missing and its leaf names if present",
+   "GET on the entry's URL with depth=0, which returns the status code and an empty body",
+   "POST to the entry's URL with an empty body, which returns 409 Conflict if it exists"
+  ],
+  "a": 0,
+  "e": "HEAD must behave exactly like GET without the message body, so the status code answers the question. depth starts at 1, and a POST risks creating data."
+ },
+ {
+  "g": 1,
+  "t": "1.2",
+  "p": "Before using with-defaults, a script checks whether the server supports it. Which request shows that?",
+  "o": [
+   "OPTIONS /restconf/data, then look for with-defaults in the Allow header",
+   "GET /restconf/yang-library-version, and compare its revision date",
+   "GET /.well-known/host-meta, then read the capability links it returns",
+   "GET /restconf/data/ietf-restconf-monitoring:restconf-state/capabilities"
+  ],
+  "a": 3,
+  "e": "Optional query parameters are advertised as capability URIs, such as urn:ietf:params:restconf:capability:with-defaults:1.0, in restconf-state/capabilities. host-meta only gives the API root, and yang-library-version only gives the YANG library revision."
+ },
+ {
+  "g": 1,
+  "t": "1.2",
+  "p": "The rule list is ordered-by user, and ACL EDGE has rules 10, 20 and 30. The body holds rule 15. Which POST adds it directly before rule 20?",
+  "o": [
+   "s.post(url, json=body,\n       params={\"insert\": \"before\",\n               \"point\": \"20\", \"key\": \"seq\"})",
+   "s.post(url, json=body,\n       params={\"insert\": \"first\",\n               \"point\": \"/example-net:acls/acl=EDGE\"})",
+   "s.post(url, json=body,\n       params={\"insert\": \"before\",\n               \"point\": \"/example-net:acls/acl=EDGE/rule=20\"})",
+   "s.post(url + \"/rule=20\", json=body,\n       params={\"insert\": \"before\",\n               \"point\": \"rule=20\"})"
+  ],
+  "a": 2,
+  "e": "insert takes first, last, before or after. before and after need point, which names the existing entry by its full path, not by its key alone. In an ordered-by user list, position is set by insert, not by the seq values.",
+  "c": "  +--rw acls\n     +--rw acl* [name]\n        +--rw name    string\n        +--rw rule* [seq]\n           +--rw seq       uint16\n           +--rw action?   enumeration\n           +--rw source?   string\n\nurl = base + \"/example-net:acls/acl=EDGE\""
+ },
+ {
+  "g": 1,
+  "t": "1.2",
+  "p": "Two automation jobs edit the same NTP configuration. Put the steps in order so neither job can silently overwrite the other's change.",
+  "o": [
+   "3, 2, 1, 4",
+   "2, 3, 1, 4",
+   "2, 3, 4, 1",
+   "2, 1, 3, 4"
+  ],
+  "a": 1,
+  "e": "The entity tag identifies the version that was read. If another client changed the resource since, the server rejects the If-Match edit with 412, and the job re-reads instead of overwriting. RESTCONF has no lock operation.",
+  "y": "o",
+  "s": [
+   "PUT the changed body with If-Match set to the saved value",
+   "GET the resource and save its ETag response header",
+   "Change the body locally",
+   "On 412 Precondition Failed, start again from the GET"
+  ]
+ },
+ {
+  "g": 1,
+  "t": "1.2",
+  "p": "What is the smallest depth value that makes this request return every interface's name?",
+  "o": [
+   "2",
+   "4",
+   "3",
+   "1"
+  ],
+  "a": 2,
+  "e": "The target, interfaces, is level 1. Each interface entry is level 2, and its leaves, including name, are level 3. Nodes deeper than depth aren't returned.",
+  "c": "GET /restconf/data/ietf-interfaces:interfaces?depth=?"
+ },
+ {
+  "g": 1,
+  "t": "1.2",
+  "p": "In one request, a change must delete Loopback1 and create Loopback2, so that both happen or neither does. No other interface may change. Which approach fits?",
+  "o": [
+   "A DELETE of Loopback1, then a POST of Loopback2, on the same Session so they share a transaction",
+   "A YANG Patch (application/yang-patch+json) with a delete edit and a create edit",
+   "A plain PATCH to the interfaces container, with Loopback2 in the body and Loopback1 left out",
+   "A PUT to the interfaces container, with only Loopback2 in the body"
+  ],
+  "a": 1,
+  "e": "YANG Patch (RFC 8072) carries an ordered list of edits, each with its own operation, applied as one unit. A plain PATCH only merges, so leaving Loopback1 out doesn't delete it. Separate requests are separate transactions, and PUT on the container would also remove every other interface."
+ },
+ {
+  "g": 1,
+  "t": "1.2",
+  "p": "Which request lists the RPCs a RESTCONF server supports?",
+  "o": [
+   "GET /restconf/data?content=nonconfig",
+   "OPTIONS /restconf/data",
+   "GET /restconf/data/ietf-restconf-monitoring:restconf-state/streams",
+   "GET /restconf/operations"
+  ],
+  "a": 3,
+  "e": "The operations resource has one child for each RPC the server implements. content=nonconfig returns state data, the streams list is for event notifications, and OPTIONS returns methods."
+ },
+ {
+  "g": 1,
+  "t": "1.3",
+  "p": "Which body is valid for this request?",
+  "o": [
+   "\"CORE1\"",
+   "{\"Cisco-IOS-XE-native:native\": {\"hostname\": \"CORE1\"}}",
+   "{\"Cisco-IOS-XE-native:hostname\": \"CORE1\"}",
+   "{\"hostname\": \"CORE1\"}"
+  ],
+  "a": 2,
+  "e": "The body represents the target itself, here the hostname leaf. As the top-level member, it needs its module name. A body wrapped in native would describe the parent, not the target.",
+  "c": "PUT /restconf/data/Cisco-IOS-XE-native:native/hostname\nContent-Type: application/yang-data+json"
+ },
+ {
+  "g": 1,
+  "t": "1.3",
+  "p": "In the native model, Loopback is a list keyed by name, a uint32. Which body creates Loopback60 with this request?",
+  "o": [
+   "{\"Loopback\": [{\"name\": 60, \"description\": \"MGMT\"}]}",
+   "{\"Cisco-IOS-XE-native:Loopback\": [{\"name\": \"Loopback60\", \"description\": \"MGMT\"}]}",
+   "{\"Cisco-IOS-XE-native:Loopback\": [{\"name\": 60, \"description\": \"MGMT\"}]}",
+   "{\"Cisco-IOS-XE-native:interface\": {\"Loopback\": [{\"name\": 60, \"description\": \"MGMT\"}]}}"
+  ],
+  "a": 2,
+  "e": "A POST body is the child being created, not the target, and its top-level member is module-qualified. The key is the loopback number, a uint32, so it's 60 rather than Loopback60.",
+  "c": "POST /restconf/data/Cisco-IOS-XE-native:native/interface\nContent-Type: application/yang-data+json"
+ },
+ {
+  "g": 1,
+  "t": "1.3",
+  "p": "Which response matches this request?",
+  "o": [
+   "{\"interface\": [\n  {\"name\": \"Gi1\", \"enabled\": true},\n  {\"name\": \"Lo0\", \"enabled\": true}]}",
+   "{\"ietf-interfaces:interfaces\": {\"interface\": [\n  {\"name\": \"Gi1\", \"enabled\": true, \"type\": \"iana-if-type:ethernetCsmacd\"},\n  {\"name\": \"Lo0\", \"enabled\": true, \"type\": \"iana-if-type:softwareLoopback\"}]}}",
+   "[{\"name\": \"Gi1\", \"enabled\": true},\n {\"name\": \"Lo0\", \"enabled\": true}]",
+   "{\"ietf-interfaces:interfaces\": {\"interface\": [\n  {\"name\": \"Gi1\", \"enabled\": true},\n  {\"name\": \"Lo0\", \"enabled\": true}]}}"
+  ],
+  "a": 3,
+  "e": "fields trims what comes back, but the response is still rooted at the target, interfaces, with its module-qualified name. Each entry holds only the selected leaves, so type isn't included.",
+  "c": "GET /restconf/data/ietf-interfaces:interfaces?fields=interface(name;enabled)"
+ },
+ {
+  "g": 1,
+  "t": "1.3",
+  "p": "The server leaf-list already holds 10.1.1.1. What does it hold after this request?",
+  "o": [
+   "10.1.1.1 and 10.2.2.2",
+   "Only 10.1.1.1, because a PATCH can't add new values to an existing leaf-list",
+   "Only 10.2.2.2, because a leaf-list in a PATCH body replaces the whole leaf-list",
+   "Nothing changes, and the server returns an error, because leaf-list values go one per request"
+  ],
+  "a": 0,
+  "e": "A plain PATCH merges. For a leaf-list, merging adds the values in the body and keeps the rest. To replace them all, PUT the dns container. To remove one value, DELETE .../dns/server=10.1.1.1.",
+  "c": "PATCH /restconf/data/example-net:system/dns\n\n{\"example-net:dns\": {\"server\": [\"10.2.2.2\"]}}"
+ },
+ {
+  "g": 1,
+  "t": "1.3",
+  "p": "Loopback5 has an empty ipv4 container. Which body adds 10.5.5.5/32 with this request?",
+  "o": [
+   "{\"address\": [{\"ip\": \"10.5.5.5\", \"prefix-length\": 32}]}",
+   "{\"ietf-interfaces:address\": [{\"ip\": \"10.5.5.5\", \"prefix-length\": 32}]}",
+   "{\"ietf-ip:address\": [{\"ip\": \"10.5.5.5\", \"prefix-length\": 32}]}",
+   "{\"ietf-ip:address\": [{\"ip\": \"10.5.5.5\", \"subnet\": {\"prefix-length\": 32}}]}"
+  ],
+  "a": 2,
+  "e": "The body's top-level member is always module-qualified, and address belongs to ietf-ip. Its children are in the same module, so they aren't qualified. Choice and case names, like subnet, never appear in data.",
+  "c": "module: ietf-interfaces\n  +--rw interfaces\n     +--rw interface* [name]\n        +--rw name                        string\n        +--rw description?                string\n        +--rw type                        identityref\n        +--rw enabled?                    boolean\n        +--ro oper-status                 enumeration\n        ...\n        +--rw ip:ipv4!\n        |  +--rw ip:enabled?      boolean\n        |  +--rw ip:forwarding?   boolean\n        |  +--rw ip:mtu?          uint16\n        |  +--rw ip:address* [ip]\n        |  |  +--rw ip:ip                     inet:ipv4-address-no-zone\n        |  |  +--rw (ip:subnet)\n        |  |  |  +--:(ip:prefix-length)\n        |  |  |  |  +--rw ip:prefix-length?   uint8\n        |  |  |  +--:(ip:netmask)\n        |  |  |     +--rw ip:netmask?         yang:dotted-quad\n        ...\n\nPOST /restconf/data/ietf-interfaces:interfaces/interface=Loopback5/ietf-ip:ipv4"
+ },
+ {
+  "g": 1,
+  "t": "1.3",
+  "p": "Fill the gaps so this request sets the administrative distance of the route to 10.0.0.0/8 via 192.0.2.1 to 200.",
+  "c": "module: example-net\n  +--rw routing\n  |  +--rw route* [prefix next-hop]\n  |     +--rw prefix      string\n  |     +--rw next-hop    string\n  |     +--rw distance?   uint8\n  +--rw system\n  |  +--rw hostname?   string\n  |  +--rw dns\n  |     +--rw domain?   string\n  |     +--rw server*   string\n  +--rw mgmt\n  |  +--rw (method)?\n  |  |  +--:(static)\n  |  |  |  +--rw ip?              string\n  |  |  |  +--rw prefix-length?   uint8\n  |  |  +--:(dynamic)\n  |  |     +--rw dhcp?            empty\n  |  +--ro stats\n  |     +--ro in-octets?    uint64\n  |     +--ro out-octets?   uint64\n\nPATCH /restconf/data/example-net:⟦1⟧\n{\"⟦2⟧\": {\"⟦3⟧\": [{\"prefix\": \"10.0.0.0/8\",\n                   \"next-hop\": \"192.0.2.1\",\n                   \"distance\": ⟦4⟧}]}}",
+  "bank": [
+   "[200]",
+   "\"200\"",
+   "routing",
+   "example-net:routing",
+   "route",
+   "10.0.0.0%2F8",
+   "200",
+   "example-net:route"
+  ],
+  "a": [
+   "routing",
+   "example-net:routing",
+   "route",
+   "200"
+  ],
+  "e": "The target is routing, so the body starts with it, module-qualified. route is a list, so its entries go in an array, and key values in a body are plain strings: %2F encoding is only for URLs. distance is a uint8, so it's a JSON number.",
+  "y": "g"
+ },
+ {
+  "g": 1,
+  "t": "1.4",
+  "p": "Which body creates Loopback61 with this request?",
+  "o": [
+   "<config>\n  <Loopback xmlns=\"http://cisco.com/ns/yang/Cisco-IOS-XE-native\">\n    <name>61</name>\n  </Loopback>\n</config>",
+   "<Loopback xmlns=\"http://cisco.com/ns/yang/Cisco-IOS-XE-native\">\n  <name>61</name>\n</Loopback>",
+   "<Loopback xmlns=\"Cisco-IOS-XE-native\">\n  <name>61</name>\n</Loopback>",
+   "<Cisco-IOS-XE-native:Loopback>\n  <name>61</name>\n</Cisco-IOS-XE-native:Loopback>"
+  ],
+  "a": 1,
+  "e": "In XML, the module is identified by its namespace URI in xmlns, not by its name. RESTCONF bodies have no <config> wrapper; that belongs to NETCONF's edit-config. The module-name: form is JSON only.",
+  "c": "POST /restconf/data/Cisco-IOS-XE-native:native/interface\nContent-Type: application/yang-data+xml"
+ },
+ {
+  "g": 1,
+  "t": "1.4",
+  "p": "The request was sent with Accept: application/yang-data+xml. Which expression returns MGMT?",
+  "o": [
+   "root.find(\"{urn:ietf:params:xml:ns:yang:ietf-interfaces}description\").text",
+   "root.find(\"{ietf-interfaces}description\").text",
+   "root.find(\"interface/description\").text",
+   "root.find(\"description\", namespaces={\"if\": \"urn:ietf:params:xml:ns:yang:ietf-interfaces\"}).text"
+  ],
+  "a": 0,
+  "e": "The default namespace applies to every child, so find needs {uri}name, using the namespace URI, not the module name. A namespaces= map only helps if the path uses its prefix, as in if:description. A bare name only matches elements with no namespace, and root is already the interface element.",
+  "c": "# r.text\n<interface xmlns=\"urn:ietf:params:xml:ns:yang:ietf-interfaces\">\n  <name>Loopback5</name>\n  <description>MGMT</description>\n</interface>\n\nimport xml.etree.ElementTree as ET\nroot = ET.fromstring(r.text)"
+ },
+ {
+  "g": 1,
+  "t": "1.4",
+  "p": "Which body sets Loopback5's IPv4 MTU to 1400 with this request?",
+  "o": [
+   "<interface xmlns=\"urn:ietf:params:xml:ns:yang:ietf-interfaces\">\n  <name>Loopback5</name>\n  <ipv4 xmlns=\"urn:ietf:params:xml:ns:yang:ietf-ip\">\n    <mtu>1400</mtu>\n  </ipv4>\n</interface>",
+   "<ipv4 xmlns=\"urn:ietf:params:xml:ns:yang:ietf-ip\">\n  <mtu>1400</mtu>\n</ipv4>",
+   "<interface xmlns=\"urn:ietf:params:xml:ns:yang:ietf-ip\">\n  <name>Loopback5</name>\n  <ipv4>\n    <mtu>1400</mtu>\n  </ipv4>\n</interface>",
+   "<interface xmlns=\"urn:ietf:params:xml:ns:yang:ietf-interfaces\">\n  <name>Loopback5</name>\n  <ipv4>\n    <mtu>1400</mtu>\n  </ipv4>\n</interface>"
+  ],
+  "a": 0,
+  "e": "The body represents the target, the interface entry, in the ietf-interfaces namespace. ipv4 comes from the ietf-ip augment, so it needs its own xmlns, which its children inherit. A bare ipv4 would be an unknown element of ietf-interfaces, and a body of just ipv4 doesn't match the target.",
+  "c": "PATCH /restconf/data/ietf-interfaces:interfaces/interface=Loopback5\nContent-Type: application/yang-data+xml"
+ },
+ {
+  "g": 1,
+  "t": "1.5",
+  "p": "Which URL reads only Loopback1's IPv4 configuration and state?",
+  "o": [
+   "/restconf/data/ietf-interfaces:interfaces/interface=Loopback1/ipv4",
+   "/restconf/data/ietf-interfaces:interfaces/interface=Loopback1/ietf-ip:ipv4",
+   "/restconf/data/ietf-interfaces:interfaces/interface=Loopback1/ietf-interfaces:ipv4",
+   "/restconf/data/ietf-ip:interfaces/interface=Loopback1/ipv4"
+  ],
+  "a": 1,
+  "e": "A path segment needs the module name wherever the namespace changes, as it does at the ietf-ip augment. The tree shows the prefix ip:, but URLs use module names, not prefixes.",
+  "c": "module: ietf-interfaces\n  +--rw interfaces\n     +--rw interface* [name]\n        +--rw name                        string\n        +--rw description?                string\n        +--rw type                        identityref\n        +--rw enabled?                    boolean\n        +--ro oper-status                 enumeration\n        ...\n        +--rw ip:ipv4!\n        |  +--rw ip:enabled?      boolean\n        |  +--rw ip:forwarding?   boolean\n        |  +--rw ip:mtu?          uint16\n        |  +--rw ip:address* [ip]\n        |  |  +--rw ip:ip                     inet:ipv4-address-no-zone\n        |  |  +--rw (ip:subnet)\n        |  |  |  +--:(ip:prefix-length)\n        |  |  |  |  +--rw ip:prefix-length?   uint8\n        |  |  |  +--:(ip:netmask)\n        |  |  |     +--rw ip:netmask?         yang:dotted-quad\n        ..."
+ },
+ {
+  "g": 1,
+  "t": "1.5",
+  "p": "Which URL reads only the action of rule 20 in ACL EDGE?",
+  "o": [
+   "/restconf/data/example-net:acls/acl/EDGE/rule/20/action",
+   "/restconf/data/example-net:acls/acl=EDGE/rule/seq=20/action",
+   "/restconf/data/example-net:acls/acl=EDGE/rule=20/action",
+   "/restconf/data/example-net:acls/acl=EDGE,rule=20/action"
+  ],
+  "a": 2,
+  "e": "Each list in the path takes its key after =, as its own path segment: acl=EDGE, then rule=20. Commas only separate the values of a list with more than one key, and the key leaf's name never appears in the URL.",
+  "c": "module: example-net\n  ...\n  +--rw acls\n     +--rw acl* [name]\n        +--rw name    string\n        +--rw rule* [seq]\n           +--rw seq       uint16\n           +--rw action?   enumeration\n           +--rw source?   string"
+ },
+ {
+  "g": 1,
+  "t": "1.5",
+  "p": "Which request removes only 10.1.1.1 from the DNS servers, leaving the others?",
+  "o": [
+   "DELETE /restconf/data/example-net:system/dns/server[.='10.1.1.1']",
+   "DELETE /restconf/data/example-net:system/dns/server?value=10.1.1.1",
+   "PATCH /restconf/data/example-net:system/dns with {\"example-net:dns\": {\"server\": []}}",
+   "DELETE /restconf/data/example-net:system/dns/server=10.1.1.1"
+  ],
+  "a": 3,
+  "e": "Each leaf-list entry is a resource identified by its value after =, like a list key. A PATCH merges, so it can't remove anything, and XPath predicates aren't valid in RESTCONF URLs.",
+  "c": "module: example-net\n  +--rw routing\n  |  +--rw route* [prefix next-hop]\n  |     +--rw prefix      string\n  |     +--rw next-hop    string\n  |     +--rw distance?   uint8\n  +--rw system\n  |  +--rw hostname?   string\n  |  +--rw dns\n  |     +--rw domain?   string\n  |     +--rw server*   string\n  +--rw mgmt\n  |  +--rw (method)?\n  |  |  +--:(static)\n  |  |  |  +--rw ip?              string\n  |  |  |  +--rw prefix-length?   uint8\n  |  |  +--:(dynamic)\n  |  |     +--rw dhcp?            empty\n  |  +--ro stats\n  |     +--ro in-octets?    uint64\n  |     +--ro out-octets?   uint64"
+ },
+ {
+  "g": 1,
+  "t": "1.5",
+  "p": "Which request returns an error?",
+  "o": [
+   "GET /restconf/data/example-net:mgmt/stats",
+   "PATCH /restconf/data/example-net:mgmt with {\"example-net:mgmt\": {\"ip\": \"10.9.9.9\", \"prefix-length\": 24}}",
+   "PATCH /restconf/data/example-net:mgmt/stats with {\"example-net:stats\": {\"in-octets\": \"0\"}}",
+   "GET /restconf/data/example-net:mgmt?content=config"
+  ],
+  "a": 2,
+  "e": "stats is ro (config false), so it can be read but not edited. content=config is valid and just leaves stats out. ip is a writable leaf in the static case.",
+  "c": "module: example-net\n  +--rw routing\n  |  +--rw route* [prefix next-hop]\n  |     +--rw prefix      string\n  |     +--rw next-hop    string\n  |     +--rw distance?   uint8\n  +--rw system\n  |  +--rw hostname?   string\n  |  +--rw dns\n  |     +--rw domain?   string\n  |     +--rw server*   string\n  +--rw mgmt\n  |  +--rw (method)?\n  |  |  +--:(static)\n  |  |  |  +--rw ip?              string\n  |  |  |  +--rw prefix-length?   uint8\n  |  |  +--:(dynamic)\n  |  |     +--rw dhcp?            empty\n  |  +--ro stats\n  |     +--ro in-octets?    uint64\n  |     +--ro out-octets?   uint64"
+ },
+ {
+  "g": 1,
+  "t": "1.5",
+  "p": "Which URL reads the ip leaf?",
+  "o": [
+   "/restconf/data/example-net:mgmt/method/static/ip",
+   "/restconf/data/example-net:mgmt/static/ip",
+   "/restconf/data/example-net:mgmt/ip",
+   "/restconf/data/example-net:mgmt/(method)/ip"
+  ],
+  "a": 2,
+  "e": "Choices and cases are schema nodes only. They never appear in data, so they never appear in URLs or bodies.",
+  "c": "module: example-net\n  +--rw routing\n  |  +--rw route* [prefix next-hop]\n  |     +--rw prefix      string\n  |     +--rw next-hop    string\n  |     +--rw distance?   uint8\n  +--rw system\n  |  +--rw hostname?   string\n  |  +--rw dns\n  |     +--rw domain?   string\n  |     +--rw server*   string\n  +--rw mgmt\n  |  +--rw (method)?\n  |  |  +--:(static)\n  |  |  |  +--rw ip?              string\n  |  |  |  +--rw prefix-length?   uint8\n  |  |  +--:(dynamic)\n  |  |     +--rw dhcp?            empty\n  |  +--ro stats\n  |     +--ro in-octets?    uint64\n  |     +--ro out-octets?   uint64"
+ },
+ {
+  "g": 2,
+  "t": "2.3",
+  "p": "Fill the gaps so the session authenticates, sends and accepts YANG JSON, trusts the lab CA, and limits how long the call waits.",
+  "c": "s = requests.Session()\ns.⟦1⟧ = (\"netops\", password)\ns.⟦2⟧.update({\"Accept\": \"⟦3⟧\",\n              \"Content-Type\": \"⟦4⟧\"})\ns.⟦5⟧ = \"lab-ca.pem\"\nr = s.get(base + \"/Cisco-IOS-XE-native:native/hostname\", ⟦6⟧=(5, 30))",
+  "bank": [
+   "timeout",
+   "application/yang-data+json",
+   "cert",
+   "application/json",
+   "headers",
+   "auth",
+   "cookies",
+   "params",
+   "verify"
+  ],
+  "a": [
+   "auth",
+   "headers",
+   "application/yang-data+json",
+   "application/yang-data+json",
+   "verify",
+   "timeout"
+  ],
+  "e": "auth sets basic authentication for every request, and session headers apply to every call. verify takes True, False or a CA bundle path; cert is for a client certificate. A Session has no timeout setting, so timeout goes on each call.",
+  "y": "g"
+ },
+ {
+  "g": 2,
+  "t": "2.3",
+  "p": "The session's headers set Content-Type: application/yang-data+json. Which two calls send body as a valid JSON payload with that content type? (Choose two.)",
+  "o": [
+   "s.put(url, data=body)",
+   "s.put(url, params=body)",
+   "s.put(url, json=body)",
+   "s.put(url, data=json.dumps(body))",
+   "s.put(url, data=str(body))"
+  ],
+  "a": [
+   2,
+   3
+  ],
+  "e": "json= serializes the dict and only sets Content-Type when none is set, so the session's yang-data+json is kept. data= with a string sends it as is. data= with a dict form-encodes it, str() produces Python syntax with single quotes, and params= puts it in the query string.",
+  "c": "body = {\"Cisco-IOS-XE-native:hostname\": \"CORE1\"}",
+  "y": "m"
+ },
+ {
+  "g": 2,
+  "t": "2.3",
+  "p": "This script hangs forever when a switch accepts the connection but never replies. Which change makes every call give up?",
+  "o": [
+   "Keep s.timeout = 30, and add s.verify = True so that the TLS handshake is time-limited",
+   "Set s.headers[\"Keep-Alive\"] = \"timeout=30\" so the switch closes the idle connection",
+   "Pass timeout=(5, 30) on each call; requests ignores a timeout set on a Session",
+   "Mount an HTTPAdapter with max_retries=3, which also sets a 30-second read timeout"
+  ],
+  "a": 2,
+  "e": "requests has no default timeout, and Session has no timeout setting, so s.timeout is silently ignored. A (connect, read) tuple on each call limits both waits. Retries repeat a call; they don't limit how long it waits.",
+  "c": "s = requests.Session()\ns.timeout = 30\nr = s.get(url)"
+ },
+ {
+  "g": 2,
+  "t": "2.3",
+  "p": "The switch at the URL doesn't answer the TCP connection. What does this print?",
+  "o": [
+   "unreachable: ConnectTimeout subclasses both, and the first matching clause runs",
+   "Both lines, because the exception matches both of the except clauses",
+   "Nothing, because a connect timeout returns a Response with status code 504 instead",
+   "too slow, because a connect timeout raises Timeout, which isn't a ConnectionError"
+  ],
+  "a": 0,
+  "e": "ConnectTimeout inherits from both ConnectionError and Timeout, and Python runs the first except clause that matches. A ReadTimeout, after the connection is made, is only a Timeout, so it would print too slow.",
+  "c": "try:\n    r = s.get(url, timeout=(5, 30))\nexcept requests.ConnectionError:\n    print(\"unreachable\")\nexcept requests.Timeout:\n    print(\"too slow\")"
+ },
+ {
+  "g": 2,
+  "t": "2.3",
+  "p": "The POST is rejected with this body. Which expression returns object already exists?",
+  "o": [
+   "e.response.json()[\"ietf-restconf:errors\"][\"error\"][0][\"error-message\"]",
+   "e.json()[\"ietf-restconf:errors\"][\"error\"][0][\"error-message\"]",
+   "e.response.text[\"ietf-restconf:errors\"][\"error\"][0][\"error-message\"]",
+   "e.response.json()[\"ietf-restconf:errors\"][\"error\"][\"error-message\"]"
+  ],
+  "a": 0,
+  "e": "HTTPError carries the Response as e.response. The errors container is module-qualified at the top level, and error is a list, so it needs an index even when there's one error.",
+  "c": "try:\n    r = s.post(url, json=body, timeout=30)\n    r.raise_for_status()\nexcept requests.HTTPError as e:\n    msg = ...\n\n# response body\n{\"ietf-restconf:errors\": {\"error\": [{\"error-type\": \"application\",\n  \"error-tag\": \"data-exists\", \"error-message\": \"object already exists\"}]}}"
+ },
+ {
+  "g": 2,
+  "t": "2.3",
+  "p": "Lab switches use self-signed certificates, and calls fail with SSLError: certificate verify failed. Which fix keeps certificate checking?",
+  "o": [
+   "Set verify=False, and call urllib3.disable_warnings() so the InsecureRequestWarning is hidden",
+   "Change the URLs to http://, since RESTCONF accepts the same basic-auth credentials over HTTP",
+   "Export the switch's certificate, or its signing CA, to a PEM file and pass that path as verify",
+   "Pass cert=(\"client.pem\", \"client.key\") so the switch and the script trust each other"
+  ],
+  "a": 2,
+  "e": "verify accepts a CA bundle path, so a self-signed certificate can be trusted explicitly. verify=False turns checking off, and hiding the warning doesn't change that. cert= presents a client certificate, which doesn't help the client trust the server, and RESTCONF requires HTTPS."
+ },
+ {
+  "g": 2,
+  "t": "2.3",
+  "p": "GETs now survive brief 503 errors, but a PATCH that gets a 503 fails at once. Why?",
+  "o": [
+   "Only methods in allowed_methods are retried, and the default omits POST and PATCH",
+   "backoff_factor=1 makes the first wait longer than the PATCH timeout allows",
+   "The adapter is mounted for https:// only, and PATCH uses another connection pool",
+   "status_forcelist applies to GET only, so other methods need their own retry list"
+  ],
+  "a": 0,
+  "e": "The default allowed_methods is DELETE, GET, HEAD, OPTIONS, PUT and TRACE, because POST and PATCH aren't guaranteed to be idempotent. Add PATCH only if repeating it is safe: merging the same body usually is, but a POST that creates data isn't.",
+  "c": "retry = Retry(total=4, backoff_factor=1, status_forcelist=[503])\ns.mount(\"https://\", HTTPAdapter(max_retries=retry))"
+ },
+ {
+  "g": 2,
+  "t": "2.3",
+  "p": "Fill the gaps so the loop prints each interface's name and its configured state.",
+  "c": "r = s.get(base + \"/ietf-interfaces:interfaces\", timeout=30)\nfor intf in r.⟦1⟧[\"⟦2⟧\"][\"⟦3⟧\"]:\n    print(intf[\"name\"], intf[\"⟦4⟧\"])",
+  "bank": [
+   "ietf-interfaces:interface",
+   "enabled",
+   "ietf-interfaces:interfaces",
+   "text",
+   "oper-status",
+   "interface",
+   "json()",
+   "interfaces"
+  ],
+  "a": [
+   "json()",
+   "ietf-interfaces:interfaces",
+   "interface",
+   "enabled"
+  ],
+  "e": "json() parses the body. Only the top-level member carries the module name; interface is a child in the same module. enabled is the configured state, while oper-status is whether the interface is actually up.",
+  "y": "g"
+ },
+ {
+  "g": 2,
+  "t": "2.3",
+  "p": "A script makes 400 RESTCONF calls to one switch. Which two are benefits of a requests.Session over separate requests.get and requests.patch calls? (Choose two.)",
+  "o": [
+   "RESTCONF requires a session cookie, and only a Session object can keep it",
+   "auth, headers and verify are set once on the session and apply to every call",
+   "Calls are pipelined on one connection, so the switch processes them in parallel",
+   "The calls are applied as one transaction, so a failure rolls back the earlier calls",
+   "The TCP connection and TLS session are reused, instead of a new handshake for each call"
+  ],
+  "a": [
+   1,
+   4
+  ],
+  "e": "A Session keeps a connection pool and default settings. It doesn't create a server-side session or transaction, and requests sends one request at a time on a connection.",
+  "y": "m"
+ },
+ {
+  "g": 2,
+  "t": "2.3",
+  "p": "Fill the gaps so the function returns the status code for device errors, and treats every other requests failure, including timeouts, as a network problem.",
+  "c": "def set_desc(url, body):\n    try:\n        r = s.patch(url, json=body, timeout=(5, 30))\n        r.⟦1⟧()\n    except requests.⟦2⟧ as e:\n        return f\"device said {e.⟦3⟧.status_code}\"\n    except requests.⟦4⟧:\n        return \"network problem\"\n    return \"ok\"",
+  "bank": [
+   "RequestException",
+   "response",
+   "request",
+   "Timeout",
+   "json",
+   "HTTPError",
+   "ConnectionError",
+   "raise_for_status"
+  ],
+  "a": [
+   "raise_for_status",
+   "HTTPError",
+   "response",
+   "RequestException"
+  ],
+  "e": "raise_for_status turns 4xx and 5xx into HTTPError, whose response attribute holds the reply. HTTPError is a RequestException too, so it must be caught first. RequestException then catches connection errors and both kinds of timeout; ConnectionError alone would miss a ReadTimeout.",
+  "y": "g"
+ },
+ {
+  "g": 2,
+  "t": "2.3",
+  "p": "A cleanup job deletes Loopback900 from every switch and must be safe to rerun. On a rerun, the switch replies 404 with error-tag invalid-value. Which check treats the run as successful?",
+  "o": [
+   "r.ok",
+   "r.status_code in (200, 201)",
+   "r.status_code == 200",
+   "r.status_code in (204, 404)"
+  ],
+  "a": 3,
+  "e": "A successful DELETE returns 204 No Content. On a rerun the entry is already gone, and the 404 still means the switch is in the state the job wants. r.ok is False for 404, and DELETE doesn't return 200 or 201.",
+  "c": "r = s.delete(base + \"/Cisco-IOS-XE-native:native/interface/Loopback=900\", timeout=30)"
+ },
+ {
+  "g": 2,
+  "t": "2.3",
+  "p": "Which expression returns the IOS XE version string?",
+  "o": [
+   "r.json()[\"version\"]",
+   "r.json()[\"Cisco-IOS-XE-native:version\"]",
+   "r.text",
+   "r.json()[\"Cisco-IOS-XE-native:native\"][\"version\"]"
+  ],
+  "a": 1,
+  "e": "The reply represents the target, the version leaf, as a module-qualified top-level member. It isn't wrapped in native. r.text is the whole JSON document, not the value.",
+  "c": "r = s.get(base + \"/Cisco-IOS-XE-native:native/version\", timeout=30)"
+ },
+ {
+  "g": 2,
+  "t": "2.3",
+  "p": "Which expression completes the URL for any route, whatever characters its keys contain?",
+  "o": [
+   "\",\".join(quote(k, safe=\"\") for k in (prefix, nh))",
+   "quote(prefix, safe=\"\") + \"/\" + quote(nh, safe=\"\")",
+   "quote(prefix + \",\" + nh, safe=\"\")",
+   "\",\".join(quote(k) for k in (prefix, nh))"
+  ],
+  "a": 0,
+  "e": "Each key value is encoded on its own with safe=\"\", so / becomes %2F and any comma inside a value becomes %2C. The separating commas stay literal. quote's default, safe=\"/\", leaves slashes alone.",
+  "c": "from urllib.parse import quote\nprefix, nh = \"10.0.0.0/8\", \"192.0.2.1\"\nurl = base + \"/example-net:routing/route=\" + ..."
+ },
+ {
+  "g": 2,
+  "t": "2.3",
+  "p": "A script must create Loopback1001 to Loopback1050 with as few requests as possible, without changing any other interface. Which approach works?",
+  "o": [
+   "One PATCH to .../native/interface, with all 50 Loopback entries in the body",
+   "One POST to .../native/interface, with all 50 Loopback entries in the body",
+   "One PUT to .../native/interface/Loopback=1001, with all 50 entries in the body",
+   "One PUT to .../native/interface, with all 50 Loopback entries in the body"
+  ],
+  "a": 0,
+  "e": "PATCH merges, so a list in the body adds every entry and leaves the rest alone. A POST creates exactly one child resource. PUT on the container replaces it, removing every interface not in the body, and a PUT to one entry can only describe that entry."
+ },
+ {
+  "g": 2,
+  "t": "2.3",
+  "p": "A PATCH returns 400. Which attributes show exactly what requests sent?",
+  "o": [
+   "r.history[-1].headers and r.history[-1].text",
+   "r.headers and r.text, which echo the request",
+   "r.raw.headers and r.raw.data",
+   "r.request.headers and r.request.body"
+  ],
+  "a": 3,
+  "e": "r.request is the PreparedRequest that went on the wire, including the merged headers and the serialized body. r.headers and r.text are the reply."
+ },
+ {
+  "g": 2,
+  "t": "2.3",
+  "p": "Which expression lists the names of interfaces that aren't up?",
+  "o": [
+   "[i[\"name\"] for i in data[\"interface\"]\n if i[\"oper-status\"] != \"if-oper-state-ready\"]",
+   "[i[\"name\"] for i in data[\"Cisco-IOS-XE-interfaces-oper:interfaces\"]\n if i[\"oper-status\"] != \"if-oper-state-ready\"]",
+   "[i[\"name\"] for i in data[\"Cisco-IOS-XE-interfaces-oper:interfaces\"][\"interface\"]\n if i[\"oper-status\"] == \"down\"]",
+   "[i[\"name\"] for i in data[\"Cisco-IOS-XE-interfaces-oper:interfaces\"][\"interface\"]\n if i[\"oper-status\"] != \"if-oper-state-ready\"]"
+  ],
+  "a": 3,
+  "e": "The list sits under the module-qualified container. The model's enumeration uses if-oper-state-ready for up, so comparing with down matches nothing.",
+  "c": "r = s.get(base + \"/Cisco-IOS-XE-interfaces-oper:interfaces\",\n          params={\"fields\": \"interface(name;oper-status)\"}, timeout=30)\ndata = r.json()\n\n# data\n{\"Cisco-IOS-XE-interfaces-oper:interfaces\": {\"interface\": [\n  {\"name\": \"GigabitEthernet1/0/1\", \"oper-status\": \"if-oper-state-ready\"},\n  {\"name\": \"GigabitEthernet1/0/2\", \"oper-status\": \"if-oper-state-no-pass\"}]}}"
+ },
+ {
+  "g": 2,
+  "t": "2.3",
+  "p": "Fill the gaps so the script runs ping to 10.1.1.1 with 3 probes and prints the success rate.",
+  "c": "module: example-net\n  rpcs:\n    +---x ping\n       +---w input\n       |  +---w destination    string\n       |  +---w count?         uint8\n       +--ro output\n          +--ro success-rate?   uint8\n\nurl = \"https://10.10.20.48/restconf/⟦1⟧/example-net:ping\"\nr = s.post(url, json={\"⟦2⟧\": {\"destination\": \"10.1.1.1\", \"count\": 3}}, timeout=60)\nprint(r.json()[\"⟦3⟧\"][\"success-rate\"])",
+  "bank": [
+   "input",
+   "example-net:ping",
+   "data",
+   "output",
+   "example-net:output",
+   "example-net:input",
+   "ietf-restconf:output",
+   "operations"
+  ],
+  "a": [
+   "operations",
+   "example-net:input",
+   "example-net:output"
+  ],
+  "e": "RPCs live under /restconf/operations. The input is wrapped in a container named input and the reply in one named output, each qualified with the RPC's module name.",
+  "y": "g"
+ },
+ {
+  "g": 2,
+  "t": "2.3",
+  "p": "Which headers does this call send?",
+  "o": [
+   "Only Accept: application/yang-data+xml, because headers= replaces the session headers for that call",
+   "Accept: application/yang-data+json, because session headers take priority over headers passed to a call",
+   "Both Accept values, joined into one header as a comma-separated list, plus the session's other headers",
+   "Accept: application/yang-data+xml, the session's Content-Type, and Authorization from s.auth"
+  ],
+  "a": 3,
+  "e": "requests merges per-call headers into the session's, and the call wins where they clash. Session auth still applies. To drop a session header for one call, set it to None.",
+  "c": "s = requests.Session()\ns.auth = (\"netops\", password)\ns.headers.update({\"Accept\": \"application/yang-data+json\",\n                  \"Content-Type\": \"application/yang-data+json\"})\ns.verify = \"lab-ca.pem\"\nbase = \"https://10.10.20.48/restconf/data\"\n\nr = s.get(url, headers={\"Accept\": \"application/yang-data+xml\"}, timeout=30)"
+ },
+ {
+  "g": 2,
+  "t": "2.3",
+  "p": "Which body switches mgmt to DHCP when sent with s.patch(base + \"/example-net:mgmt\", json=body)?",
+  "o": [
+   "{\"example-net:mgmt\": {\"dhcp\": None}}",
+   "{\"example-net:mgmt\": {\"dhcp\": [None]}}",
+   "{\"example-net:mgmt\": {\"dhcp\": True}}",
+   "{\"example-net:mgmt\": {\"dynamic\": {\"dhcp\": [None]}}}"
+  ],
+  "a": 1,
+  "e": "An empty leaf is encoded in JSON as [null], which json= produces from [None]. A plain null isn't valid for it. Case names never appear in data, and setting a leaf from the dynamic case removes the static case's leaves.",
+  "c": "module: example-net\n  +--rw routing\n  |  +--rw route* [prefix next-hop]\n  |     +--rw prefix      string\n  |     +--rw next-hop    string\n  |     +--rw distance?   uint8\n  +--rw system\n  |  +--rw hostname?   string\n  |  +--rw dns\n  |     +--rw domain?   string\n  |     +--rw server*   string\n  +--rw mgmt\n  |  +--rw (method)?\n  |  |  +--:(static)\n  |  |  |  +--rw ip?              string\n  |  |  |  +--rw prefix-length?   uint8\n  |  |  +--:(dynamic)\n  |  |     +--rw dhcp?            empty\n  |  +--ro stats\n  |     +--ro in-octets?    uint64\n  |     +--ro out-octets?   uint64"
+ },
+ {
+  "g": 2,
+  "t": "2.6",
+  "p": "This request returns 400 Bad Request. What's wrong?",
+  "o": [
+   "requests repeats a parameter given a list, and RESTCONF rejects duplicates. Use interface(name;enabled).",
+   "fields can't be used on a container; it only works when the target is a single list entry",
+   "requests percent-encodes the / in each value, and RESTCONF servers can't decode %2F in a query string",
+   "fields also needs depth, so the server knows how many levels down the named nodes are found"
+  ],
+  "a": 0,
+  "e": "RFC 8040 requires a 400 for a duplicated query parameter. Several nodes go in one fields value, separated by ; with parentheses for a node's children. Encoded characters in the query are decoded normally.",
+  "c": "r = s.get(base + \"/ietf-interfaces:interfaces\",\n          params={\"fields\": [\"interface/name\", \"interface/enabled\"]}, timeout=30)\nprint(r.url)\n# .../ietf-interfaces:interfaces?fields=interface%2Fname&fields=interface%2Fenabled"
+ },
+ {
+  "g": 2,
+  "t": "2.6",
+  "p": "Match each response with its most likely cause.",
+  "o": [
+   "1-d, 2-b, 3-c, 4-a",
+   "1-c, 2-d, 3-b, 4-a",
+   "1-d, 2-c, 3-b, 4-a",
+   "1-d, 2-c, 3-a, 4-b"
+  ],
+  "a": 2,
+  "e": "Accept describes what the client wants back, so a mismatch is 406. Content-Type describes what it's sending, so a mismatch is 415. Operation resources only allow POST.",
+  "y": "x",
+  "s": [
+   "401 Unauthorized",
+   "405 Method Not Allowed",
+   "406 Not Acceptable",
+   "415 Unsupported Media Type"
+  ],
+  "r": [
+   "The body's Content-Type isn't a media type the server accepts",
+   "Accept asks for a representation the server can't produce",
+   "A GET was sent to an RPC under /restconf/operations",
+   "The credentials are missing or wrong"
+  ]
+ },
+ {
+  "g": 2,
+  "t": "2.6",
+  "p": "netops logs in over SSH, but every RESTCONF call returns 401. What's the most likely fix?",
+  "o": [
+   "Add ip http authentication enable, so the enable secret is used",
+   "Add ip http server, so that RESTCONF can also listen on port 80 for HTTP",
+   "Add netconf-yang, which RESTCONF needs in order to reach the datastore",
+   "Give netops privilege 15, and add aaa authorization exec default local"
+  ],
+  "a": 3,
+  "e": "RESTCONF on IOS XE needs a privilege 15 user, and with aaa new-model that privilege level is only applied when exec authorization is configured. HTTPS is already enabled, and RESTCONF doesn't depend on NETCONF.",
+  "c": "aaa new-model\naaa authentication login default local\nusername netops privilege 1 secret 9 $9$...\nrestconf\nip http secure-server"
+ },
+ {
+  "g": 2,
+  "t": "2.6",
+  "p": "A script tries to rename Loopback5 to Loopback6 with this request and gets 400. Why, and what works instead?",
+  "o": [
+   "PUT can't change a key; the body's key must match the URL. Create Loopback6, then delete Loopback5.",
+   "PUT needs If-Match to change a key, so GET the entry first and send its ETag with the PUT",
+   "Keys can only be changed with PATCH, which merges the new name into the entry",
+   "The body includes type, which PUT rejects for an entry that already exists, so remove it from the body"
+  ],
+  "a": 0,
+  "e": "Keys identify the resource, so RFC 8040 requires the key values in a PUT body to match the URL. There's no rename: create the new entry, then delete the old one.",
+  "c": "PUT /restconf/data/ietf-interfaces:interfaces/interface=Loopback5\n\n{\"ietf-interfaces:interface\": [{\"name\": \"Loopback6\",\n  \"type\": \"iana-if-type:softwareLoopback\", \"description\": \"MGMT\"}]}"
+ },
+ {
+  "g": 2,
+  "t": "2.6",
+  "p": "A pipeline creates VLAN 30 with this request. The first run works, but reruns fail as shown. Which change makes reruns succeed, without removing settings other tools add to the VLAN?",
+  "o": [
+   "DELETE .../vlan-list=30 first, then send the POST again",
+   "PATCH the vlan container with the same body, creating or merging the entry",
+   "PUT the same entry to .../native/vlan/Cisco-IOS-XE-vlan:vlan-list=30",
+   "Keep the POST, and add ?insert=last so entries that already exist are skipped"
+  ],
+  "a": 1,
+  "e": "POST only creates, so it fails once the entry exists. PATCH on the parent merges: it creates the entry the first time and only updates name after that. PUT replaces the entry, dropping anything not in the body, and deleting first does the same.",
+  "c": "POST /restconf/data/Cisco-IOS-XE-native:native/vlan\n\n{\"Cisco-IOS-XE-vlan:vlan-list\": [{\"id\": 30, \"name\": \"VOICE\"}]}\n\n409 Conflict\n{\"ietf-restconf:errors\": {\"error\": [{\"error-type\": \"application\",\n  \"error-tag\": \"data-exists\", \"error-message\": \"object already exists\"}]}}"
+ },
+ {
+  "g": 2,
+  "t": "2.6",
+  "p": "clear-cache has no output. The RPC runs, but the script crashes on the third line. Why?",
+  "o": [
+   "Operation replies are always XML, whatever the Accept header asks for, so json() can't parse them",
+   "r.json() needs the name of the RPC's output container passed to it as an argument",
+   "An RPC with no output returns 204 No Content, so there's no body; check the status code instead",
+   "The reply is chunked, so the script has to read r.raw before it can call r.json()"
+  ],
+  "a": 2,
+  "e": "When an operation has no output, the server returns 204 with an empty body, and json() raises JSONDecodeError on an empty string. Only operations with output return 200 and an output container.",
+  "c": "r = s.post(\"https://10.10.20.48/restconf/operations/example-net:clear-cache\", timeout=30)\nprint(r.status_code)      # 204\nresult = r.json()         # JSONDecodeError"
+ },
+ {
+  "g": 2,
+  "t": "2.6",
+  "p": "This request returns the error below. What's the fix?",
+  "o": [
+   "Qualify every member under it too, as \"ietf-ip:address\", \"ietf-ip:ip\" and so on",
+   "Send the same body to .../interface=Loopback5/ipv4 instead of the interface entry",
+   "Add \"type\": \"iana-if-type:softwareLoopback\", which the server checks before ipv4",
+   "Name the container \"ietf-ip:ipv4\"; its children stay unqualified"
+  ],
+  "a": 3,
+  "e": "RFC 7951 requires a module-qualified name wherever a node's namespace differs from its parent's, as it does at the ietf-ip augment. Everywhere else, the simple name must be used, so qualifying address and ip would also be wrong.",
+  "c": "PATCH /restconf/data/ietf-interfaces:interfaces/interface=Loopback5\n\n{\"ietf-interfaces:interface\": [{\"name\": \"Loopback5\",\n  \"ipv4\": {\"address\": [{\"ip\": \"10.5.5.5\", \"prefix-length\": 32}]}}]}\n\n400 Bad Request\n{\"ietf-restconf:errors\": {\"error\": [{\"error-type\": \"application\",\n  \"error-tag\": \"unknown-element\", \"error-message\": \"unknown element: ipv4\"}]}}"
+ },
+ {
+  "g": 2,
+  "t": "2.6",
+  "p": "A POST creates the resource, but the script never prints created. Why?",
+  "o": [
+   "requests changes 201 to 200 only when allow_redirects is True",
+   "A POST that creates a resource returns 201 Created, not 200",
+   "The switch returns 202 Accepted, because RESTCONF edits are queued",
+   "status_code is a string, so it never equals the integer 200"
+  ],
+  "a": 1,
+  "e": "RESTCONF returns 201 Created, with a Location header, for a new resource. Check for 201, or call raise_for_status() and treat any 2xx as success.",
+  "c": "r = s.post(url, json=body, timeout=30)\nif r.status_code == 200:\n    print(\"created\")"
+ },
+ {
+  "g": 2,
+  "t": "2.6",
+  "p": "verify points at the lab CA that signed the switch's certificate. The certificate's subject alternative names are sw1.lab.example and sw1, but calls fail with an SSLError for a hostname mismatch. What's the fix?",
+  "o": [
+   "Pass cert=(\"sw1.pem\", \"sw1.key\") so requests can match the certificate's name",
+   "Use https://sw1.lab.example, or reissue the certificate with the IP address as a SAN",
+   "Set s.headers[\"Host\"] = \"sw1.lab.example\" so TLS checks that name instead",
+   "Add the switch's IP address to the CA bundle file that verify points at, then retry"
+  ],
+  "a": 1,
+  "e": "Certificate checking compares the host in the URL with the certificate's SANs. Trust isn't the problem, since the CA validated; the name is. Changing the Host header doesn't change what's checked.",
+  "c": "base = \"https://10.10.20.48/restconf/data\""
+ },
+ {
+  "g": 2,
+  "t": "2.6",
+  "p": "This request fails with a missing-element error. What must be added to the entry?",
+  "o": [
+   "\"enabled\": true, since a new interface has to be enabled before it can be created",
+   "\"type\": \"iana-if-type:softwareLoopback\", which has no ? in the tree",
+   "\"ietf-ip:ipv4\": {}, since every interface needs an IPv4 container to be created",
+   "\"oper-status\": \"up\", since the tree shows it without a ? as well"
+  ],
+  "a": 1,
+  "e": "In a tree, ? marks an optional leaf. type has none, so a new entry needs it. oper-status has none either, but it's ro: state data can't be written. An identityref value from another module carries that module's name.",
+  "c": "module: ietf-interfaces\n  +--rw interfaces\n     +--rw interface* [name]\n        +--rw name                        string\n        +--rw description?                string\n        +--rw type                        identityref\n        +--rw enabled?                    boolean\n        +--ro oper-status                 enumeration\n        ...\n        +--rw ip:ipv4!\n        |  +--rw ip:enabled?      boolean\n        |  +--rw ip:forwarding?   boolean\n        |  +--rw ip:mtu?          uint16\n        |  +--rw ip:address* [ip]\n        |  |  +--rw ip:ip                     inet:ipv4-address-no-zone\n        |  |  +--rw (ip:subnet)\n        |  |  |  +--:(ip:prefix-length)\n        |  |  |  |  +--rw ip:prefix-length?   uint8\n        |  |  |  +--:(ip:netmask)\n        |  |  |     +--rw ip:netmask?         yang:dotted-quad\n        ...\n\nPATCH /restconf/data/ietf-interfaces:interfaces\n{\"ietf-interfaces:interfaces\": {\"interface\": [{\"name\": \"Loopback8\",\n                                               \"description\": \"TEST\"}]}}"
+ },
+ {
+  "g": 3,
+  "t": "3.6",
+  "p": "A script POSTs to a controller through a proxy that redirects http:// to https://. It gets 200 and a list of existing items, and nothing is created. Why?",
+  "o": [
+   "requests followed the 301 with a GET and no body, so the second call only listed the items",
+   "The server rejects POST over plain HTTP, so requests switches to GET before sending anything",
+   "A 301 tells requests to retry the POST later, and the 200 is the reply to the original request",
+   "The proxy strips the JSON body from any POST it redirects, but requests still sends it as a POST"
+  ],
+  "a": 0,
+  "e": "Like browsers, requests turns a POST into a GET when following 301 or 302. Use the https:// URL directly. Only 307 and 308 keep the method and body.",
+  "c": "r = requests.post(\"http://api.lab.example/api/v1/items\", json=item,\n                  auth=creds, timeout=30)\nprint(r.status_code, r.history)   # 200 [<Response [301]>]"
+ },
+ {
+  "g": 3,
+  "t": "3.6",
+  "p": "When the retries run out, the script crashes with RetryError before it reaches raise_for_status(). Which change lets it handle the final 503 response itself?",
+  "o": [
+   "Catch requests.HTTPError instead, because RetryError is a subclass of it",
+   "Set raise_on_status=False on the Retry, so the last response is returned",
+   "Set total=None on the Retry, so the adapter stops counting the retries",
+   "Set respect_retry_after_header=False, so the server's Retry-After is ignored"
+  ],
+  "a": 1,
+  "e": "With the default raise_on_status=True, running out of status retries raises RetryError, which isn't an HTTPError. With False, the adapter returns the last response, so the script's normal status handling sees the 503.",
+  "c": "retry = Retry(total=3, backoff_factor=1, status_forcelist=[503])\ns.mount(\"https://\", HTTPAdapter(max_retries=retry))\nr = s.get(url, timeout=30)\nr.raise_for_status()"
+ },
+ {
+  "g": 3,
+  "t": "3.6",
+  "p": "A controller API pages its results and puts the next page's URL in a Link header. Which loop collects every item?",
+  "o": [
+   "url, items = first, []\nwhile url:\n    r = s.get(url, timeout=30)\n    items += r.json()\n    url = r.headers.get(\"Link\", {}).get(\"next\")",
+   "r = s.get(first, timeout=30, params={\"page\": \"all\"})\nitems = r.json()",
+   "url, items = first, []\nwhile url:\n    r = s.get(url, timeout=30)\n    items += r.json()\n    url = r.links.get(\"next\", {}).get(\"url\")",
+   "url, items = first, []\nwhile r.status_code == 200:\n    r = s.get(url, timeout=30)\n    items += r.json()"
+  ],
+  "a": 2,
+  "e": "requests parses Link headers into r.links, keyed by rel. The loop ends when the last page has no next link. There's no header named next, and paging parameters are specific to each API.",
+  "c": "Link: <https://api.lab.example/api/v1/clients?startingAfter=k_1000>; rel=\"next\""
+ },
+ {
+  "g": 5,
+  "t": "5.3",
+  "p": "An AI assistant generated this function. Which two problems should be fixed before it runs against production? (Choose two.)",
+  "o": [
+   "The password is hard-coded; read it from a vault or an environment variable",
+   "The URL should use http://, so that certificate problems can't stop the change",
+   "The body must wrap hostname in Cisco-IOS-XE-native:native to match the URL",
+   "verify=False lets an attacker in the path capture the credentials",
+   "PUT should be POST, because hostname is a leaf that already exists on every switch"
+  ],
+  "a": [
+   0,
+   3
+  ],
+  "e": "Credentials belong in a secrets store, and certificate checking stops a man-in-the-middle from capturing basic-auth credentials. The PUT and its body are correct for the hostname leaf.",
+  "c": "def set_hostname(ip, name):\n    r = requests.put(\n        f\"https://{ip}/restconf/data/Cisco-IOS-XE-native:native/hostname\",\n        auth=(\"admin\", \"C1sco12345\"), verify=False, timeout=30,\n        json={\"Cisco-IOS-XE-native:hostname\": name})\n    return r.status_code",
+  "y": "m"
+ },
+ {
+  "g": 5,
+  "t": "5.3",
+  "p": "An AI agent gets a tool that can send any RESTCONF request to production switches, so it can answer questions about interface state. What's the most effective control?",
+  "o": [
+   "Give it a tool that only sends GETs to allowlisted paths, and gate change tools behind human approval",
+   "Tell the agent in its system prompt never to send PUT, PATCH, POST or DELETE requests to switches",
+   "Use a model with a larger context window, so that it can reason about the risk of each request first",
+   "Log every request the agent sends, so that any change it makes can be reviewed and reversed later"
+  ],
+  "a": 0,
+  "e": "Controls enforced in code hold even if the agent is manipulated, for example by prompt injection in data it reads. A prompt instruction can be overridden, and logging only shows the damage afterwards."
+ }
+]

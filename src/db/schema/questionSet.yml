@@ -1,0 +1,46 @@
+---
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: "Question Set"
+description: "A set of Questions"
+type: "object"
+required: ["id","title"]
+properties:
+  title:
+    type: "string"
+    description: "Title"
+    default: ""
+  description:
+    description: "Description of this question set."
+    type: "string"
+    default: ""
+  difficulty:
+    type: "string"
+    description: "A string describing the difficulty"
+    default: ""
+  count:
+    type: "integer"
+    description: "The number of questions in the question set."
+    default: 0
+    readOnly: true
+  randomize_option_order:
+    type: "boolean"
+    description: "Whether to randomize the order of choices in the question set."
+    default: false
+  randomize_question_order:
+    type: "boolean"
+    description: "Whether to randomize the order of questions in the question set."
+    default: false
+
+  questions:
+    type: "array"
+    description: "An Array of question ids"
+    default: []
+    items:
+      type: "string"
+      format: "uuid"
+  tags:
+    type: "array"
+    description: "Searchable tags/categories for this question set."
+    default: []
+    items:
+      type: "string"
