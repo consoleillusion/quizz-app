@@ -3,13 +3,18 @@
   "type": "module",
   "version": "0.0.1",
   "engines": {
-    "node": ">=22.23.4"
+    "bun": ">=1.4"
   },
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "db:init": "bun src/db/init.ts",
+    "db:reset": "bun src/db/init.ts --reset && bun src/db/seed.ts",
+    "db:seed": "bun src/db/seed.ts",
+    "db:check": "bun src/db/seed.ts --check",
+    "db:sql": "bun src/db/init.ts --print"
   },
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^16.0.5",

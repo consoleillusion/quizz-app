@@ -1,0 +1,7 @@
+title: "RESTCONF and requests"
+description: "RESTCONF and requests topic set. requests 2.34 / urllib3 2.8 behaviour checked against the libraries; trees from pyang."
+exam: "300-435"
+difficulty: "exam"
+randomize_question_order: false
+randomize_option_order: true
+tags: [topic, restconf]
