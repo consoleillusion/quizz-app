@@ -6,18 +6,19 @@
     "bun": ">=1.4"
   },
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview",
-    "astro": "astro",
+    "dev": "bun --bun astro dev",
+    "build": "bun --bun astro build",
+    "preview": "bun --bun astro preview",
     "db:init": "bun src/db/init.ts",
     "db:reset": "bun src/db/init.ts --reset && bun src/db/seed.ts",
     "db:seed": "bun src/db/seed.ts",
     "db:check": "bun src/db/seed.ts --check",
-    "db:sql": "bun src/db/init.ts --print"
+    "db:sql": "bun src/db/init.ts --print",
+    "test": "bun test src"
   },
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^16.0.5",
+    "@astrojs/svelte": "^9.1.2",
     "@serenity-kit/opaque": "^1.1.0",
     "@tursodatabase/database": "^0.8.3",
     "ajv-cli": "^5.0.0",
@@ -28,6 +29,7 @@
     "markdown-it": "^15.0.3",
     "morphicons": "^2.0.2",
     "nunjucks": "^3.2.4",
-    "ramda": "^0.32.0"
+    "ramda": "^0.32.0",
+    "svelte": "^5.57.3"
   }
 }
