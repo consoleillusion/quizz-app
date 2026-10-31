@@ -81,7 +81,7 @@
    "The latest modules in the IETF's GitHub repository"
   ],
   "a": 0,
-  "e": "Each release implements specific revisions, features and deviations. The device's YANG library lists them, and get-schema downloads the exact text. The YangModels/yang repository's vendor/cisco/xe/<release> folders are a good offline copy."
+  "e": "Each release implements specific revisions, features and deviations. The device's YANG library lists them, and get-schema downloads the exact text. The YangModels/yang repository's `vendor/cisco/xe/<release>` folders are a good offline copy."
  },
  {
   "g": 1,
@@ -254,10 +254,10 @@
   "t": "1.5",
   "p": "Which RESTCONF request runs clear-counters on port Gi1?",
   "o": [
-   "POST /restconf/operations/example-sw:switch/port=Gi1/clear-counters",
-   "POST /restconf/data/example-sw:switch/port=Gi1/clear-counters",
-   "PUT /restconf/data/example-sw:switch/port=Gi1/clear-counters",
-   "POST /restconf/operations/example-sw:clear-counters"
+   "`POST /restconf/operations/example-sw:switch/port=Gi1/clear-counters`",
+   "`POST /restconf/data/example-sw:switch/port=Gi1/clear-counters`",
+   "`PUT /restconf/data/example-sw:switch/port=Gi1/clear-counters`",
+   "`POST /restconf/operations/example-sw:clear-counters`"
   ],
   "a": 1,
   "e": "clear-counters sits inside a list entry, so it's an action, invoked with POST on the data resource. Only top-level RPCs, such as reboot, live under /restconf/operations.",
@@ -268,10 +268,10 @@
   "t": "1.5",
   "p": "Which RESTCONF request runs reboot with a 30-second delay?",
   "o": [
-   "POST /restconf/data/example-sw:reboot with {\"delay\": 30}",
-   "PUT /restconf/operations/example-sw:reboot with {\"example-sw:input\": {\"delay\": \"30\"}}",
-   "POST /restconf/operations/example-sw:reboot with {\"example-sw:input\": {\"delay\": 30}}",
-   "POST /restconf/operations/example-sw:reboot with {\"example-sw:reboot\": {\"delay\": 30}}"
+   "`POST /restconf/data/example-sw:reboot` with {\"delay\": 30}",
+   "`PUT /restconf/operations/example-sw:reboot` with {\"example-sw:input\": {\"delay\": \"30\"}}",
+   "`POST /restconf/operations/example-sw:reboot` with {\"example-sw:input\": {\"delay\": 30}}",
+   "`POST /restconf/operations/example-sw:reboot` with {\"example-sw:reboot\": {\"delay\": 30}}"
   ],
   "a": 2,
   "e": "Top-level RPCs are under /restconf/operations, called with POST, and the parameters are wrapped in module:input. uint16 is a JSON number.",
@@ -463,10 +463,10 @@
   "t": "1.3",
   "p": "Which JSON sets port Gi1's speed to 1G?",
   "o": [
-   "{\"example-sw:port\": [{\"name\": \"Gi1\", \"fixed\": {\"speed\": \"1G\"}}]}",
-   "{\"example-sw:port\": [{\"name\": \"Gi1\", \"speed-mode\": {\"fixed\": {\"speed\": \"1G\"}}}]}",
-   "{\"example-sw:port\": [{\"name\": \"Gi1\", \"speed\": 1G}]}",
-   "{\"example-sw:port\": [{\"name\": \"Gi1\", \"speed\": \"1G\"}]}"
+   "`{\"example-sw:port\": [{\"name\": \"Gi1\", \"fixed\": {\"speed\": \"1G\"}}]}`",
+   "`{\"example-sw:port\": [{\"name\": \"Gi1\", \"speed-mode\": {\"fixed\": {\"speed\": \"1G\"}}}]}`",
+   "`{\"example-sw:port\": [{\"name\": \"Gi1\", \"speed\": 1G}]}`",
+   "`{\"example-sw:port\": [{\"name\": \"Gi1\", \"speed\": \"1G\"}]}`"
   ],
   "a": 3,
   "e": "Choice and case names never appear in data. Enumerations are JSON strings.",
@@ -477,10 +477,10 @@
   "t": "1.3",
   "p": "Which JSON sets two NTP servers?",
   "o": [
-   "{\"example-sw:switch\": {\"hostname\": \"SW1\", \"ntp-server\": {\"10.0.0.1\": {}, \"10.0.0.2\": {}}}}",
-   "{\"example-sw:switch\": {\"hostname\": \"SW1\", \"ntp-server\": [\"10.0.0.1\", \"10.0.0.2\"]}}",
-   "{\"example-sw:switch\": {\"hostname\": \"SW1\", \"ntp-server\": [{\"address\": \"10.0.0.1\"}, {\"address\": \"10.0.0.2\"}]}}",
-   "{\"example-sw:switch\": {\"hostname\": \"SW1\", \"ntp-server\": \"10.0.0.1 10.0.0.2\"}}"
+   "`{\"example-sw:switch\": {\"hostname\": \"SW1\", \"ntp-server\": {\"10.0.0.1\": {}, \"10.0.0.2\": {}}}}`",
+   "`{\"example-sw:switch\": {\"hostname\": \"SW1\", \"ntp-server\": [\"10.0.0.1\", \"10.0.0.2\"]}}`",
+   "`{\"example-sw:switch\": {\"hostname\": \"SW1\", \"ntp-server\": [{\"address\": \"10.0.0.1\"}, {\"address\": \"10.0.0.2\"}]}}`",
+   "`{\"example-sw:switch\": {\"hostname\": \"SW1\", \"ntp-server\": \"10.0.0.1 10.0.0.2\"}}`"
   ],
   "a": 1,
   "e": "A leaf-list is a JSON array of values. Lists are arrays of objects, and neither is ever a joined string or a keyed object.",
@@ -524,10 +524,10 @@
   "t": "1.3",
   "p": "Which body for PATCH /restconf/data/example-sw:switch turns STP on with its default priority?",
   "o": [
-   "{\"example-sw:switch\": {\"stp\": [null]}}",
-   "{\"example-sw:switch\": {\"stp\": null}}",
-   "{\"example-sw:switch\": {\"stp\": true}}",
-   "{\"example-sw:switch\": {\"stp\": {}}}"
+   "`{\"example-sw:switch\": {\"stp\": [null]}}`",
+   "`{\"example-sw:switch\": {\"stp\": null}}`",
+   "`{\"example-sw:switch\": {\"stp\": true}}`",
+   "`{\"example-sw:switch\": {\"stp\": {}}}`"
   ],
   "a": 3,
   "e": "A presence container is an object, so an empty object creates it. [null] is how an empty leaf is encoded, not a container.",
@@ -538,10 +538,10 @@
   "t": "1.3",
   "p": "Which body is valid for PUT /restconf/data/example-sw:switch/port=Gi1?",
   "o": [
-   "{\"port\": [{\"name\": \"Gi1\", \"description\": \"Uplink\"}]}",
-   "{\"example-sw:port\": [{\"name\": \"Gi1\", \"description\": \"Uplink\"}]}",
-   "{\"example-sw:switch\": {\"port\": [{\"name\": \"Gi1\", \"description\": \"Uplink\"}]}}",
-   "{\"example-sw:port\": {\"name\": \"Gi1\", \"description\": \"Uplink\"}}"
+   "`{\"port\": [{\"name\": \"Gi1\", \"description\": \"Uplink\"}]}`",
+   "`{\"example-sw:port\": [{\"name\": \"Gi1\", \"description\": \"Uplink\"}]}`",
+   "`{\"example-sw:switch\": {\"port\": [{\"name\": \"Gi1\", \"description\": \"Uplink\"}]}}`",
+   "`{\"example-sw:port\": {\"name\": \"Gi1\", \"description\": \"Uplink\"}}`"
   ],
   "a": 1,
   "e": "The body's top-level member is the target resource, qualified with its module. For a list entry, that's the list name with an array containing the one entry.",
@@ -635,12 +635,12 @@
  {
   "g": 1,
   "t": "1.4",
-  "p": "Which <port> entry is valid in an edit-config payload?",
+  "p": "Which `<port>` entry is valid in an edit-config payload?",
   "o": [
-   "<port name=\"Gi1\"><description>Uplink</description><vlan>10</vlan></port>",
-   "<port><description>Uplink</description><vlan>10</vlan><name>Gi1</name></port>",
-   "<port><name>Gi1</name><description>Uplink</description><vlan>10</vlan></port>",
-   "<port><vlan>10</vlan><name>Gi1</name><description>Uplink</description></port>"
+   "`<port name=\"Gi1\"><description>Uplink</description><vlan>10</vlan></port>`",
+   "`<port><description>Uplink</description><vlan>10</vlan><name>Gi1</name></port>`",
+   "`<port><name>Gi1</name><description>Uplink</description><vlan>10</vlan></port>`",
+   "`<port><vlan>10</vlan><name>Gi1</name><description>Uplink</description></port>`"
   ],
   "a": 2,
   "e": "RFC 7950 requires list keys to be encoded first, in the key statement's order, before any other children. Keys are elements, never attributes.",
@@ -651,10 +651,10 @@
   "t": "1.4",
   "p": "Which XML sets auto-negotiate on port Gi1?",
   "o": [
-   "<port><name>Gi1</name><auto-negotiate>[null]</auto-negotiate></port>",
-   "<port><name>Gi1</name><speed-mode><auto><auto-negotiate/></auto></speed-mode></port>",
-   "<port><name>Gi1</name><auto-negotiate>true</auto-negotiate></port>",
-   "<port><name>Gi1</name><auto-negotiate/></port>"
+   "`<port><name>Gi1</name><auto-negotiate>[null]</auto-negotiate></port>`",
+   "`<port><name>Gi1</name><speed-mode><auto><auto-negotiate/></auto></speed-mode></port>`",
+   "`<port><name>Gi1</name><auto-negotiate>true</auto-negotiate></port>`",
+   "`<port><name>Gi1</name><auto-negotiate/></port>`"
   ],
   "a": 3,
   "e": "An empty-type leaf is an empty element. Choice and case names never appear, and [null] is the JSON encoding.",
@@ -665,10 +665,10 @@
   "t": "1.4",
   "p": "Which XML sets NTP servers 10.0.0.1 and 10.0.0.2?",
   "o": [
-   "<ntp-server>10.0.0.1 10.0.0.2</ntp-server>",
-   "<ntp-server><address>10.0.0.1</address><address>10.0.0.2</address></ntp-server>",
-   "<ntp-server values=\"10.0.0.1,10.0.0.2\"/>",
-   "<ntp-server>10.0.0.1</ntp-server><ntp-server>10.0.0.2</ntp-server>"
+   "`<ntp-server>10.0.0.1 10.0.0.2</ntp-server>`",
+   "`<ntp-server><address>10.0.0.1</address><address>10.0.0.2</address></ntp-server>`",
+   "`<ntp-server values=\"10.0.0.1,10.0.0.2\"/>`",
+   "`<ntp-server>10.0.0.1</ntp-server><ntp-server>10.0.0.2</ntp-server>`"
   ],
   "a": 3,
   "e": "Each leaf-list value is its own element, repeated.",
@@ -679,10 +679,10 @@
   "t": "1.4",
   "p": "Which edit-config content turns STP off, without an error if it's already off?",
   "o": [
-   "<switch xmlns=\"urn:example:sw\"><stp>false</stp></switch>",
-   "<switch xmlns=\"urn:example:sw\"><stp><priority/></stp></switch>",
-   "<switch xmlns=\"urn:example:sw\"><stp xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\" nc:operation=\"delete\"/></switch>",
-   "<switch xmlns=\"urn:example:sw\"><stp xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\" nc:operation=\"remove\"/></switch>"
+   "`<switch xmlns=\"urn:example:sw\"><stp>false</stp></switch>`",
+   "`<switch xmlns=\"urn:example:sw\"><stp><priority/></stp></switch>`",
+   "`<switch xmlns=\"urn:example:sw\"><stp xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\" nc:operation=\"delete\"/></switch>`",
+   "`<switch xmlns=\"urn:example:sw\"><stp xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\" nc:operation=\"remove\"/></switch>`"
   ],
   "a": 3,
   "e": "Deleting the presence container turns STP off. remove doesn't fail if it's absent, while delete returns data-missing. A container can't hold a value such as false.",
@@ -725,17 +725,17 @@
    "pyang -f sample-xml-skeleton --sample-xml-skeleton-defaults --sample-xml-skeleton-annotations --sample-xml-skeleton-path /switch/port example-sw.yang"
   ],
   "a": 2,
-  "e": "The skeleton's default doctype is data, which includes state. doctype=config gives a <config> root with only configurable nodes. yin is the module itself in XML."
+  "e": "The skeleton's default doctype is data, which includes state. doctype=config gives a `<config>` root with only configurable nodes. yin is the module itself in XML."
  },
  {
   "g": 1,
   "t": "1.4",
   "p": "Which subtree filter returns only the description of port Gi1?",
   "o": [
-   "<switch xmlns=\"urn:example:sw\"><port><description/></port></switch>",
-   "<switch xmlns=\"urn:example:sw\"><port name=\"Gi1\"><description/></port></switch>",
-   "<switch xmlns=\"urn:example:sw\"><port><name/><description>Gi1</description></port></switch>",
-   "<switch xmlns=\"urn:example:sw\"><port><name>Gi1</name><description/></port></switch>"
+   "`<switch xmlns=\"urn:example:sw\"><port><description/></port></switch>`",
+   "`<switch xmlns=\"urn:example:sw\"><port name=\"Gi1\"><description/></port></switch>`",
+   "`<switch xmlns=\"urn:example:sw\"><port><name/><description>Gi1</description></port></switch>`",
+   "`<switch xmlns=\"urn:example:sw\"><port><name>Gi1</name><description/></port></switch>`"
   ],
   "a": 3,
   "e": "In a subtree filter, an element with a value is a content-match node that selects matching entries, and an empty element is a selection node naming what to return.",
@@ -759,7 +759,7 @@
    "urn:ietf:params:xml:ns:yang:1",
    "action"
   ],
-  "e": "YANG 1.1 actions are invoked over NETCONF with an <action> element in the urn:ietf:params:xml:ns:yang:1 namespace, which wraps the path to the list entry. The closing tag repeats the same word.",
+  "e": "YANG 1.1 actions are invoked over NETCONF with an `<action>` element in the urn:ietf:params:xml:ns:yang:1 namespace, which wraps the path to the list entry. The closing tag repeats the same word.",
   "y": "g"
  },
  {
@@ -767,13 +767,13 @@
   "t": "1.4",
   "p": "Which NETCONF request runs the reboot RPC with a 30-second delay?",
   "o": [
-   "<rpc message-id=\"7\" xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\"><reboot><delay>30</delay></reboot></rpc>",
-   "<rpc message-id=\"7\" xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\"><action xmlns=\"urn:ietf:params:xml:ns:yang:1\"><reboot xmlns=\"urn:example:sw\"><delay>30</delay></reboot></action></rpc>",
-   "<rpc message-id=\"7\" xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\"><reboot xmlns=\"urn:example:sw\"><input><delay>30</delay></input></reboot></rpc>",
-   "<rpc message-id=\"7\" xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\"><reboot xmlns=\"urn:example:sw\"><delay>30</delay></reboot></rpc>"
+   "`<rpc message-id=\"7\" xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\"><reboot><delay>30</delay></reboot></rpc>`",
+   "`<rpc message-id=\"7\" xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\"><action xmlns=\"urn:ietf:params:xml:ns:yang:1\"><reboot xmlns=\"urn:example:sw\"><delay>30</delay></reboot></action></rpc>`",
+   "`<rpc message-id=\"7\" xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\"><reboot xmlns=\"urn:example:sw\"><input><delay>30</delay></input></reboot></rpc>`",
+   "`<rpc message-id=\"7\" xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\"><reboot xmlns=\"urn:example:sw\"><delay>30</delay></reboot></rpc>`"
   ],
   "a": 3,
-  "e": "An RPC element goes directly in <rpc>, in its module's namespace, with input parameters as children. There's no <input> wrapper in XML, and <action> is only for actions.",
+  "e": "An RPC element goes directly in `<rpc>`, in its module's namespace, with input parameters as children. There's no `<input>` wrapper in XML, and `<action>` is only for actions.",
   "c": "module: example-sw\n  +--rw switch\n  |  +--rw hostname      string\n  |  +--rw ntp-server*   inet:ip-address\n  |  +--rw stp!\n  |  |  +--rw priority?   uint16\n  |  +--rw port* [name]\n  |  |  +--rw name                    string\n  |  |  +--rw description?            string\n  |  |  +--rw role?                   identityref\n  |  |  +--rw vlan?                   uint16\n  |  |  +--rw poe-max?                uint8 {poe}?\n  |  |  +--rw (speed-mode)?\n  |  |  |  +--:(auto)\n  |  |  |  |  +--rw auto-negotiate?   empty\n  |  |  |  +--:(fixed)\n  |  |  |     +--rw speed?            enumeration\n  |  |  +--ro in-errors?              uint64\n  |  |  +---x clear-counters\n  |  |  |  +---w input\n  |  |  |     +---w errors-only?   boolean\n  |  |  +--rw poe:power\n  |  |     +--rw poe:budget?     decimal64\n  |  |     +--rw poe:priority?   enumeration\n  |  +--rw uplink?       -> ../port/name\n  x--ro legacy-stats\n     +--ro uptime?   uint32\n\n  rpcs:\n    +---x reboot\n       +---w input\n          +---w delay?   uint16\n\n  notifications:\n    +---n port-flap\n       +--ro port?   -> /switch/port/name\n\nexample-sw namespace: urn:example:sw  (prefix sw)\nexample-sw-poe namespace: urn:example:sw-poe  (prefix poe, augments port)"
  },
  {
@@ -795,10 +795,10 @@
   "t": "1.4",
   "p": "Which XML puts the poe priority in the right namespace?",
   "o": [
-   "<port><name>Gi1</name><poe:power><poe:priority>high</poe:priority></poe:power></port>",
-   "<port><name>Gi1</name><power><priority>high</priority></power></port>",
-   "<port><name>Gi1</name><power xmlns=\"example-sw-poe\"><priority>high</priority></power></port>",
-   "<port><name>Gi1</name><power xmlns=\"urn:example:sw-poe\"><priority>high</priority></power></port>"
+   "`<port><name>Gi1</name><poe:power><poe:priority>high</poe:priority></poe:power></port>`",
+   "`<port><name>Gi1</name><power><priority>high</priority></power></port>`",
+   "`<port><name>Gi1</name><power xmlns=\"example-sw-poe\"><priority>high</priority></power></port>`",
+   "`<port><name>Gi1</name><power xmlns=\"urn:example:sw-poe\"><priority>high</priority></power></port>`"
   ],
   "a": 3,
   "e": "XML namespaces are URIs. The poe: prefix shown in trees isn't declared in the payload unless you bind it with xmlns:poe, and a module name isn't a namespace.",

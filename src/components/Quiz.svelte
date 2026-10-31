@@ -119,7 +119,7 @@
     <header>
       <small>Question {pos + 1} of {questions.length} · {typeLabels[q.type]} · Objective {q.objectives[0].split(":")[1]}</small>
     </header>
-    <p class="pre"><strong>{q.text}</strong></p>
+    <div class="prompt">{@html q.html.text}</div>
     {#if q.exhibit && q.type !== "slotfill"}<pre>{q.exhibit}</pre>{/if}
 
     {#key q.id}
@@ -130,7 +130,7 @@
     {#if saved}
       <p class={saved.correct ? "ok" : "bad"}>
         <strong>{saved.correct ? "Correct." : "Not quite."}</strong>
-        {#if q.explanation}<span class="pre">{q.explanation}</span>{/if}
+        {#if q.html.explanation}{@html q.html.explanation}{/if}
       </p>
       {#if pos < order.length - 1}<button type="button" onclick={() => go(pos + 1)}>Next question →</button>{/if}
     {/if}

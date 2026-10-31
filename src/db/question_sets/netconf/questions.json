@@ -31,7 +31,7 @@
   "p": "Both peers advertise urn:ietf:params:netconf:base:1.1. How are messages delimited for the rest of the session?",
   "o": [
    "A newline after each XML document",
-   "Chunked framing, with each chunk preceded by #<length> and the message ended by ##",
+   "Chunked framing, with each chunk preceded by `#<length>` and the message ended by ##",
    "The ]]>]]> end-of-message marker after each message, as in every NETCONF session regardless of version",
    "An HTTP Content-Length header on each message"
   ],
@@ -41,7 +41,7 @@
  {
   "g": 1,
   "t": "1.2",
-  "p": "Which two items does the server's <hello> contain? (Choose two.)",
+  "p": "Which two items does the server's `<hello>` contain? (Choose two.)",
   "o": [
    "The message-id of the client's first RPC",
    "The privilege level of the user who logged in",
@@ -72,24 +72,24 @@
  {
   "g": 1,
   "t": "1.2",
-  "p": "A client sends several RPCs on one session. How does it match each <rpc-reply> to its request?",
+  "p": "A client sends several RPCs on one session. How does it match each `<rpc-reply>` to its request?",
   "o": [
    "Each reply includes a copy of the request",
-   "The reply repeats the message-id attribute of the <rpc> it answers",
+   "The reply repeats the message-id attribute of the `<rpc>` it answers",
    "The reply carries the session-id of the request, which is unique for each RPC on the session",
    "Replies always arrive in reverse order"
   ],
   "a": 1,
-  "e": "message-id is set by the client on each <rpc>, and the server echoes it on the reply. The session-id identifies the session, not the RPC."
+  "e": "message-id is set by the client on each `<rpc>`, and the server echoes it on the reply. The session-id identifies the session, not the RPC."
  },
  {
   "g": 1,
   "t": "1.2",
   "p": "A crashed script left a lock on the candidate datastore, held by session 41. What frees it from another session?",
   "o": [
-   "<unlock> from the new session, which can release any session's lock",
-   "<kill-session> with session-id 41, which ends that session and releases its locks",
-   "<close-session> from the new session, which closes every other session and releases all of their locks",
+   "`<unlock>` from the new session, which can release any session's lock",
+   "`<kill-session>` with session-id 41, which ends that session and releases its locks",
+   "`<close-session>` from the new session, which closes every other session and releases all of their locks",
    "Nothing; the lock stays until the device reloads"
   ],
   "a": 1,
@@ -118,13 +118,13 @@
   "t": "1.2",
   "p": "In NMDA (RFC 8342), which datastore holds all configuration and state currently in use, and how is it read?",
   "o": [
-   "The candidate datastore, read with <get>",
-   "The running datastore, read with <get-config>",
-   "The operational datastore, read with <get-data> (RFC 8526)",
-   "The intended datastore, read with <get-config>, which includes state alongside configuration"
+   "The candidate datastore, read with `<get>`",
+   "The running datastore, read with `<get-config>`",
+   "The operational datastore, read with `<get-data>` (RFC 8526)",
+   "The intended datastore, read with `<get-config>`, which includes state alongside configuration"
   ],
   "a": 2,
-  "e": "<operational> combines the configuration in effect with state. get-data can target any NMDA datastore. get-config never returns state."
+  "e": "`<operational>` combines the configuration in effect with state. get-data can target any NMDA datastore. get-config never returns state."
  },
  {
   "g": 1,
@@ -140,10 +140,10 @@
   "e": "The secure transport comes first, then the capability exchange, then any number of RPCs, and finally a clean close.",
   "y": "o",
   "s": [
-   "The client and server exchange <hello> messages",
-   "The client sends <close-session>",
+   "The client and server exchange `<hello>` messages",
+   "The client sends `<close-session>`",
    "The client opens SSH to port 830 and requests the netconf subsystem",
-   "The client sends <rpc> requests and receives <rpc-reply> messages"
+   "The client sends `<rpc>` requests and receives `<rpc-reply>` messages"
   ]
  },
  {
@@ -228,7 +228,7 @@
   "o": [
    "edit_config needs default_operation to be set",
    "edit_config can only be used inside m.locked(), because ncclient refuses unlocked edits to any datastore on IOS XE",
-   "CFG must not start with <config>",
+   "CFG must not start with `<config>`",
    "ncclient's edit_config targets candidate unless target is given, so the request asks for a datastore the switch doesn't have"
   ],
   "a": 3,
@@ -268,17 +268,17 @@
   "o": [
    "The filter needs type=\"xpath\"",
    "Subtree filters can't select by name",
-   "ncclient adds the <filter> element itself, so the request ends up with a filter nested inside a filter",
-   "The namespace must be declared on <interface>, not on <interfaces>, because filters match from the list level"
+   "ncclient adds the `<filter>` element itself, so the request ends up with a filter nested inside a filter",
+   "The namespace must be declared on `<interface>`, not on `<interfaces>`, because filters match from the list level"
   ],
   "a": 2,
-  "e": "With the (\"subtree\", criteria) form, criteria is the content only. ncclient wraps it in <filter type=\"subtree\">.",
+  "e": "With the (\"subtree\", criteria) form, criteria is the content only. ncclient wraps it in `<filter type=\"subtree\">`.",
   "c": "FLT = \"\"\"\n<filter type=\"subtree\">\n  <interfaces xmlns=\"urn:ietf:params:xml:ns:yang:ietf-interfaces\">\n    <interface><name>Gi1</name></interface>\n  </interfaces>\n</filter>\"\"\"\nreply = m.get(filter=(\"subtree\", FLT))"
  },
  {
   "g": 2,
   "t": "2.2",
-  "p": "Which attribute of a get reply gives the <data> element as an lxml element ready for find() and xpath()?",
+  "p": "Which attribute of a get reply gives the `<data>` element as an lxml element ready for find() and xpath()?",
   "o": [
    "reply.data_xml",
    "reply.ok",
@@ -286,7 +286,7 @@
    "reply.xml"
   ],
   "a": 2,
-  "e": "data_ele is the parsed <data> element, data_xml is the same as a string, xml is the whole rpc-reply as a string, and ok is a boolean."
+  "e": "data_ele is the parsed `<data>` element, data_xml is the same as a string, xml is the whole rpc-reply as a string, and ok is a boolean."
  },
  {
   "g": 2,
@@ -438,7 +438,7 @@
    "Pass with_defaults=\"report-all\"",
    "Use get_schema instead",
    "Pass source=\"startup\"",
-   "Add <mtu/> to a subtree filter, which forces defaults to be shown"
+   "Add `<mtu/>` to a subtree filter, which forces defaults to be shown"
   ],
   "a": 0,
   "e": "Servers usually leave out default values. with-defaults (RFC 6243) report-all includes them, if the device supports it."
@@ -582,24 +582,24 @@
    "Only the type and enabled leaves of every interface",
    "The names of interfaces that are both Ethernet and enabled",
    "The names of interfaces that are Ethernet or enabled",
-   "Every interface, because <name/> is empty"
+   "Every interface, because `<name/>` is empty"
   ],
   "a": 1,
-  "e": "Sibling content-match nodes must all match, so they combine with AND. The empty <name/> is a selection node naming what to return.",
+  "e": "Sibling content-match nodes must all match, so they combine with AND. The empty `<name/>` is a selection node naming what to return.",
   "c": "<interfaces xmlns=\"urn:ietf:params:xml:ns:yang:ietf-interfaces\">\n  <interface>\n    <type xmlns:ianaift=\"urn:ietf:params:xml:ns:yang:iana-if-type\">ianaift:ethernetCsmacd</type>\n    <enabled>true</enabled>\n    <name/>\n  </interface>\n</interfaces>"
  },
  {
   "g": 2,
   "t": "2.2",
-  "p": "edit_config raises an error that the element doesn't meet the requirement. CFG starts with <native xmlns=\"http://cisco.com/ns/yang/Cisco-IOS-XE-native\">. What's the fix?",
+  "p": "edit_config raises an error that the element doesn't meet the requirement. CFG starts with `<native xmlns=\"http://cisco.com/ns/yang/Cisco-IOS-XE-native\">`. What's the fix?",
   "o": [
    "Send it with get_config instead",
-   "Wrap the payload in a <config> element",
-   "Add nc:operation=\"merge\" to <native>",
+   "Wrap the payload in a `<config>` element",
+   "Add nc:operation=\"merge\" to `<native>`",
    "Use format=\"json\""
   ],
   "a": 1,
-  "e": "ncclient requires the XML config to be rooted in <config>. The model's content goes inside it."
+  "e": "ncclient requires the XML config to be rooted in `<config>`. The model's content goes inside it."
  },
  {
   "g": 1,

@@ -52,9 +52,9 @@
   "t": "3.1",
   "p": "A branch can't use DHCP option 43. Which DNS record lets new switches there find Catalyst Center?",
   "o": [
-   "dnac.<domain>, which the switch tries first",
+   "`dnac.<domain>`, which the switch tries first",
    "catalyst-center.local, found by multicast DNS",
-   "pnpserver.<domain>, using the domain name the switch gets from DHCP",
+   "`pnpserver.<domain>`, using the domain name the switch gets from DHCP",
    "pnp.cisco.com, which every switch tries first and which redirects it to the customer's controller"
   ],
   "a": 2,
@@ -115,10 +115,10 @@
   "t": "3.1",
   "p": "Which body starts a discovery of existing switches at 10.20.0.1 to 10.20.0.50 over SSH, using stored credentials?",
   "o": [
-   "{\"name\": \"BR20\", \"discoveryType\": \"Range\", \"ipAddressList\": \"10.20.0.1-10.20.0.50\", \"protocolOrder\": \"ssh\", \"globalCredentialIdList\": [\"<cli-id>\", \"<snmp-id>\"]}",
-   "{\"name\": \"BR20\", \"discoveryType\": \"Range\", \"ipAddressList\": [\"10.20.0.1\", \"10.20.0.50\"], \"protocolOrder\": \"ssh\", \"username\": \"netops\", \"password\": \"<pw>\"}",
-   "{\"name\": \"BR20\", \"type\": \"Range\", \"range\": \"10.20.0.1-10.20.0.50\", \"protocol\": \"ssh\", \"credentials\": [\"<cli-id>\"]}",
-   "{\"name\": \"BR20\", \"discoveryType\": \"CIDR\", \"ipAddressList\": \"10.20.0.1-10.20.0.50\", \"protocolOrder\": \"ssh\", \"globalCredentialIdList\": [\"<cli-id>\", \"<snmp-id>\"]}"
+   "`{\"name\": \"BR20\", \"discoveryType\": \"Range\", \"ipAddressList\": \"10.20.0.1-10.20.0.50\", \"protocolOrder\": \"ssh\", \"globalCredentialIdList\": [\"<cli-id>\", \"<snmp-id>\"]}`",
+   "`{\"name\": \"BR20\", \"discoveryType\": \"Range\", \"ipAddressList\": [\"10.20.0.1\", \"10.20.0.50\"], \"protocolOrder\": \"ssh\", \"username\": \"netops\", \"password\": \"<pw>\"}`",
+   "`{\"name\": \"BR20\", \"type\": \"Range\", \"range\": \"10.20.0.1-10.20.0.50\", \"protocol\": \"ssh\", \"credentials\": [\"<cli-id>\"]}`",
+   "`{\"name\": \"BR20\", \"discoveryType\": \"CIDR\", \"ipAddressList\": \"10.20.0.1-10.20.0.50\", \"protocolOrder\": \"ssh\", \"globalCredentialIdList\": [\"<cli-id>\", \"<snmp-id>\"]}`"
   ],
   "a": 0,
   "e": "Discovery takes a discoveryType, here Range with a start-end string, a protocol order, and the IDs of stored global credentials. CIDR would need a prefix such as 10.20.0.0/26."
@@ -212,10 +212,10 @@
   "t": "3.2",
   "p": "Which body creates building HQ under the area Global/NZ/Auckland?",
   "o": [
-   "{\"type\": \"area\", \"site\": {\"building\": {\"name\": \"HQ\", \"parentName\": \"Global/NZ/Auckland\", \"latitude\": -36.85, \"longitude\": 174.76, \"address\": \"1 Queen St, Auckland\"}}}",
-   "{\"type\": \"building\", \"site\": {\"building\": {\"name\": \"HQ\", \"parentName\": \"Global/NZ/Auckland\", \"latitude\": -36.85, \"longitude\": 174.76, \"address\": \"1 Queen St, Auckland\"}}}",
-   "{\"type\": \"building\", \"site\": {\"building\": {\"name\": \"Global/NZ/Auckland/HQ\", \"latitude\": -36.85, \"longitude\": 174.76}}}",
-   "{\"type\": \"building\", \"site\": {\"area\": {\"name\": \"HQ\", \"parentName\": \"Global/NZ/Auckland\"}}}"
+   "`{\"type\": \"area\", \"site\": {\"building\": {\"name\": \"HQ\", \"parentName\": \"Global/NZ/Auckland\", \"latitude\": -36.85, \"longitude\": 174.76, \"address\": \"1 Queen St, Auckland\"}}}`",
+   "`{\"type\": \"building\", \"site\": {\"building\": {\"name\": \"HQ\", \"parentName\": \"Global/NZ/Auckland\", \"latitude\": -36.85, \"longitude\": 174.76, \"address\": \"1 Queen St, Auckland\"}}}`",
+   "`{\"type\": \"building\", \"site\": {\"building\": {\"name\": \"Global/NZ/Auckland/HQ\", \"latitude\": -36.85, \"longitude\": 174.76}}}`",
+   "`{\"type\": \"building\", \"site\": {\"area\": {\"name\": \"HQ\", \"parentName\": \"Global/NZ/Auckland\"}}}`"
   ],
   "a": 1,
   "e": "type and the object under site must agree. Buildings need a location (coordinates or an address), and name holds just the site's own name, with the path in parentName."
@@ -259,10 +259,10 @@
   "t": "3.2",
   "p": "A script has a device's UUID and needs its interfaces with status and VLAN. Which request fits?",
   "o": [
-   "GET /dna/intent/api/v1/network-device/{deviceId}/config",
-   "GET /dna/intent/api/v1/topology/physical-topology?deviceId={deviceId}",
-   "GET /dna/intent/api/v1/network-device/{deviceId}/interfaces/status",
-   "GET /dna/intent/api/v1/interface/network-device/{deviceId}"
+   "`GET /dna/intent/api/v1/network-device/{deviceId}/config`",
+   "`GET /dna/intent/api/v1/topology/physical-topology?deviceId={deviceId}`",
+   "`GET /dna/intent/api/v1/network-device/{deviceId}/interfaces/status`",
+   "`GET /dna/intent/api/v1/interface/network-device/{deviceId}`"
   ],
   "a": 3,
   "e": "Interfaces for a device live under the interface resource. The config endpoint returns the running configuration as text."
@@ -272,10 +272,10 @@
   "t": "3.2",
   "p": "A script needs a switch's running configuration as Catalyst Center last collected it. Which request fits?",
   "o": [
-   "GET /dna/intent/api/v1/compliance/{id}/detail",
-   "GET /dna/intent/api/v1/network-device/{id}?config=running",
-   "GET /dna/intent/api/v1/network-device/{id}/config",
-   "POST /dna/intent/api/v1/network-device-poller/cli/read-request with show running-config"
+   "`GET /dna/intent/api/v1/compliance/{id}/detail`",
+   "`GET /dna/intent/api/v1/network-device/{id}?config=running`",
+   "`GET /dna/intent/api/v1/network-device/{id}/config`",
+   "`POST /dna/intent/api/v1/network-device-poller/cli/read-request` with show running-config"
   ],
   "a": 2,
   "e": "The config endpoint returns the stored running configuration straight away. Command Runner also works but is asynchronous and fetches it live."
@@ -323,10 +323,10 @@
   "t": "3.2",
   "p": "Inventory doesn't yet show a change made on five switches. Which request refreshes them now?",
   "o": [
-   "PUT /dna/intent/api/v1/network-device/sync?forceSync=true with a list of the five device IDs",
-   "POST /dna/intent/api/v1/network-device with the five IP addresses",
-   "GET /dna/intent/api/v1/network-device?refresh=true",
-   "DELETE /dna/intent/api/v1/network-device/{id} on each switch, then run discovery again so they're re-added fresh"
+   "`PUT /dna/intent/api/v1/network-device/sync?forceSync=true` with a list of the five device IDs",
+   "`POST /dna/intent/api/v1/network-device` with the five IP addresses",
+   "`GET /dna/intent/api/v1/network-device?refresh=true`",
+   "`DELETE /dna/intent/api/v1/network-device/{id}` on each switch, then run discovery again so they're re-added fresh"
   ],
   "a": 0,
   "e": "A resync collects the devices' current state on demand, instead of waiting for the next scheduled collection. Deleting and rediscovering would lose their site and settings."
@@ -512,10 +512,10 @@
   "t": "3.5",
   "p": "Security wants a list of which devices are exposed to each published Cisco advisory. Which API fits?",
   "o": [
-   "GET /dna/intent/api/v1/network-device?psirt=true",
-   "GET /dna/intent/api/v1/compliance?complianceType=SECURITY, then read each device's affected advisories",
-   "GET /dna/intent/api/v1/issues?category=security",
-   "GET /dna/intent/api/v1/security-advisory/advisory, then each advisory's device list"
+   "`GET /dna/intent/api/v1/network-device?psirt=true`",
+   "`GET /dna/intent/api/v1/compliance?complianceType=SECURITY`, then read each device's affected advisories",
+   "`GET /dna/intent/api/v1/issues?category=security`",
+   "`GET /dna/intent/api/v1/security-advisory/advisory`, then each advisory's device list"
   ],
   "a": 3,
   "e": "The advisories API matches device software against Cisco PSIRT data, and each advisory links to its affected devices."
@@ -622,8 +622,8 @@
   "p": "A provisioning task shows isError: true with a vague failureReason. How can the script find which step failed?",
   "o": [
    "Read the device's syslog only",
-   "GET /dna/intent/api/v1/task/{taskId}/tree, and read the subtasks' progress and failure details",
-   "GET /dna/intent/api/v1/task?isError=true, which lists every failed task in the system with its full details",
+   "`GET /dna/intent/api/v1/task/{taskId}/tree`, and read the subtasks' progress and failure details",
+   "`GET /dna/intent/api/v1/task?isError=true`, which lists every failed task in the system with its full details",
    "Repeat the POST with debug=true"
   ],
   "a": 1,
@@ -695,11 +695,11 @@
  {
   "g": 4,
   "t": "4.1",
-  "p": "POST /dna/intent/api/v1/flow-analysis returned a flowAnalysisId. How does the script get the path?",
+  "p": "`POST /dna/intent/api/v1/flow-analysis` returned a flowAnalysisId. How does the script get the path?",
   "o": [
-   "GET /dna/intent/api/v1/flow-analysis/{flowAnalysisId} until the request status is COMPLETED",
-   "GET /dna/intent/api/v1/topology/physical-topology?flow={flowAnalysisId}, which highlights the path",
-   "GET /dna/intent/api/v1/task/{flowAnalysisId}",
+   "`GET /dna/intent/api/v1/flow-analysis/{flowAnalysisId}` until the request status is COMPLETED",
+   "`GET /dna/intent/api/v1/topology/physical-topology?flow={flowAnalysisId}`, which highlights the path",
+   "`GET /dna/intent/api/v1/task/{flowAnalysisId}`",
    "Read the path from the POST response, which already contains it"
   ],
   "a": 0,
@@ -771,10 +771,10 @@
   "t": "4.3",
   "p": "Which request lists the golden images for Catalyst 9300 switches?",
   "o": [
-   "GET /dna/intent/api/v1/image/importation?isTaggedGolden=true&family=Cisco Catalyst 9300 Switch",
-   "GET /dna/intent/api/v1/image/importation/golden",
-   "GET /dna/intent/api/v1/network-device?golden=true",
-   "GET /dna/intent/api/v1/image/importation/golden?family=Cisco Catalyst 9300 Switch&siteId=Global"
+   "`GET /dna/intent/api/v1/image/importation?isTaggedGolden=true&family=Cisco` Catalyst 9300 Switch",
+   "`GET /dna/intent/api/v1/image/importation/golden`",
+   "`GET /dna/intent/api/v1/network-device?golden=true`",
+   "`GET /dna/intent/api/v1/image/importation/golden?family=Cisco` Catalyst 9300 Switch&siteId=Global"
   ],
   "a": 0,
   "e": "The image list takes filters such as isTaggedGolden and family. The golden endpoint tags or untags images rather than listing them."
@@ -784,10 +784,10 @@
   "t": "4.4",
   "p": "How does a script get Assurance's issues and suggested actions for one device, using the issue enrichment API?",
   "o": [
-   "GET /dna/intent/api/v1/issues/{deviceId}",
-   "GET /dna/intent/api/v1/issue-enrichment-details with headers entity_type: network_device and entity_value set to the device's MAC",
-   "GET /dna/intent/api/v1/device-health?mac=<mac>",
-   "POST /dna/intent/api/v1/issues with the device's hostname and MAC in the body, which returns its issues and the suggested actions"
+   "`GET /dna/intent/api/v1/issues/{deviceId}`",
+   "`GET /dna/intent/api/v1/issue-enrichment-details` with headers entity_type: network_device and entity_value set to the device's MAC",
+   "`GET /dna/intent/api/v1/device-health?mac=<mac>`",
+   "`POST /dna/intent/api/v1/issues` with the device's hostname and MAC in the body, which returns its issues and the suggested actions"
   ],
   "a": 1,
   "e": "Enrichment APIs take the entity in headers. For devices, entity_value is the MAC or IP address, and the reply includes issues with suggested actions."
@@ -797,10 +797,10 @@
   "t": "4.4",
   "p": "A help desk tool needs one client's health, connection details and onboarding history. Which request fits?",
   "o": [
-   "GET /dna/intent/api/v1/network-device?macAddress=<mac>&includeClients=true",
-   "GET /dna/intent/api/v1/client-health?macAddress=<mac>",
-   "GET /dna/intent/api/v1/client-detail?macAddress=<mac>&timestamp=<epoch-ms>",
-   "GET /dna/intent/api/v1/site-health?client=<mac>"
+   "`GET /dna/intent/api/v1/network-device?macAddress=<mac>&includeClients=true`",
+   "`GET /dna/intent/api/v1/client-health?macAddress=<mac>`",
+   "`GET /dna/intent/api/v1/client-detail?macAddress=<mac>&timestamp=<epoch-ms>`",
+   "`GET /dna/intent/api/v1/site-health?client=<mac>`"
   ],
   "a": 2,
   "e": "client-detail covers a single client. client-health returns overall counts and scores, and network-device covers infrastructure."
@@ -843,10 +843,10 @@
   "t": "4.4",
   "p": "A tool must draw which devices connect to which, from Catalyst Center. Which request fits?",
   "o": [
-   "GET /dna/intent/api/v1/topology/site-topology",
-   "GET /dna/intent/api/v1/network-device/count",
-   "GET /dna/intent/api/v1/topology/physical-topology",
-   "GET /dna/intent/api/v1/site-health"
+   "`GET /dna/intent/api/v1/topology/site-topology`",
+   "`GET /dna/intent/api/v1/network-device/count`",
+   "`GET /dna/intent/api/v1/topology/physical-topology`",
+   "`GET /dna/intent/api/v1/site-health`"
   ],
   "a": 2,
   "e": "Physical topology returns nodes and links. Site topology only gives the site hierarchy."
@@ -878,10 +878,10 @@
   "t": "4.6",
   "p": "Where does a script find the event IDs that can be subscribed to, such as the one for a device becoming unreachable?",
   "o": [
-   "GET /dna/intent/api/v1/events, the event catalog, filtered with tags such as ASSURANCE",
-   "GET /dna/intent/api/v1/issues, because each issue's ID is the same as the event ID used in subscriptions",
+   "`GET /dna/intent/api/v1/events`, the event catalog, filtered with tags such as ASSURANCE",
+   "`GET /dna/intent/api/v1/issues`, because each issue's ID is the same as the event ID used in subscriptions",
    "The device's syslog messages",
-   "GET /dna/intent/api/v1/task, which lists event types"
+   "`GET /dna/intent/api/v1/task`, which lists event types"
   ],
   "a": 0,
   "e": "The event catalog lists every event type with its ID, domain and severity. Subscriptions refer to those IDs."

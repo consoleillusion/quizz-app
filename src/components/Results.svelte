@@ -39,7 +39,7 @@
     <h3>Missed</h3>
     <ul>
       {#each missed as {q, pos}}
-        <li><button type="button" class="link" data-pos={pos} onclick={jump}>Q{pos + 1}</button> {q.objectives[0].split(":")[1]}: {q.text}</li>
+        <li><button type="button" class="link" data-pos={pos} onclick={jump}>Q{pos + 1}</button> {q.objectives[0].split(":")[1]}: {@html q.html.text}</li>
       {/each}
     </ul>
   {/if}

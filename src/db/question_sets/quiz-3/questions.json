@@ -15,10 +15,10 @@
  {
   "g": 1,
   "t": "1.2",
-  "p": "Which two statements about the NETCONF <hello> exchange are true? (Choose two.)",
+  "p": "Which two statements about the NETCONF `<hello>` exchange are true? (Choose two.)",
   "o": [
    "The server's hello includes the session-id for this session",
-   "Only the client sends a hello, and the server replies with <ok/>",
+   "Only the client sends a hello, and the server replies with `<ok/>`",
    "The client's hello carries its first edit-config request for the server",
    "Each side lists the capabilities it supports, such as base:1.1 and candidate",
    "The client sends its username and password inside its hello"
@@ -35,10 +35,10 @@
   "t": "1.3",
   "p": "logging is added to system by an augment in the example-logging module (prefix exlog). Which JSON body is valid for PUT /restconf/data/example-system:system?",
   "o": [
-   "{\"example-system:system\": {\"hostname\": \"R1\", \"exlog:logging\": {\"level\": \"debug\"}}}",
-   "{\"example-system:system\": {\"hostname\": \"R1\"}, \"example-logging:logging\": {\"level\": \"debug\"}}",
-   "{\"example-system:system\": {\"hostname\": \"R1\", \"logging\": {\"level\": \"debug\"}}}",
-   "{\"example-system:system\": {\"hostname\": \"R1\", \"example-logging:logging\": {\"level\": \"debug\"}}}"
+   "`{\"example-system:system\": {\"hostname\": \"R1\", \"exlog:logging\": {\"level\": \"debug\"}}}`",
+   "`{\"example-system:system\": {\"hostname\": \"R1\"}, \"example-logging:logging\": {\"level\": \"debug\"}}`",
+   "`{\"example-system:system\": {\"hostname\": \"R1\", \"logging\": {\"level\": \"debug\"}}}`",
+   "`{\"example-system:system\": {\"hostname\": \"R1\", \"example-logging:logging\": {\"level\": \"debug\"}}}`"
   ],
   "a": 3,
   "e": "A node from a different module than its parent is prefixed with that module's name, not its YANG prefix. Its children are in the same module, so level needs no prefix, and logging sits inside system.",
@@ -49,10 +49,10 @@
   "t": "1.4",
   "p": "The module's namespace is urn:example:acl. Which XML sets the permitted hosts 10.1.1.1 and 10.1.1.2?",
   "o": [
-   "<acl xmlns=\"urn:example:acl\"><permitted-host list=\"10.1.1.1 10.1.1.2\"/></acl>",
-   "<acl xmlns=\"urn:example:acl\"><permitted-host>10.1.1.1</permitted-host><permitted-host>10.1.1.2</permitted-host></acl>",
-   "<acl xmlns=\"urn:example:acl\"><permitted-host>10.1.1.1,10.1.1.2</permitted-host></acl>",
-   "<acl xmlns=\"urn:example:acl\"><permitted-host><address>10.1.1.1</address><address>10.1.1.2</address></permitted-host></acl>"
+   "`<acl xmlns=\"urn:example:acl\"><permitted-host list=\"10.1.1.1 10.1.1.2\"/></acl>`",
+   "`<acl xmlns=\"urn:example:acl\"><permitted-host>10.1.1.1</permitted-host><permitted-host>10.1.1.2</permitted-host></acl>`",
+   "`<acl xmlns=\"urn:example:acl\"><permitted-host>10.1.1.1,10.1.1.2</permitted-host></acl>`",
+   "`<acl xmlns=\"urn:example:acl\"><permitted-host><address>10.1.1.1</address><address>10.1.1.2</address></permitted-host></acl>`"
   ],
   "a": 1,
   "e": "Each leaf-list value is its own element named for the leaf-list. Values aren't joined, wrapped in child elements or written as attributes.",
@@ -79,7 +79,7 @@
   "o": [
    "next-hop is optional, because only the first key in a list is mandatory",
    "An entry is identified by prefix and next-hop together",
-   "In a RESTCONF URL, an entry is route=<prefix>,<next-hop>, with the prefix's slash percent-encoded",
+   "In a RESTCONF URL, an entry is `route=<prefix>,<next-hop>`, with the prefix's slash percent-encoded",
    "The entries are ordered by the user, because the list has two keys",
    "Two entries can't share a prefix, because prefix is the first key"
   ],
@@ -157,10 +157,10 @@
   "t": "2.3",
   "p": "A script changes configuration over RESTCONF and must then save it to startup. Which request does that on IOS XE?",
   "o": [
-   "PUT /restconf/data/startup-config with the running configuration",
-   "POST /restconf/operations/cisco-ia:save-config",
-   "PATCH /restconf/data/cisco-ia:save-config with {\"save\": true}",
-   "POST /restconf/data/Cisco-IOS-XE-native:native/write-memory"
+   "`PUT /restconf/data/startup-config` with the running configuration",
+   "`POST /restconf/operations/cisco-ia:save-config`",
+   "`PATCH /restconf/data/cisco-ia:save-config` with {\"save\": true}",
+   "`POST /restconf/data/Cisco-IOS-XE-native:native/write-memory`"
   ],
   "a": 1,
   "e": "RPCs are invoked with POST under /restconf/operations, and cisco-ia:save-config copies running to startup. RESTCONF has no startup datastore resource."
@@ -257,10 +257,10 @@
   "t": "2.6",
   "p": "Which RESTCONF URL reads GigabitEthernet1/0/1 from the Cisco-IOS-XE-native model?",
   "o": [
-   "/restconf/data/Cisco-IOS-XE-native:native/interface/GigabitEthernet=GigabitEthernet1%2F0%2F1",
-   "/restconf/data/Cisco-IOS-XE-native:native/interface/GigabitEthernet=1%2F0%2F1",
-   "/restconf/data/Cisco-IOS-XE-native:native/interface=GigabitEthernet1%2F0%2F1",
-   "/restconf/data/Cisco-IOS-XE-native:native/interface/GigabitEthernet=1/0/1"
+   "`/restconf/data/Cisco-IOS-XE-native:native/interface/GigabitEthernet=GigabitEthernet1%2F0%2F1`",
+   "`/restconf/data/Cisco-IOS-XE-native:native/interface/GigabitEthernet=1%2F0%2F1`",
+   "`/restconf/data/Cisco-IOS-XE-native:native/interface=GigabitEthernet1%2F0%2F1`",
+   "`/restconf/data/Cisco-IOS-XE-native:native/interface/GigabitEthernet=1/0/1`"
   ],
   "a": 1,
   "e": "The native model has a list for each interface type, keyed by the number alone, such as 1/0/1, and the slashes must be percent-encoded. The ietf-interfaces model uses the full name instead."
@@ -324,10 +324,10 @@
   "t": "3.1",
   "p": "A Meraki order has arrived. Which Dashboard API call adds all its devices and licenses to the organization's inventory by order number?",
   "o": [
-   "POST /organizations/{organizationId}/claim with orders",
-   "POST /organizations/{organizationId}/devices with serials",
-   "POST /networks/{networkId}/devices/claim with orders",
-   "PUT /organizations/{organizationId}/inventory with orders"
+   "`POST /organizations/{organizationId}/claim` with orders",
+   "`POST /organizations/{organizationId}/devices` with serials",
+   "`POST /networks/{networkId}/devices/claim` with orders",
+   "`PUT /organizations/{organizationId}/inventory` with orders"
   ],
   "a": 0,
   "e": "The organization claim endpoint accepts orders, serials or licenses and adds them to inventory. Claiming into a network then assigns devices to that network."
@@ -361,7 +361,7 @@
   "s": [
    "GET the site by name to find its siteId",
    "Poll the task until it finishes, and check isError",
-   "POST /dna/system/api/v1/auth/token to get a token",
+   "`POST /dna/system/api/v1/auth/token` to get a token",
    "POST the assignment and read the taskId from the response"
   ]
  },
@@ -497,10 +497,10 @@
   "t": "3.5",
   "p": "Policy requires blocking peer-to-peer traffic at every branch MX. Which Dashboard API call applies this to a network?",
   "o": [
-   "PUT /networks/{networkId}/wireless/ssids/{number} with peer-to-peer blocking turned on for each SSID",
-   "PUT /networks/{networkId}/appliance/vlans with the peer-to-peer VLAN removed",
-   "PUT /networks/{networkId}/appliance/firewall/l7FirewallRules with a category deny rule",
-   "POST /networks/{networkId}/appliance/trafficShaping/rules with a low priority"
+   "`PUT /networks/{networkId}/wireless/ssids/{number}` with peer-to-peer blocking turned on for each SSID",
+   "`PUT /networks/{networkId}/appliance/vlans` with the peer-to-peer VLAN removed",
+   "`PUT /networks/{networkId}/appliance/firewall/l7FirewallRules` with a category deny rule",
+   "`POST /networks/{networkId}/appliance/trafficShaping/rules` with a low priority"
   ],
   "a": 2,
   "e": "Layer 7 firewall rules can deny application categories such as peer-to-peer. Traffic shaping only limits bandwidth, and SSID settings don't cover wired clients behind the MX."
@@ -510,10 +510,10 @@
   "t": "3.5",
   "p": "A new security group for contractors must be created in ISE through the API. Which request fits?",
   "o": [
-   "POST /ers/config/networkdevicegroup with the SGT value",
-   "POST /ers/config/sgt with a name and value",
-   "POST /ers/config/endpointgroup with the group name",
-   "PUT /ers/config/ancpolicy with the group name"
+   "`POST /ers/config/networkdevicegroup` with the SGT value",
+   "`POST /ers/config/sgt` with a name and value",
+   "`POST /ers/config/endpointgroup` with the group name",
+   "`PUT /ers/config/ancpolicy` with the group name"
   ],
   "a": 1,
   "e": "Security groups are SGT objects in ERS. Endpoint identity groups, ANC policies and network device groups are different objects."
@@ -523,10 +523,10 @@
   "t": "3.5",
   "p": "Security must find which network devices are affected by published Cisco security advisories. Which Catalyst Center API fits?",
   "o": [
-   "GET /dna/intent/api/v1/site-health with security filters",
-   "GET /dna/intent/api/v1/event/subscription for advisory events",
-   "GET /dna/intent/api/v1/security-advisory/advisory, then each advisory's device list",
-   "GET /dna/intent/api/v1/network-device with softwareVersion filters"
+   "`GET /dna/intent/api/v1/site-health` with security filters",
+   "`GET /dna/intent/api/v1/event/subscription` for advisory events",
+   "`GET /dna/intent/api/v1/security-advisory/advisory`, then each advisory's device list",
+   "`GET /dna/intent/api/v1/network-device` with softwareVersion filters"
   ],
   "a": 2,
   "e": "The security advisories API matches device software against Cisco PSIRT advisories and lists the affected devices for each. Filtering by version by hand misses that matching logic."
@@ -562,10 +562,10 @@
   "t": "4.1",
   "p": "After a change, a team wants Catalyst Center to confirm that traffic from a user subnet still reaches a server along the expected path. Which API fits?",
   "o": [
-   "POST /dna/intent/api/v1/flow-analysis, then read the path trace result",
-   "GET /dna/intent/api/v1/network-device for both endpoints",
-   "POST /dna/intent/api/v1/network-device-poller/cli/read-request with a ping",
-   "GET /dna/intent/api/v1/site-health for the user's site"
+   "`POST /dna/intent/api/v1/flow-analysis`, then read the path trace result",
+   "`GET /dna/intent/api/v1/network-device` for both endpoints",
+   "`POST /dna/intent/api/v1/network-device-poller/cli/read-request` with a ping",
+   "`GET /dna/intent/api/v1/site-health` for the user's site"
   ],
   "a": 0,
   "e": "Path Trace (flow-analysis) computes the hop-by-hop path between a source and a destination, including ACLs along the way. Device lists and health scores don't show the path."
@@ -632,10 +632,10 @@
   "t": "4.3",
   "p": "A Meraki firmware upgrade causes problems at one network. Which API call returns it to the previous version?",
   "o": [
-   "DELETE /networks/{networkId}/firmwareUpgrades",
-   "POST /networks/{networkId}/firmwareUpgrades/rollbacks",
-   "PUT /devices/{serial} with the old firmware version",
-   "POST /devices/{serial}/reboot on each affected device"
+   "`DELETE /networks/{networkId}/firmwareUpgrades`",
+   "`POST /networks/{networkId}/firmwareUpgrades/rollbacks`",
+   "`PUT /devices/{serial}` with the old firmware version",
+   "`POST /devices/{serial}/reboot` on each affected device"
   ],
   "a": 1,
   "e": "The rollbacks endpoint schedules a return to the previous version for a product. Firmware isn't set per device, and a reboot doesn't change the version."
@@ -645,10 +645,10 @@
   "t": "4.4",
   "p": "A NOC dashboard needs every Meraki device in the organization marked online, offline, alerting or dormant. Which call fits?",
   "o": [
-   "GET /networks/{networkId}/events",
-   "GET /organizations/{organizationId}/apiRequests",
-   "GET /organizations/{organizationId}/devices/statuses",
-   "GET /organizations/{organizationId}/inventory/devices"
+   "`GET /networks/{networkId}/events`",
+   "`GET /organizations/{organizationId}/apiRequests`",
+   "`GET /organizations/{organizationId}/devices/statuses`",
+   "`GET /organizations/{organizationId}/inventory/devices`"
   ],
   "a": 2,
   "e": "devices/statuses returns each device's current status. Inventory lists what's owned, events are a network's log, and apiRequests logs API use."
@@ -658,10 +658,10 @@
   "t": "4.4",
   "p": "An on-call script must fetch active P1 issues from Catalyst Center Assurance. Which API fits?",
   "o": [
-   "GET /dna/intent/api/v1/issues with priority=P1",
-   "GET /dna/intent/api/v1/network-device with reachabilityStatus=P1",
-   "GET /dna/intent/api/v1/task with isError=true",
-   "GET /dna/intent/api/v1/site-health with priority=P1"
+   "`GET /dna/intent/api/v1/issues` with priority=P1",
+   "`GET /dna/intent/api/v1/network-device` with reachabilityStatus=P1",
+   "`GET /dna/intent/api/v1/task` with isError=true",
+   "`GET /dna/intent/api/v1/site-health` with priority=P1"
   ],
   "a": 0,
   "e": "The issues API returns Assurance issues and filters on priority and status. Tasks track API jobs, and the other endpoints don't hold issues."
@@ -698,10 +698,10 @@
   "t": "4.6",
   "p": "Which Catalyst Center API registers a set of events to be sent to an existing REST webhook destination?",
   "o": [
-   "POST /dna/intent/api/v1/event/webhook",
-   "GET /dna/intent/api/v1/events",
-   "POST /dna/intent/api/v1/dna-event/notify",
-   "POST /dna/intent/api/v1/event/subscription/rest"
+   "`POST /dna/intent/api/v1/event/webhook`",
+   "`GET /dna/intent/api/v1/events`",
+   "`POST /dna/intent/api/v1/dna-event/notify`",
+   "`POST /dna/intent/api/v1/event/subscription/rest`"
   ],
   "a": 3,
   "e": "A REST event subscription ties event IDs to a webhook destination. /event/webhook creates the destination itself, and /events lists the event catalog."

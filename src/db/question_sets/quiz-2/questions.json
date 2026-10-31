@@ -17,10 +17,10 @@
   "t": "1.2",
   "p": "A RESTCONF client doesn't know the API root path on a new device. How does RFC 8040 let it find the root?",
   "o": [
-   "GET /restconf/data/ietf-yang-library:modules-state, which lists the root",
-   "GET /.well-known/host-meta, which returns a link with rel=\"restconf\"",
+   "`GET /restconf/data/ietf-yang-library:modules-state`, which lists the root",
+   "`GET /.well-known/host-meta`, which returns a link with rel=\"restconf\"",
    "Read the SSH login banner, which prints the RESTCONF root path",
-   "GET /api/v1/root, which every RESTCONF server must answer"
+   "`GET /api/v1/root`, which every RESTCONF server must answer"
   ],
   "a": 1,
   "e": "The host-meta document points to the RESTCONF root, which is /restconf on IOS XE. The YANG library lists modules, not the root."
@@ -30,10 +30,10 @@
   "t": "1.3",
   "p": "This body is POSTed to /restconf/data/ietf-interfaces:interfaces to create Loopback7. The type is the softwareLoopback identity from the iana-if-type module. Which body is valid?",
   "o": [
-   "{\"ietf-interfaces:interface\": [{\"name\": \"Loopback7\", \"type\": \"softwareLoopback\", \"enabled\": true}]}",
-   "{\"ietf-interfaces:interface\": [{\"name\": \"Loopback7\", \"type\": {\"iana-if-type\": \"softwareLoopback\"}, \"enabled\": true}]}",
-   "{\"ietf-interfaces:interface\": [{\"name\": \"Loopback7\", \"type\": \"iana-if-type:softwareLoopback\", \"enabled\": true}]}",
-   "{\"ietf-interfaces:interface\": [{\"name\": \"Loopback7\", \"type\": \"iana-if-type:softwareLoopback\", \"enabled\": \"true\"}]}"
+   "`{\"ietf-interfaces:interface\": [{\"name\": \"Loopback7\", \"type\": \"softwareLoopback\", \"enabled\": true}]}`",
+   "`{\"ietf-interfaces:interface\": [{\"name\": \"Loopback7\", \"type\": {\"iana-if-type\": \"softwareLoopback\"}, \"enabled\": true}]}`",
+   "`{\"ietf-interfaces:interface\": [{\"name\": \"Loopback7\", \"type\": \"iana-if-type:softwareLoopback\", \"enabled\": true}]}`",
+   "`{\"ietf-interfaces:interface\": [{\"name\": \"Loopback7\", \"type\": \"iana-if-type:softwareLoopback\", \"enabled\": \"true\"}]}`"
   ],
   "a": 2,
   "e": "An identityref value from another module is prefixed with that module's name, and a boolean is a JSON literal, not a string.",
@@ -44,10 +44,10 @@
   "t": "1.4",
   "p": "The module's namespace is urn:example:dns. Which edit-config payload removes only server 10.0.0.53?",
   "o": [
-   "<config><dns xmlns=\"urn:example:dns\"><server operation=\"remove\"><address>10.0.0.53</address></server></dns></config>",
-   "<config xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\"><dns xmlns=\"urn:example:dns\"><server><address nc:operation=\"delete\">10.0.0.53</address></server></dns></config>",
-   "<config xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\"><dns xmlns=\"urn:example:dns\"><server nc:operation=\"delete\"><address>10.0.0.53</address></server></dns></config>",
-   "<config xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\"><dns xmlns=\"urn:example:dns\" nc:operation=\"delete\"><server><address>10.0.0.53</address></server></dns></config>"
+   "`<config><dns xmlns=\"urn:example:dns\"><server operation=\"remove\"><address>10.0.0.53</address></server></dns></config>`",
+   "`<config xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\"><dns xmlns=\"urn:example:dns\"><server><address nc:operation=\"delete\">10.0.0.53</address></server></dns></config>`",
+   "`<config xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\"><dns xmlns=\"urn:example:dns\"><server nc:operation=\"delete\"><address>10.0.0.53</address></server></dns></config>`",
+   "`<config xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\"><dns xmlns=\"urn:example:dns\" nc:operation=\"delete\"><server><address>10.0.0.53</address></server></dns></config>`"
   ],
   "a": 2,
   "e": "The operation attribute goes on the list entry and uses the NETCONF base namespace. On the container it would delete every server, and a key leaf can't be deleted on its own.",
@@ -303,10 +303,10 @@
   "t": "3.1",
   "p": "An unclaimed device appears in Catalyst Center Plug and Play. Which API claims it to a site with an image and a template?",
   "o": [
-   "PUT /dna/intent/api/v1/site/{siteId}/device with the PnP device ID",
-   "POST /dna/intent/api/v1/onboarding/pnp-device/import with the device ID",
-   "POST /dna/intent/api/v1/network-device with the device's serial number",
-   "POST /dna/intent/api/v1/onboarding/pnp-device/site-claim"
+   "`PUT /dna/intent/api/v1/site/{siteId}/device` with the PnP device ID",
+   "`POST /dna/intent/api/v1/onboarding/pnp-device/import` with the device ID",
+   "`POST /dna/intent/api/v1/network-device` with the device's serial number",
+   "`POST /dna/intent/api/v1/onboarding/pnp-device/site-claim`"
   ],
   "a": 3,
   "e": "site-claim assigns a PnP device to a site with its image and configuration. pnp-device/import adds devices to the PnP list ahead of time, and network-device adds devices that are already reachable to inventory."
@@ -377,23 +377,23 @@
   "t": "3.2",
   "p": "A script needs every device in the SD-WAN overlay with its system IP and reachability. Which SD-WAN Manager API returns that?",
   "o": [
-   "GET /dataservice/device",
-   "GET /dataservice/template/device",
-   "GET /dataservice/statistics/approute",
-   "GET /dataservice/client/token"
+   "`GET /dataservice/device`",
+   "`GET /dataservice/template/device`",
+   "`GET /dataservice/statistics/approute`",
+   "`GET /dataservice/client/token`"
   ],
   "a": 0,
-  "e": "/dataservice/device lists devices with fields such as system-ip and reachability. The template endpoint lists device templates, client/token returns the XSRF token, and approute holds tunnel statistics."
+  "e": "`/dataservice/device` lists devices with fields such as system-ip and reachability. The template endpoint lists device templates, client/token returns the XSRF token, and approute holds tunnel statistics."
  },
  {
   "g": 3,
   "t": "3.2",
   "p": "Which body creates endpoint 00:11:22:33:44:55 in an existing identity group through ISE ERS?",
   "o": [
-   "{\"ERSEndPoint\": {\"mac\": \"00:11:22:33:44:55\", \"groupId\": \"<group-id>\", \"staticGroupAssignment\": true}}",
-   "{\"mac\": \"00:11:22:33:44:55\", \"groupId\": \"<group-id>\", \"staticGroupAssignment\": true}",
-   "{\"endpoint\": {\"mac\": \"00:11:22:33:44:55\", \"group\": \"<group-name>\"}}",
-   "{\"ERSEndPoint\": {\"name\": \"00:11:22:33:44:55\", \"groupName\": \"<group-name>\", \"staticGroupAssignment\": \"yes\"}}"
+   "`{\"ERSEndPoint\": {\"mac\": \"00:11:22:33:44:55\", \"groupId\": \"<group-id>\", \"staticGroupAssignment\": true}}`",
+   "`{\"mac\": \"00:11:22:33:44:55\", \"groupId\": \"<group-id>\", \"staticGroupAssignment\": true}`",
+   "`{\"endpoint\": {\"mac\": \"00:11:22:33:44:55\", \"group\": \"<group-name>\"}}`",
+   "`{\"ERSEndPoint\": {\"name\": \"00:11:22:33:44:55\", \"groupName\": \"<group-name>\", \"staticGroupAssignment\": \"yes\"}}`"
   ],
   "a": 0,
   "e": "ERS bodies wrap the object in a member named for its type, such as ERSEndPoint. The endpoint is identified by mac and its group by groupId, and staticGroupAssignment stops profiling from moving it.",
@@ -486,10 +486,10 @@
   "t": "3.5",
   "p": "Security wants a list of devices whose running configuration has drifted from what Catalyst Center intends. Which API fits?",
   "o": [
-   "GET /dna/intent/api/v1/compliance with complianceStatus=NON_COMPLIANT",
-   "GET /dna/intent/api/v1/site-health, filtered on low health scores",
-   "GET /dna/intent/api/v1/network-device with reachabilityStatus=Unreachable",
-   "GET /dna/intent/api/v1/image/importation, filtered on golden images"
+   "`GET /dna/intent/api/v1/compliance` with complianceStatus=NON_COMPLIANT",
+   "`GET /dna/intent/api/v1/site-health`, filtered on low health scores",
+   "`GET /dna/intent/api/v1/network-device` with reachabilityStatus=Unreachable",
+   "`GET /dna/intent/api/v1/image/importation`, filtered on golden images"
   ],
   "a": 0,
   "e": "The compliance API reports status per device and category, including running configuration, images and PSIRTs. Reachability and health don't show configuration drift."
@@ -499,10 +499,10 @@
   "t": "3.5",
   "p": "A script must block one client from a Meraki network. Which call does that?",
   "o": [
-   "DELETE /networks/{networkId}/clients/{clientId}, which bans the client",
-   "PUT /devices/{serial}/switch/ports/{portId} with enabled set to false, for every port",
-   "POST /networks/{networkId}/clients/{clientId}/quarantine",
-   "PUT /networks/{networkId}/clients/{clientId}/policy with devicePolicy set to Blocked"
+   "`DELETE /networks/{networkId}/clients/{clientId}`, which bans the client",
+   "`PUT /devices/{serial}/switch/ports/{portId}` with enabled set to false, for every port",
+   "`POST /networks/{networkId}/clients/{clientId}/quarantine`",
+   "`PUT /networks/{networkId}/clients/{clientId}/policy` with devicePolicy set to Blocked"
   ],
   "a": 3,
   "e": "The client policy endpoint sets a client to Normal, Whitelisted, Blocked or Group policy. There's no client delete or quarantine call, and disabling ports affects everyone on them."
@@ -618,10 +618,10 @@
   "t": "4.3",
   "p": "A golden image has been distributed to a group of switches through Catalyst Center. Which API call installs it and reloads them?",
   "o": [
-   "POST /dna/intent/api/v1/image/importation/source/url",
-   "POST /dna/intent/api/v1/image/distribution",
-   "POST /dna/intent/api/v1/image/activation/device",
-   "PUT /dna/intent/api/v1/network-device/sync"
+   "`POST /dna/intent/api/v1/image/importation/source/url`",
+   "`POST /dna/intent/api/v1/image/distribution`",
+   "`POST /dna/intent/api/v1/image/activation/device`",
+   "`PUT /dna/intent/api/v1/network-device/sync`"
   ],
   "a": 2,
   "e": "Activation installs the image and reloads the device, usually in a scheduled window. Importation loads the image into the repository, distribution copies it to devices, and sync only refreshes inventory."
@@ -644,10 +644,10 @@
   "t": "4.4",
   "p": "A dashboard needs counts of healthy and poor wired and wireless clients across the network from Catalyst Center. Which API fits?",
   "o": [
-   "GET /dna/intent/api/v1/client-health",
-   "GET /dna/intent/api/v1/client-detail",
-   "GET /dna/intent/api/v1/network-device",
-   "GET /dna/intent/api/v1/topology/physical-topology"
+   "`GET /dna/intent/api/v1/client-health`",
+   "`GET /dna/intent/api/v1/client-detail`",
+   "`GET /dna/intent/api/v1/network-device`",
+   "`GET /dna/intent/api/v1/topology/physical-topology`"
   ],
   "a": 0,
   "e": "client-health returns overall scores and counts by client type. client-detail covers one client by MAC address, and the others return inventory and topology."

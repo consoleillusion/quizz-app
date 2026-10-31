@@ -1,11 +1,13 @@
 // Build-time data access for pages. Server-only: never import this from a client component.
 import {db} from "../db/db.ts"
+import {toHtml, toPlain} from "./markdown.ts"
 
 export type QuestionSet = {id: string, slug: string, title: string, description: string, exam: string,
   difficulty: string, randomize_question_order: boolean, randomize_option_order: boolean,
   question_count: number, tags: string[]}
 export type Question = {id: string, type: string, position: number, text: string, exhibit?: string,
-  explanation?: string, objectives: string[], [field: string]: unknown}
+  explanation?: string, objectives: string[], html: Record<string, string | string[]>,
+  plain: Record<string, string[]>, [field: string]: unknown}
 
 // The database is self-describing: init.ts stores each table's JSON Schema in table_schema.
 const schemaRows = await db.prepare("SELECT table_name, json(jsonschema) AS schema FROM table_schema").all()
@@ -44,5 +46,14 @@ export const getQuestions = async (setId: string): Promise<Question[]> => {
       WHERE i.question_set_id = ? AND i.question_type = ?`).all([setId, schema["x-question-type"]])
     return rows.map((r: any) => ({...parseRow(schema)(r), id: r.id, position: r.position, type: schema["x-question-type"]}))
   }))
-  return (perType.flat() as Question[]).sort((a, b) => a.position - b.position)
+  return (perType.flat() as Question[]).sort((a, b) => a.position - b.position).map(withRendering)
+}
+
+const withRendering = (q: any): Question => {
+  // Purpose: attach build-time HTML for every Markdown field, and plain labels for <option> lists
+  const html: Record<string, string | string[]> = {text: toHtml(q.text)}
+  if (q.explanation) html.explanation = toHtml(q.explanation)
+  if (q.options) html.options = q.options.map((o: any) => toHtml(o.text))
+  for (const k of ["prompts", "responses", "items"]) if (q[k]) html[k] = q[k].map(toHtml)
+  return {...q, html, plain: q.responses ? {responses: q.responses.map(toPlain)} : {}}
 }

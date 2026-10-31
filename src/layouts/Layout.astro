@@ -22,6 +22,9 @@ const {title, description = "ENAUTO 300-435 practice quizzes"} = Astro.props
   /* Minimal additions to Sakura: feedback colours, preserved line breaks, option rows. */
   :root { --ok: #6fd08f; --bad: #ff8a80; }
   .pre { white-space: pre-wrap; }
+  .md > p:only-child, .prompt > p:only-child { margin: 0; }
+  .md pre { margin: 0.3em 0; }
+  .prompt { font-weight: bold; margin-bottom: 1em; }
   .ok { color: var(--ok); }
   .bad { color: var(--bad); }
   label.option { display: block; padding: 0.4em 0; font-weight: normal; }

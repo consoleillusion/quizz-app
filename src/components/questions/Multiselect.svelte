@@ -25,7 +25,7 @@
     {#each order as i, k (i)}
       <label class="option {mark(i)}">
         <input type="checkbox" value={i} bind:group={chosen} disabled={full && !chosen.includes(i)} />
-        <b>{String.fromCharCode(65 + k)}.</b> <span class="pre">{q.options[i].text}</span>
+        <b>{String.fromCharCode(65 + k)}.</b> <span class="md">{@html q.html.options[i]}</span>
       </label>
     {/each}
   </fieldset>

@@ -30,10 +30,10 @@
   "t": "1.2",
   "p": "Which request runs the ping RPC?",
   "o": [
-   "POST /restconf/data/example-net:ping",
-   "POST /restconf/operations/example-net:ping",
-   "GET /restconf/operations/example-net:ping?destination=10.1.1.1",
-   "PUT /restconf/operations/example-net:ping"
+   "`POST /restconf/data/example-net:ping`",
+   "`POST /restconf/operations/example-net:ping`",
+   "`GET /restconf/operations/example-net:ping?destination=10.1.1.1`",
+   "`PUT /restconf/operations/example-net:ping`"
   ],
   "a": 1,
   "e": "RPCs are invoked with POST under /restconf/operations, with any input in an example-net:input body. Actions, which belong to a data node, are POSTed to that node's URL under /restconf/data. A GET on an operation resource returns 405.",
@@ -102,10 +102,10 @@
   "t": "1.2",
   "p": "Before using with-defaults, a script checks whether the server supports it. Which request shows that?",
   "o": [
-   "OPTIONS /restconf/data, then look for with-defaults in the Allow header",
-   "GET /restconf/yang-library-version, and compare its revision date",
-   "GET /.well-known/host-meta, then read the capability links it returns",
-   "GET /restconf/data/ietf-restconf-monitoring:restconf-state/capabilities"
+   "`OPTIONS /restconf/data`, then look for with-defaults in the Allow header",
+   "`GET /restconf/yang-library-version`, and compare its revision date",
+   "`GET /.well-known/host-meta`, then read the capability links it returns",
+   "`GET /restconf/data/ietf-restconf-monitoring:restconf-state/capabilities`"
   ],
   "a": 3,
   "e": "Optional query parameters are advertised as capability URIs, such as urn:ietf:params:restconf:capability:with-defaults:1.0, in restconf-state/capabilities. host-meta only gives the API root, and yang-library-version only gives the YANG library revision."
@@ -115,10 +115,10 @@
   "t": "1.2",
   "p": "The rule list is ordered-by user, and ACL EDGE has rules 10, 20 and 30. The body holds rule 15. Which POST adds it directly before rule 20?",
   "o": [
-   "s.post(url, json=body,\n       params={\"insert\": \"before\",\n               \"point\": \"20\", \"key\": \"seq\"})",
-   "s.post(url, json=body,\n       params={\"insert\": \"first\",\n               \"point\": \"/example-net:acls/acl=EDGE\"})",
-   "s.post(url, json=body,\n       params={\"insert\": \"before\",\n               \"point\": \"/example-net:acls/acl=EDGE/rule=20\"})",
-   "s.post(url + \"/rule=20\", json=body,\n       params={\"insert\": \"before\",\n               \"point\": \"rule=20\"})"
+   "```\ns.post(url, json=body,\n       params={\"insert\": \"before\",\n               \"point\": \"20\", \"key\": \"seq\"})\n```",
+   "```\ns.post(url, json=body,\n       params={\"insert\": \"first\",\n               \"point\": \"/example-net:acls/acl=EDGE\"})\n```",
+   "```\ns.post(url, json=body,\n       params={\"insert\": \"before\",\n               \"point\": \"/example-net:acls/acl=EDGE/rule=20\"})\n```",
+   "```\ns.post(url + \"/rule=20\", json=body,\n       params={\"insert\": \"before\",\n               \"point\": \"rule=20\"})\n```"
   ],
   "a": 2,
   "e": "insert takes first, last, before or after. before and after need point, which names the existing entry by its full path, not by its key alone. In an ordered-by user list, position is set by insert, not by the seq values.",
@@ -176,10 +176,10 @@
   "t": "1.2",
   "p": "Which request lists the RPCs a RESTCONF server supports?",
   "o": [
-   "GET /restconf/data?content=nonconfig",
-   "OPTIONS /restconf/data",
-   "GET /restconf/data/ietf-restconf-monitoring:restconf-state/streams",
-   "GET /restconf/operations"
+   "`GET /restconf/data?content=nonconfig`",
+   "`OPTIONS /restconf/data`",
+   "`GET /restconf/data/ietf-restconf-monitoring:restconf-state/streams`",
+   "`GET /restconf/operations`"
   ],
   "a": 3,
   "e": "The operations resource has one child for each RPC the server implements. content=nonconfig returns state data, the streams list is for event notifications, and OPTIONS returns methods."
@@ -190,9 +190,9 @@
   "p": "Which body is valid for this request?",
   "o": [
    "\"CORE1\"",
-   "{\"Cisco-IOS-XE-native:native\": {\"hostname\": \"CORE1\"}}",
-   "{\"Cisco-IOS-XE-native:hostname\": \"CORE1\"}",
-   "{\"hostname\": \"CORE1\"}"
+   "`{\"Cisco-IOS-XE-native:native\": {\"hostname\": \"CORE1\"}}`",
+   "`{\"Cisco-IOS-XE-native:hostname\": \"CORE1\"}`",
+   "`{\"hostname\": \"CORE1\"}`"
   ],
   "a": 2,
   "e": "The body represents the target itself, here the hostname leaf. As the top-level member, it needs its module name. A body wrapped in native would describe the parent, not the target.",
@@ -203,10 +203,10 @@
   "t": "1.3",
   "p": "In the native model, Loopback is a list keyed by name, a uint32. Which body creates Loopback60 with this request?",
   "o": [
-   "{\"Loopback\": [{\"name\": 60, \"description\": \"MGMT\"}]}",
-   "{\"Cisco-IOS-XE-native:Loopback\": [{\"name\": \"Loopback60\", \"description\": \"MGMT\"}]}",
-   "{\"Cisco-IOS-XE-native:Loopback\": [{\"name\": 60, \"description\": \"MGMT\"}]}",
-   "{\"Cisco-IOS-XE-native:interface\": {\"Loopback\": [{\"name\": 60, \"description\": \"MGMT\"}]}}"
+   "`{\"Loopback\": [{\"name\": 60, \"description\": \"MGMT\"}]}`",
+   "`{\"Cisco-IOS-XE-native:Loopback\": [{\"name\": \"Loopback60\", \"description\": \"MGMT\"}]}`",
+   "`{\"Cisco-IOS-XE-native:Loopback\": [{\"name\": 60, \"description\": \"MGMT\"}]}`",
+   "`{\"Cisco-IOS-XE-native:interface\": {\"Loopback\": [{\"name\": 60, \"description\": \"MGMT\"}]}}`"
   ],
   "a": 2,
   "e": "A POST body is the child being created, not the target, and its top-level member is module-qualified. The key is the loopback number, a uint32, so it's 60 rather than Loopback60.",
@@ -217,10 +217,10 @@
   "t": "1.3",
   "p": "Which response matches this request?",
   "o": [
-   "{\"interface\": [\n  {\"name\": \"Gi1\", \"enabled\": true},\n  {\"name\": \"Lo0\", \"enabled\": true}]}",
-   "{\"ietf-interfaces:interfaces\": {\"interface\": [\n  {\"name\": \"Gi1\", \"enabled\": true, \"type\": \"iana-if-type:ethernetCsmacd\"},\n  {\"name\": \"Lo0\", \"enabled\": true, \"type\": \"iana-if-type:softwareLoopback\"}]}}",
-   "[{\"name\": \"Gi1\", \"enabled\": true},\n {\"name\": \"Lo0\", \"enabled\": true}]",
-   "{\"ietf-interfaces:interfaces\": {\"interface\": [\n  {\"name\": \"Gi1\", \"enabled\": true},\n  {\"name\": \"Lo0\", \"enabled\": true}]}}"
+   "```\n{\"interface\": [\n  {\"name\": \"Gi1\", \"enabled\": true},\n  {\"name\": \"Lo0\", \"enabled\": true}]}\n```",
+   "```\n{\"ietf-interfaces:interfaces\": {\"interface\": [\n  {\"name\": \"Gi1\", \"enabled\": true, \"type\": \"iana-if-type:ethernetCsmacd\"},\n  {\"name\": \"Lo0\", \"enabled\": true, \"type\": \"iana-if-type:softwareLoopback\"}]}}\n```",
+   "```\n[{\"name\": \"Gi1\", \"enabled\": true},\n {\"name\": \"Lo0\", \"enabled\": true}]\n```",
+   "```\n{\"ietf-interfaces:interfaces\": {\"interface\": [\n  {\"name\": \"Gi1\", \"enabled\": true},\n  {\"name\": \"Lo0\", \"enabled\": true}]}}\n```"
   ],
   "a": 3,
   "e": "fields trims what comes back, but the response is still rooted at the target, interfaces, with its module-qualified name. Each entry holds only the selected leaves, so type isn't included.",
@@ -245,10 +245,10 @@
   "t": "1.3",
   "p": "Loopback5 has an empty ipv4 container. Which body adds 10.5.5.5/32 with this request?",
   "o": [
-   "{\"address\": [{\"ip\": \"10.5.5.5\", \"prefix-length\": 32}]}",
-   "{\"ietf-interfaces:address\": [{\"ip\": \"10.5.5.5\", \"prefix-length\": 32}]}",
-   "{\"ietf-ip:address\": [{\"ip\": \"10.5.5.5\", \"prefix-length\": 32}]}",
-   "{\"ietf-ip:address\": [{\"ip\": \"10.5.5.5\", \"subnet\": {\"prefix-length\": 32}}]}"
+   "`{\"address\": [{\"ip\": \"10.5.5.5\", \"prefix-length\": 32}]}`",
+   "`{\"ietf-interfaces:address\": [{\"ip\": \"10.5.5.5\", \"prefix-length\": 32}]}`",
+   "`{\"ietf-ip:address\": [{\"ip\": \"10.5.5.5\", \"prefix-length\": 32}]}`",
+   "`{\"ietf-ip:address\": [{\"ip\": \"10.5.5.5\", \"subnet\": {\"prefix-length\": 32}}]}`"
   ],
   "a": 2,
   "e": "The body's top-level member is always module-qualified, and address belongs to ietf-ip. Its children are in the same module, so they aren't qualified. Choice and case names, like subnet, never appear in data.",
@@ -283,13 +283,13 @@
   "t": "1.4",
   "p": "Which body creates Loopback61 with this request?",
   "o": [
-   "<config>\n  <Loopback xmlns=\"http://cisco.com/ns/yang/Cisco-IOS-XE-native\">\n    <name>61</name>\n  </Loopback>\n</config>",
-   "<Loopback xmlns=\"http://cisco.com/ns/yang/Cisco-IOS-XE-native\">\n  <name>61</name>\n</Loopback>",
-   "<Loopback xmlns=\"Cisco-IOS-XE-native\">\n  <name>61</name>\n</Loopback>",
-   "<Cisco-IOS-XE-native:Loopback>\n  <name>61</name>\n</Cisco-IOS-XE-native:Loopback>"
+   "```\n<config>\n  <Loopback xmlns=\"http://cisco.com/ns/yang/Cisco-IOS-XE-native\">\n    <name>61</name>\n  </Loopback>\n</config>\n```",
+   "```\n<Loopback xmlns=\"http://cisco.com/ns/yang/Cisco-IOS-XE-native\">\n  <name>61</name>\n</Loopback>\n```",
+   "```\n<Loopback xmlns=\"Cisco-IOS-XE-native\">\n  <name>61</name>\n</Loopback>\n```",
+   "```\n<Cisco-IOS-XE-native:Loopback>\n  <name>61</name>\n</Cisco-IOS-XE-native:Loopback>\n```"
   ],
   "a": 1,
-  "e": "In XML, the module is identified by its namespace URI in xmlns, not by its name. RESTCONF bodies have no <config> wrapper; that belongs to NETCONF's edit-config. The module-name: form is JSON only.",
+  "e": "In XML, the module is identified by its namespace URI in xmlns, not by its name. RESTCONF bodies have no `<config>` wrapper; that belongs to NETCONF's edit-config. The module-name: form is JSON only.",
   "c": "POST /restconf/data/Cisco-IOS-XE-native:native/interface\nContent-Type: application/yang-data+xml"
  },
  {
@@ -311,10 +311,10 @@
   "t": "1.4",
   "p": "Which body sets Loopback5's IPv4 MTU to 1400 with this request?",
   "o": [
-   "<interface xmlns=\"urn:ietf:params:xml:ns:yang:ietf-interfaces\">\n  <name>Loopback5</name>\n  <ipv4 xmlns=\"urn:ietf:params:xml:ns:yang:ietf-ip\">\n    <mtu>1400</mtu>\n  </ipv4>\n</interface>",
-   "<ipv4 xmlns=\"urn:ietf:params:xml:ns:yang:ietf-ip\">\n  <mtu>1400</mtu>\n</ipv4>",
-   "<interface xmlns=\"urn:ietf:params:xml:ns:yang:ietf-ip\">\n  <name>Loopback5</name>\n  <ipv4>\n    <mtu>1400</mtu>\n  </ipv4>\n</interface>",
-   "<interface xmlns=\"urn:ietf:params:xml:ns:yang:ietf-interfaces\">\n  <name>Loopback5</name>\n  <ipv4>\n    <mtu>1400</mtu>\n  </ipv4>\n</interface>"
+   "```\n<interface xmlns=\"urn:ietf:params:xml:ns:yang:ietf-interfaces\">\n  <name>Loopback5</name>\n  <ipv4 xmlns=\"urn:ietf:params:xml:ns:yang:ietf-ip\">\n    <mtu>1400</mtu>\n  </ipv4>\n</interface>\n```",
+   "```\n<ipv4 xmlns=\"urn:ietf:params:xml:ns:yang:ietf-ip\">\n  <mtu>1400</mtu>\n</ipv4>\n```",
+   "```\n<interface xmlns=\"urn:ietf:params:xml:ns:yang:ietf-ip\">\n  <name>Loopback5</name>\n  <ipv4>\n    <mtu>1400</mtu>\n  </ipv4>\n</interface>\n```",
+   "```\n<interface xmlns=\"urn:ietf:params:xml:ns:yang:ietf-interfaces\">\n  <name>Loopback5</name>\n  <ipv4>\n    <mtu>1400</mtu>\n  </ipv4>\n</interface>\n```"
   ],
   "a": 0,
   "e": "The body represents the target, the interface entry, in the ietf-interfaces namespace. ipv4 comes from the ietf-ip augment, so it needs its own xmlns, which its children inherit. A bare ipv4 would be an unknown element of ietf-interfaces, and a body of just ipv4 doesn't match the target.",
@@ -325,10 +325,10 @@
   "t": "1.5",
   "p": "Which URL reads only Loopback1's IPv4 configuration and state?",
   "o": [
-   "/restconf/data/ietf-interfaces:interfaces/interface=Loopback1/ipv4",
-   "/restconf/data/ietf-interfaces:interfaces/interface=Loopback1/ietf-ip:ipv4",
-   "/restconf/data/ietf-interfaces:interfaces/interface=Loopback1/ietf-interfaces:ipv4",
-   "/restconf/data/ietf-ip:interfaces/interface=Loopback1/ipv4"
+   "`/restconf/data/ietf-interfaces:interfaces/interface=Loopback1/ipv4`",
+   "`/restconf/data/ietf-interfaces:interfaces/interface=Loopback1/ietf-ip:ipv4`",
+   "`/restconf/data/ietf-interfaces:interfaces/interface=Loopback1/ietf-interfaces:ipv4`",
+   "`/restconf/data/ietf-ip:interfaces/interface=Loopback1/ipv4`"
   ],
   "a": 1,
   "e": "A path segment needs the module name wherever the namespace changes, as it does at the ietf-ip augment. The tree shows the prefix ip:, but URLs use module names, not prefixes.",
@@ -339,10 +339,10 @@
   "t": "1.5",
   "p": "Which URL reads only the action of rule 20 in ACL EDGE?",
   "o": [
-   "/restconf/data/example-net:acls/acl/EDGE/rule/20/action",
-   "/restconf/data/example-net:acls/acl=EDGE/rule/seq=20/action",
-   "/restconf/data/example-net:acls/acl=EDGE/rule=20/action",
-   "/restconf/data/example-net:acls/acl=EDGE,rule=20/action"
+   "`/restconf/data/example-net:acls/acl/EDGE/rule/20/action`",
+   "`/restconf/data/example-net:acls/acl=EDGE/rule/seq=20/action`",
+   "`/restconf/data/example-net:acls/acl=EDGE/rule=20/action`",
+   "`/restconf/data/example-net:acls/acl=EDGE,rule=20/action`"
   ],
   "a": 2,
   "e": "Each list in the path takes its key after =, as its own path segment: acl=EDGE, then rule=20. Commas only separate the values of a list with more than one key, and the key leaf's name never appears in the URL.",
@@ -353,10 +353,10 @@
   "t": "1.5",
   "p": "Which request removes only 10.1.1.1 from the DNS servers, leaving the others?",
   "o": [
-   "DELETE /restconf/data/example-net:system/dns/server[.='10.1.1.1']",
-   "DELETE /restconf/data/example-net:system/dns/server?value=10.1.1.1",
-   "PATCH /restconf/data/example-net:system/dns with {\"example-net:dns\": {\"server\": []}}",
-   "DELETE /restconf/data/example-net:system/dns/server=10.1.1.1"
+   "`DELETE /restconf/data/example-net:system/dns/server[.='10.1.1.1']`",
+   "`DELETE /restconf/data/example-net:system/dns/server?value=10.1.1.1`",
+   "`PATCH /restconf/data/example-net:system/dns` with {\"example-net:dns\": {\"server\": []}}",
+   "`DELETE /restconf/data/example-net:system/dns/server=10.1.1.1`"
   ],
   "a": 3,
   "e": "Each leaf-list entry is a resource identified by its value after =, like a list key. A PATCH merges, so it can't remove anything, and XPath predicates aren't valid in RESTCONF URLs.",
@@ -367,10 +367,10 @@
   "t": "1.5",
   "p": "Which request returns an error?",
   "o": [
-   "GET /restconf/data/example-net:mgmt/stats",
-   "PATCH /restconf/data/example-net:mgmt with {\"example-net:mgmt\": {\"ip\": \"10.9.9.9\", \"prefix-length\": 24}}",
-   "PATCH /restconf/data/example-net:mgmt/stats with {\"example-net:stats\": {\"in-octets\": \"0\"}}",
-   "GET /restconf/data/example-net:mgmt?content=config"
+   "`GET /restconf/data/example-net:mgmt/stats`",
+   "`PATCH /restconf/data/example-net:mgmt` with {\"example-net:mgmt\": {\"ip\": \"10.9.9.9\", \"prefix-length\": 24}}",
+   "`PATCH /restconf/data/example-net:mgmt/stats` with {\"example-net:stats\": {\"in-octets\": \"0\"}}",
+   "`GET /restconf/data/example-net:mgmt?content=config`"
   ],
   "a": 2,
   "e": "stats is ro (config false), so it can be read but not edited. content=config is valid and just leaves stats out. ip is a writable leaf in the static case.",
@@ -381,10 +381,10 @@
   "t": "1.5",
   "p": "Which URL reads the ip leaf?",
   "o": [
-   "/restconf/data/example-net:mgmt/method/static/ip",
-   "/restconf/data/example-net:mgmt/static/ip",
-   "/restconf/data/example-net:mgmt/ip",
-   "/restconf/data/example-net:mgmt/(method)/ip"
+   "`/restconf/data/example-net:mgmt/method/static/ip`",
+   "`/restconf/data/example-net:mgmt/static/ip`",
+   "`/restconf/data/example-net:mgmt/ip`",
+   "`/restconf/data/example-net:mgmt/(method)/ip`"
   ],
   "a": 2,
   "e": "Choices and cases are schema nodes only. They never appear in data, so they never appear in URLs or bodies.",
@@ -644,10 +644,10 @@
   "t": "2.3",
   "p": "Which expression lists the names of interfaces that aren't up?",
   "o": [
-   "[i[\"name\"] for i in data[\"interface\"]\n if i[\"oper-status\"] != \"if-oper-state-ready\"]",
-   "[i[\"name\"] for i in data[\"Cisco-IOS-XE-interfaces-oper:interfaces\"]\n if i[\"oper-status\"] != \"if-oper-state-ready\"]",
-   "[i[\"name\"] for i in data[\"Cisco-IOS-XE-interfaces-oper:interfaces\"][\"interface\"]\n if i[\"oper-status\"] == \"down\"]",
-   "[i[\"name\"] for i in data[\"Cisco-IOS-XE-interfaces-oper:interfaces\"][\"interface\"]\n if i[\"oper-status\"] != \"if-oper-state-ready\"]"
+   "```\n[i[\"name\"] for i in data[\"interface\"]\n if i[\"oper-status\"] != \"if-oper-state-ready\"]\n```",
+   "```\n[i[\"name\"] for i in data[\"Cisco-IOS-XE-interfaces-oper:interfaces\"]\n if i[\"oper-status\"] != \"if-oper-state-ready\"]\n```",
+   "```\n[i[\"name\"] for i in data[\"Cisco-IOS-XE-interfaces-oper:interfaces\"][\"interface\"]\n if i[\"oper-status\"] == \"down\"]\n```",
+   "```\n[i[\"name\"] for i in data[\"Cisco-IOS-XE-interfaces-oper:interfaces\"][\"interface\"]\n if i[\"oper-status\"] != \"if-oper-state-ready\"]\n```"
   ],
   "a": 3,
   "e": "The list sits under the module-qualified container. The model's enumeration uses if-oper-state-ready for up, so comparing with down matches nothing.",
@@ -682,9 +682,9 @@
   "p": "Which headers does this call send?",
   "o": [
    "Only Accept: application/yang-data+xml, because headers= replaces the session headers for that call",
-   "Accept: application/yang-data+json, because session headers take priority over headers passed to a call",
+   "`Accept: application/yang-data+json`, because session headers take priority over headers passed to a call",
    "Both Accept values, joined into one header as a comma-separated list, plus the session's other headers",
-   "Accept: application/yang-data+xml, the session's Content-Type, and Authorization from s.auth"
+   "`Accept: application/yang-data+xml`, the session's Content-Type, and Authorization from s.auth"
   ],
   "a": 3,
   "e": "requests merges per-call headers into the session's, and the call wins where they clash. Session auth still applies. To drop a session header for one call, set it to None.",
@@ -695,10 +695,10 @@
   "t": "2.3",
   "p": "Which body switches mgmt to DHCP when sent with s.patch(base + \"/example-net:mgmt\", json=body)?",
   "o": [
-   "{\"example-net:mgmt\": {\"dhcp\": None}}",
-   "{\"example-net:mgmt\": {\"dhcp\": [None]}}",
-   "{\"example-net:mgmt\": {\"dhcp\": True}}",
-   "{\"example-net:mgmt\": {\"dynamic\": {\"dhcp\": [None]}}}"
+   "`{\"example-net:mgmt\": {\"dhcp\": None}}`",
+   "`{\"example-net:mgmt\": {\"dhcp\": [None]}}`",
+   "`{\"example-net:mgmt\": {\"dhcp\": True}}`",
+   "`{\"example-net:mgmt\": {\"dynamic\": {\"dhcp\": [None]}}}`"
   ],
   "a": 1,
   "e": "An empty leaf is encoded in JSON as [null], which json= produces from [None]. A plain null isn't valid for it. Case names never appear in data, and setting a leaf from the dynamic case removes the static case's leaves.",
@@ -889,10 +889,10 @@
   "t": "3.6",
   "p": "A controller API pages its results and puts the next page's URL in a Link header. Which loop collects every item?",
   "o": [
-   "url, items = first, []\nwhile url:\n    r = s.get(url, timeout=30)\n    items += r.json()\n    url = r.headers.get(\"Link\", {}).get(\"next\")",
-   "r = s.get(first, timeout=30, params={\"page\": \"all\"})\nitems = r.json()",
-   "url, items = first, []\nwhile url:\n    r = s.get(url, timeout=30)\n    items += r.json()\n    url = r.links.get(\"next\", {}).get(\"url\")",
-   "url, items = first, []\nwhile r.status_code == 200:\n    r = s.get(url, timeout=30)\n    items += r.json()"
+   "```\nurl, items = first, []\nwhile url:\n    r = s.get(url, timeout=30)\n    items += r.json()\n    url = r.headers.get(\"Link\", {}).get(\"next\")\n```",
+   "```\nr = s.get(first, timeout=30, params={\"page\": \"all\"})\nitems = r.json()\n```",
+   "```\nurl, items = first, []\nwhile url:\n    r = s.get(url, timeout=30)\n    items += r.json()\n    url = r.links.get(\"next\", {}).get(\"url\")\n```",
+   "```\nurl, items = first, []\nwhile r.status_code == 200:\n    r = s.get(url, timeout=30)\n    items += r.json()\n```"
   ],
   "a": 2,
   "e": "requests parses Link headers into r.links, keyed by rel. The loop ends when the last page has no next link. There's no header named next, and paging parameters are specific to each API.",

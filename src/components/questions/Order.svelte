@@ -24,7 +24,7 @@
     <ol>
       {#each sequence as item, k (item)}
         <li class={saved ? (q.answer[k] === item ? "ok" : "bad") : ""}>
-          <span class="pre">{q.items[item]}</span>
+          <span class="md">{@html q.html.items[item]}</span>
           {#if !saved}
             <button type="button" class="small" data-at={k} data-by="-1" onclick={move} disabled={k === 0} aria-label="Move up">↑</button>
             <button type="button" class="small" data-at={k} data-by="1" onclick={move} disabled={k === sequence.length - 1} aria-label="Move down">↓</button>
@@ -35,7 +35,7 @@
   </fieldset>
   {#if saved && !q.answer.every((x: number, k: number) => saved.answer[k] === x)}
     <p>Correct order:</p>
-    <ol>{#each q.answer as item}<li class="pre">{q.items[item]}</li>{/each}</ol>
+    <ol>{#each q.answer as item}<li class="md">{@html q.html.items[item]}</li>{/each}</ol>
   {/if}
   {#if !saved}<button>Check answer</button>{/if}
 </form>

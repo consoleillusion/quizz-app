@@ -27,8 +27,8 @@
   "y": "x",
   "s": [
    "SSH on TCP port 830",
-   "<rpc> and <rpc-reply> elements",
-   "<edit-config> and <get-config>",
+   "`<rpc>` and `<rpc-reply>` elements",
+   "`<edit-config>` and `<get-config>`",
    "Configuration data structured by YANG models"
   ],
   "r": [
@@ -43,10 +43,10 @@
   "t": "1.3",
   "p": "ietf-ip augments ietf-interfaces. Which body for PUT /restconf/data/ietf-interfaces:interfaces/interface=Loopback20 sets 10.20.0.1/32?",
   "o": [
-   "{\"ietf-interfaces:interface\": [{\"name\": \"Loopback20\", \"type\": \"iana-if-type:softwareLoopback\", \"ietf-ip:ipv4\": {\"address\": {\"ip\": \"10.20.0.1\", \"prefix-length\": 32}}}]}",
-   "{\"ietf-interfaces:interface\": [{\"name\": \"Loopback20\", \"type\": \"iana-if-type:softwareLoopback\", \"ietf-ip:ipv4\": {\"address\": [{\"ip\": \"10.20.0.1\", \"prefix-length\": 32}]}}]}",
-   "{\"ietf-interfaces:interface\": [{\"name\": \"Loopback20\", \"type\": \"iana-if-type:softwareLoopback\", \"ietf-ip:ipv4\": {\"address\": [{\"ip\": \"10.20.0.1\", \"ip:prefix-length\": 32}]}}]}",
-   "{\"ietf-interfaces:interface\": [{\"name\": \"Loopback20\", \"type\": \"iana-if-type:softwareLoopback\", \"ipv4\": {\"address\": [{\"ip\": \"10.20.0.1\", \"prefix-length\": 32}]}}]}"
+   "`{\"ietf-interfaces:interface\": [{\"name\": \"Loopback20\", \"type\": \"iana-if-type:softwareLoopback\", \"ietf-ip:ipv4\": {\"address\": {\"ip\": \"10.20.0.1\", \"prefix-length\": 32}}}]}`",
+   "`{\"ietf-interfaces:interface\": [{\"name\": \"Loopback20\", \"type\": \"iana-if-type:softwareLoopback\", \"ietf-ip:ipv4\": {\"address\": [{\"ip\": \"10.20.0.1\", \"prefix-length\": 32}]}}]}`",
+   "`{\"ietf-interfaces:interface\": [{\"name\": \"Loopback20\", \"type\": \"iana-if-type:softwareLoopback\", \"ietf-ip:ipv4\": {\"address\": [{\"ip\": \"10.20.0.1\", \"ip:prefix-length\": 32}]}}]}`",
+   "`{\"ietf-interfaces:interface\": [{\"name\": \"Loopback20\", \"type\": \"iana-if-type:softwareLoopback\", \"ipv4\": {\"address\": [{\"ip\": \"10.20.0.1\", \"prefix-length\": 32}]}}]}`"
   ],
   "a": 1,
   "e": "ipv4 comes from a different module than interface, so it's prefixed with the module name, ietf-ip. Its children share its module and stay unprefixed. address is a list, so it's an array, and tree prefixes such as ip: never appear in JSON.",
@@ -156,10 +156,10 @@
   "t": "2.3",
   "p": "In the native model, static routes are a list keyed by prefix and mask. Which URL reads the route to 10.0.0.0/8?",
   "o": [
-   "/restconf/data/Cisco-IOS-XE-native:native/ip/route/ip-route-interface-forwarding-list=10.0.0.0,255.0.0.0",
-   "/restconf/data/Cisco-IOS-XE-native:native/ip/route/ip-route-interface-forwarding-list?prefix=10.0.0.0&mask=255.0.0.0",
-   "/restconf/data/Cisco-IOS-XE-native:native/ip/route/ip-route-interface-forwarding-list=10.0.0.0%2F8",
-   "/restconf/data/Cisco-IOS-XE-native:native/ip/route/ip-route-interface-forwarding-list=10.0.0.0/255.0.0.0"
+   "`/restconf/data/Cisco-IOS-XE-native:native/ip/route/ip-route-interface-forwarding-list=10.0.0.0,255.0.0.0`",
+   "`/restconf/data/Cisco-IOS-XE-native:native/ip/route/ip-route-interface-forwarding-list?prefix=10.0.0.0&mask=255.0.0.0`",
+   "`/restconf/data/Cisco-IOS-XE-native:native/ip/route/ip-route-interface-forwarding-list=10.0.0.0%2F8`",
+   "`/restconf/data/Cisco-IOS-XE-native:native/ip/route/ip-route-interface-forwarding-list=10.0.0.0/255.0.0.0`"
   ],
   "a": 0,
   "e": "RESTCONF separates multiple key values with commas, in the order the keys are defined. A slash would start a new path segment, and keys never go in the query string."
@@ -238,7 +238,7 @@
   "o": [
    "A Python script named ztp.py, which it runs in Guest Shell",
    "Nothing, because AutoInstall needs Catalyst Center or a DHCP bootfile option to tell it which file names to request",
-   "A network-wide file such as network-confg, then a host-specific file such as <hostname>-confg",
+   "A network-wide file such as network-confg, then a host-specific file such as `<hostname>-confg`",
    "The startup-config file of the TFTP server itself"
   ],
   "a": 2,
@@ -336,10 +336,10 @@
   "t": "3.1",
   "p": "A new MX must use a static WAN address, because the site has no DHCP on the uplink. How can this be set before the MX arrives?",
   "o": [
-   "PUT /networks/{networkId}/appliance/uplinks/settings on the switch at the site",
-   "PUT /devices/{serial}/managementInterface with wan1 set to a static address, gateway and DNS",
-   "PUT /networks/{networkId}/appliance/vlans with the WAN address, gateway and DNS servers set on VLAN 1 for the uplink",
-   "POST /networks/{networkId}/devices/claim with the IP address in the body"
+   "`PUT /networks/{networkId}/appliance/uplinks/settings` on the switch at the site",
+   "`PUT /devices/{serial}/managementInterface` with wan1 set to a static address, gateway and DNS",
+   "`PUT /networks/{networkId}/appliance/vlans` with the WAN address, gateway and DNS servers set on VLAN 1 for the uplink",
+   "`POST /networks/{networkId}/devices/claim` with the IP address in the body"
   ],
   "a": 1,
   "e": "The management interface settings for an MX's uplinks can be set on the serial ahead of time, so the device uses them when it boots. VLAN settings cover the LAN side."
@@ -378,7 +378,7 @@
    "The same per-network calls, made with a second API key",
    "One paginated GET /organizations/{organizationId}/devices with productTypes[]=switch",
    "The same per-network calls, made in 20 parallel threads",
-   "GET /organizations/{organizationId}/inventory/devices once, with perPage set high enough to skip pagination"
+   "`GET /organizations/{organizationId}/inventory/devices` once, with perPage set high enough to skip pagination"
   ],
   "a": 1,
   "e": "Organization-wide endpoints return everything in a few paged calls instead of hundreds. The rate limit is per organization, so threads and extra keys make it worse."
@@ -496,10 +496,10 @@
   "t": "3.5",
   "p": "Which ERS request sets the SGACL that applies from source group Contractors to destination group Servers?",
   "o": [
-   "PUT /ers/config/sgt/{id} on the Contractors group, with the Servers group and the SGACL added to its definition",
-   "POST /ers/config/sgacl with the two groups' names in its description",
-   "POST /ers/config/ancpolicy with the source and destination groups",
-   "POST /ers/config/egressmatrixcell with sourceSgtId, destinationSgtId and the SGACL IDs"
+   "`PUT /ers/config/sgt/{id}` on the Contractors group, with the Servers group and the SGACL added to its definition",
+   "`POST /ers/config/sgacl` with the two groups' names in its description",
+   "`POST /ers/config/ancpolicy` with the source and destination groups",
+   "`POST /ers/config/egressmatrixcell` with sourceSgtId, destinationSgtId and the SGACL IDs"
   ],
   "a": 3,
   "e": "Each cell of the TrustSec egress matrix links a source SGT, a destination SGT and the SGACLs between them. An SGACL on its own isn't bound to any pair of groups."
@@ -509,10 +509,10 @@
   "t": "3.5",
   "p": "Compliance requires every enabled SSID to use WPA2-Enterprise with an external RADIUS server. Which expression lists the SSIDs that break the rule?",
   "o": [
-   "[s[\"name\"] for s in ssids if s[\"enabled\"] and s[\"encryptionMode\"] != \"8021x-radius\"]",
-   "[s[\"name\"] for s in ssids if s[\"enabled\"] and s[\"authMode\"] == \"psk\"]",
-   "[s[\"name\"] for s in ssids if s[\"enabled\"] and s[\"authMode\"] != \"8021x-radius\"]",
-   "[s[\"name\"] for s in ssids if s[\"authMode\"] != \"8021x-radius\"]"
+   "`[s[\"name\"] for s in ssids if s[\"enabled\"] and s[\"encryptionMode\"] != \"8021x-radius\"]`",
+   "`[s[\"name\"] for s in ssids if s[\"enabled\"] and s[\"authMode\"] == \"psk\"]`",
+   "`[s[\"name\"] for s in ssids if s[\"enabled\"] and s[\"authMode\"] != \"8021x-radius\"]`",
+   "`[s[\"name\"] for s in ssids if s[\"authMode\"] != \"8021x-radius\"]`"
   ],
   "a": 2,
   "e": "The API returns every SSID slot, including disabled ones, so filtering on enabled avoids false alarms. authMode holds the authentication type, and checking only for psk would miss open SSIDs.",
@@ -585,10 +585,10 @@
   "t": "4.1",
   "p": "After a port change, a script must confirm through the Meraki API that the switch ports are up at the expected speed and without errors. Which call fits?",
   "o": [
-   "GET /devices/{serial}/switch/ports",
-   "GET /devices/{serial}/switch/ports/statuses",
-   "GET /networks/{networkId}/switch/settings",
-   "GET /organizations/{organizationId}/devices/statuses"
+   "`GET /devices/{serial}/switch/ports`",
+   "`GET /devices/{serial}/switch/ports/statuses`",
+   "`GET /networks/{networkId}/switch/settings`",
+   "`GET /organizations/{organizationId}/devices/statuses`"
   ],
   "a": 1,
   "e": "ports/statuses returns live state such as status, speed, duplex, errors and traffic. ports returns configuration only, and device statuses show only whether the switch is online."
@@ -624,10 +624,10 @@
   "t": "4.3",
   "p": "Which request lists the images currently tagged golden in Catalyst Center?",
   "o": [
-   "GET /dna/intent/api/v1/image/importation?isTaggedGolden=true",
-   "GET /dna/intent/api/v1/image/distribution?status=golden",
-   "GET /dna/intent/api/v1/image/importation/golden",
-   "GET /dna/intent/api/v1/network-device?golden=true"
+   "`GET /dna/intent/api/v1/image/importation?isTaggedGolden=true`",
+   "`GET /dna/intent/api/v1/image/distribution?status=golden`",
+   "`GET /dna/intent/api/v1/image/importation/golden`",
+   "`GET /dna/intent/api/v1/network-device?golden=true`"
   ],
   "a": 0,
   "e": "The image list takes filters such as isTaggedGolden, family and version. The golden endpoint is used to tag or untag an image, not to list images."
@@ -663,10 +663,10 @@
   "t": "4.4",
   "p": "Which Meraki call shows how many wireless clients failed at the association, authentication, DHCP and DNS steps?",
   "o": [
-   "GET /networks/{networkId}/wireless/connectionStats",
-   "GET /networks/{networkId}/clients",
-   "GET /organizations/{organizationId}/devices/statuses",
-   "GET /networks/{networkId}/wireless/clientCountHistory"
+   "`GET /networks/{networkId}/wireless/connectionStats`",
+   "`GET /networks/{networkId}/clients`",
+   "`GET /organizations/{organizationId}/devices/statuses`",
+   "`GET /networks/{networkId}/wireless/clientCountHistory`"
   ],
   "a": 0,
   "e": "connectionStats breaks connection attempts down by the stage where they fail. clientCountHistory only counts clients, and the clients list has no failure details."

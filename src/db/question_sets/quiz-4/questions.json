@@ -43,10 +43,10 @@
   "t": "1.3",
   "p": "Which body for POST /restconf/data/example-qos:policies creates policy EDGE with class 10 set to drop, applied to Gi1 and Gi2?",
   "o": [
-   "{\"example-qos:policy\": [{\"name\": \"EDGE\", \"class\": [{\"id\": 10, \"drop\": true}], \"applies-to\": [\"Gi1\", \"Gi2\"]}]}",
-   "{\"example-qos:policy\": [{\"name\": \"EDGE\", \"class\": [{\"id\": 10, \"drop\": null}], \"applies-to\": [\"Gi1\", \"Gi2\"]}]}",
-   "{\"example-qos:policy\": [{\"name\": \"EDGE\", \"class\": [{\"id\": 10, \"drop\": [null]}], \"applies-to\": [\"Gi1\", \"Gi2\"]}]}",
-   "{\"example-qos:policy\": [{\"name\": \"EDGE\", \"class\": [{\"id\": 10, \"action\": {\"drop\": [null]}}], \"applies-to\": [\"Gi1\", \"Gi2\"]}]}"
+   "`{\"example-qos:policy\": [{\"name\": \"EDGE\", \"class\": [{\"id\": 10, \"drop\": true}], \"applies-to\": [\"Gi1\", \"Gi2\"]}]}`",
+   "`{\"example-qos:policy\": [{\"name\": \"EDGE\", \"class\": [{\"id\": 10, \"drop\": null}], \"applies-to\": [\"Gi1\", \"Gi2\"]}]}`",
+   "`{\"example-qos:policy\": [{\"name\": \"EDGE\", \"class\": [{\"id\": 10, \"drop\": [null]}], \"applies-to\": [\"Gi1\", \"Gi2\"]}]}`",
+   "`{\"example-qos:policy\": [{\"name\": \"EDGE\", \"class\": [{\"id\": 10, \"action\": {\"drop\": [null]}}], \"applies-to\": [\"Gi1\", \"Gi2\"]}]}`"
   ],
   "a": 2,
   "e": "RFC 7951 encodes a leaf of type empty as [null]. Choice and case names never appear in data, so drop sits directly in the class entry. uint8 values are JSON numbers.",
@@ -55,12 +55,12 @@
  {
   "g": 1,
   "t": "1.4",
-  "p": "The module's namespace is urn:example:sys. The edit must clear location whether or not it's currently set, without returning an error. Which <config> content does that?",
+  "p": "The module's namespace is urn:example:sys. The edit must clear location whether or not it's currently set, without returning an error. Which `<config>` content does that?",
   "o": [
-   "<system xmlns=\"urn:example:sys\" xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\"><location nc:operation=\"delete\"/></system>",
-   "<system xmlns=\"urn:example:sys\" xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\"><location nc:operation=\"none\"/></system>",
-   "<system xmlns=\"urn:example:sys\"><location operation=\"remove\"/></system>",
-   "<system xmlns=\"urn:example:sys\" xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\"><location nc:operation=\"remove\"/></system>"
+   "`<system xmlns=\"urn:example:sys\" xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\"><location nc:operation=\"delete\"/></system>`",
+   "`<system xmlns=\"urn:example:sys\" xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\"><location nc:operation=\"none\"/></system>`",
+   "`<system xmlns=\"urn:example:sys\"><location operation=\"remove\"/></system>`",
+   "`<system xmlns=\"urn:example:sys\" xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\"><location nc:operation=\"remove\"/></system>`"
   ],
   "a": 3,
   "e": "remove deletes the node if it exists and does nothing if it doesn't. delete returns data-missing when the node is absent. The attribute must be in the NETCONF base namespace, and none makes no change.",
@@ -71,10 +71,10 @@
   "t": "1.5",
   "p": "Which RESTCONF request runs reset on Gi1 with counters-only set?",
   "o": [
-   "PUT /restconf/data/example-if:interfaces/interface=Gi1/reset with {\"example-if:input\": {\"counters-only\": true}}",
-   "POST /restconf/operations/example-if:reset with {\"example-if:input\": {\"name\": \"Gi1\", \"counters-only\": true}}",
-   "POST /restconf/data/example-if:interfaces/interface=Gi1/reset with {\"example-if:input\": {\"counters-only\": true}}",
-   "POST /restconf/data/example-if:interfaces/interface=Gi1/reset with {\"example-if:reset\": {\"counters-only\": true}}"
+   "`PUT /restconf/data/example-if:interfaces/interface=Gi1/reset` with {\"example-if:input\": {\"counters-only\": true}}",
+   "`POST /restconf/operations/example-if:reset` with {\"example-if:input\": {\"name\": \"Gi1\", \"counters-only\": true}}",
+   "`POST /restconf/data/example-if:interfaces/interface=Gi1/reset` with {\"example-if:input\": {\"counters-only\": true}}",
+   "`POST /restconf/data/example-if:interfaces/interface=Gi1/reset` with {\"example-if:reset\": {\"counters-only\": true}}"
   ],
   "a": 2,
   "e": "reset sits inside a list entry, so it's a YANG 1.1 action. Actions are invoked with POST on the data resource path, while top-level RPCs use /restconf/operations. The body wraps the parameters in module:input.",
@@ -119,9 +119,9 @@
   "p": "The command prompts with Destination filename [startup-config]?. Which code saves the configuration without hanging?",
   "o": [
    "out = conn.send_command(\"copy running-config startup-config\", read_timeout=60)",
-   "out = conn.send_command(\"copy running-config startup-config\", expect_string=r\"#\")\nout += conn.send_command(\"\\n\", expect_string=r\"Destination filename\")",
+   "```\nout = conn.send_command(\"copy running-config startup-config\", expect_string=r\"#\")\nout += conn.send_command(\"\\n\", expect_string=r\"Destination filename\")\n```",
    "out = conn.send_config_set([\"copy running-config startup-config\", \"\\n\"])",
-   "out = conn.send_command(\"copy running-config startup-config\", expect_string=r\"Destination filename\")\nout += conn.send_command(\"\\n\", expect_string=r\"#\")"
+   "```\nout = conn.send_command(\"copy running-config startup-config\", expect_string=r\"Destination filename\")\nout += conn.send_command(\"\\n\", expect_string=r\"#\")\n```"
   ],
   "a": 3,
   "e": "send_command waits for the normal prompt, which never appears while the device is asking a question. expect_string tells it what to wait for, and the second call answers with Enter. send_config_set would run the command in configuration mode."
@@ -133,7 +133,7 @@
   "o": [
    "The elements are namespace-qualified, so the search needs the namespace URI or a prefix map",
    "get only returns configuration, so the reply holds no oper-status values to find",
-   "The subtree filter must also select interface in a <filter> element, or nothing is returned",
+   "The subtree filter must also select interface in a `<filter>` element, or nothing is returned",
    "data_ele is a string, so findall searches its characters rather than any of its elements"
   ],
   "a": 0,
@@ -247,7 +247,7 @@
    "2, 1, 3"
   ],
   "a": 0,
-  "e": "The switch first uses option 43. Without it, it looks up pnpserver.<domain> in DNS. If neither works, it contacts the PnP Connect cloud, which can redirect it to Catalyst Center.",
+  "e": "The switch first uses option 43. Without it, it looks up `pnpserver.<domain>` in DNS. If neither works, it contacts the PnP Connect cloud, which can redirect it to Catalyst Center.",
   "y": "o",
   "s": [
    "Cisco Plug and Play Connect in the cloud",
@@ -393,7 +393,7 @@
  {
   "g": 3,
   "t": "3.2",
-  "p": "GET /dataservice/device/bfd/sessions requires a deviceId parameter. Which value does SD-WAN Manager expect?",
+  "p": "`GET /dataservice/device/bfd/sessions` requires a deviceId parameter. Which value does SD-WAN Manager expect?",
   "o": [
    "The device's chassis serial number",
    "The device's system IP",
@@ -406,7 +406,7 @@
  {
   "g": 3,
   "t": "3.2",
-  "p": "GET /ers/config/endpoint returns 20 endpoints, but ISE holds 5,000. How does the script get all of them?",
+  "p": "`GET /ers/config/endpoint` returns 20 endpoints, but ISE holds 5,000. How does the script get all of them?",
   "o": [
    "Use offset and limit query parameters, in the same way the Catalyst Center API pages results",
    "Change Accept to application/xml, which returns everything",
@@ -507,10 +507,10 @@
   "t": "3.5",
   "p": "Which body fills the blank to quarantine the endpoint with ANC policy QUARANTINE?",
   "o": [
-   "{\"ErsAncEndpoint\": {\"macAddress\": \"00:11:22:33:44:55\", \"policyName\": \"QUARANTINE\"}}",
-   "{\"OperationAdditionalData\": {\"macAddress\": \"00:11:22:33:44:55\", \"policyName\": \"QUARANTINE\"}}",
-   "{\"additionalData\": [{\"name\": \"macAddress\", \"value\": \"00:11:22:33:44:55\"}, {\"name\": \"policyName\", \"value\": \"QUARANTINE\"}]}",
-   "{\"OperationAdditionalData\": {\"additionalData\": [{\"name\": \"macAddress\", \"value\": \"00:11:22:33:44:55\"}, {\"name\": \"policyName\", \"value\": \"QUARANTINE\"}]}}"
+   "`{\"ErsAncEndpoint\": {\"macAddress\": \"00:11:22:33:44:55\", \"policyName\": \"QUARANTINE\"}}`",
+   "`{\"OperationAdditionalData\": {\"macAddress\": \"00:11:22:33:44:55\", \"policyName\": \"QUARANTINE\"}}`",
+   "`{\"additionalData\": [{\"name\": \"macAddress\", \"value\": \"00:11:22:33:44:55\"}, {\"name\": \"policyName\", \"value\": \"QUARANTINE\"}]}`",
+   "`{\"OperationAdditionalData\": {\"additionalData\": [{\"name\": \"macAddress\", \"value\": \"00:11:22:33:44:55\"}, {\"name\": \"policyName\", \"value\": \"QUARANTINE\"}]}}`"
   ],
   "a": 3,
   "e": "ANC apply and clear take OperationAdditionalData with a list of name and value pairs. Without the wrapper, or with plain fields, ERS rejects the body.",
@@ -521,10 +521,10 @@
   "t": "3.5",
   "p": "Which request starts a fresh compliance check for two devices in Catalyst Center?",
   "o": [
-   "POST /dna/intent/api/v1/compliance with {\"triggerFull\": true, \"deviceUuids\": [\"<id1>\", \"<id2>\"]}",
-   "PUT /dna/intent/api/v1/network-device/sync with [\"<id1>\", \"<id2>\"]",
-   "POST /dna/intent/api/v1/compliance/detail with {\"deviceUuids\": [\"<id1>\", \"<id2>\"], \"categories\": [\"RUNNING_CONFIG\"]}",
-   "GET /dna/intent/api/v1/compliance?deviceUuid=<id1>,<id2>"
+   "`POST /dna/intent/api/v1/compliance` with {\"triggerFull\": true, \"deviceUuids\": `[\"<id1>\"`, `\"<id2>\"]}`",
+   "`PUT /dna/intent/api/v1/network-device/sync` with `[\"<id1>\"`, `\"<id2>\"]`",
+   "`POST /dna/intent/api/v1/compliance/detail` with {\"deviceUuids\": `[\"<id1>\"`, `\"<id2>\"]`, \"categories\": [\"RUNNING_CONFIG\"]}",
+   "`GET /dna/intent/api/v1/compliance?deviceUuid=<id1>,<id2>`"
   ],
   "a": 0,
   "e": "POST to compliance starts a run and returns a task. GET reads the latest results, compliance/detail is read with GET, and sync only refreshes inventory."
@@ -591,10 +591,10 @@
   "t": "4.1",
   "p": "A new MX must be checked for reachability to 8.8.8.8, from the device itself, through the API. Which calls do that?",
   "o": [
-   "GET /organizations/{organizationId}/devices/statuses for the MX",
-   "POST /devices/{serial}/liveTools/ping, then GET /devices/{serial}/liveTools/ping/{id} for the result",
-   "POST /networks/{networkId}/liveTools/ping with the MX serial in the body",
-   "GET /devices/{serial}/liveTools/ping?target=8.8.8.8&count=5, which runs the test and returns the result directly"
+   "`GET /organizations/{organizationId}/devices/statuses` for the MX",
+   "`POST /devices/{serial}/liveTools/ping`, then GET /devices/{serial}/liveTools/ping/{id} for the result",
+   "`POST /networks/{networkId}/liveTools/ping` with the MX serial in the body",
+   "`GET /devices/{serial}/liveTools/ping?target=8.8.8.8&count=5`, which runs the test and returns the result directly"
   ],
   "a": 1,
   "e": "Live tools run from the device. The POST starts the test and returns an ID, and the GET reads the result once it finishes. Status shows only whether the device is online."
@@ -630,10 +630,10 @@
   "t": "4.3",
   "p": "Which body fills the blank for POST /dna/intent/api/v1/image/distribution?",
   "o": [
-   "[{\"deviceUuid\": \"<device-id>\", \"imageUuid\": \"<image-id>\"}]",
-   "{\"device\": \"<device-id>\", \"image\": \"<image-id>\"}",
-   "{\"deviceUuids\": [\"<device-id>\"], \"imageUuid\": \"<image-id>\"}",
-   "[{\"deviceId\": \"<device-id>\", \"imageName\": \"cat9k_iosxe.17.12.04.SPA.bin\"}]"
+   "`[{\"deviceUuid\": \"<device-id>\", \"imageUuid\": \"<image-id>\"}]`",
+   "`{\"device\": \"<device-id>\", \"image\": \"<image-id>\"}`",
+   "`{\"deviceUuids\": [\"<device-id>\"], \"imageUuid\": \"<image-id>\"}`",
+   "`[{\"deviceId\": \"<device-id>\", \"imageName\": \"cat9k_iosxe.17.12.04.SPA.bin\"}]`"
   ],
   "a": 0,
   "e": "Distribution takes a list with one object per device, each naming the deviceUuid and imageUuid. Activation uses a similar list, with options for scheduling.",
@@ -657,10 +657,10 @@
   "t": "4.4",
   "p": "A report needs loss, latency and jitter per tunnel over the last hour, aggregated, from SD-WAN Manager. Which approach fits?",
   "o": [
-   "GET /dataservice/device/bfd/sessions on each edge every few seconds for an hour, then average the samples",
+   "`GET /dataservice/device/bfd/sessions` on each edge every few seconds for an hour, then average the samples",
    "POST a query with a time range and grouping to /dataservice/statistics/approute/aggregation",
-   "GET /dataservice/device/control/connections for each edge",
-   "GET /dataservice/alarms filtered on the last hour"
+   "`GET /dataservice/device/control/connections` for each edge",
+   "`GET /dataservice/alarms` filtered on the last hour"
   ],
   "a": 1,
   "e": "Statistics endpoints take a query in the body and return stored data, with aggregation done by the Manager. BFD sessions are real-time status, control connections cover the control plane, and alarms are events."
@@ -670,10 +670,10 @@
   "t": "4.4",
   "p": "Which header authenticates a request to the ThousandEyes API v7?",
   "o": [
-   "Authorization: Bearer <OAuth bearer token>",
-   "Authorization: Basic <email:API token>",
-   "X-Auth-Token: <OAuth bearer token>",
-   "X-TE-Key: <API token>"
+   "`Authorization: Bearer <OAuth bearer token>`",
+   "`Authorization: Basic <email:API token>`",
+   "`X-Auth-Token: <OAuth bearer token>`",
+   "`X-TE-Key: <API token>`"
   ],
   "a": 0,
   "e": "API v7 uses a bearer token created in the ThousandEyes account settings. Basic authentication with email and token belongs to the older v6 API."

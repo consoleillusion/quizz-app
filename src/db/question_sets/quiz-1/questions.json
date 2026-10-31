@@ -35,10 +35,10 @@
   "t": "1.3",
   "p": "Based on this tree, which JSON body is valid for PATCH /restconf/data/example-snmp:snmp to create community RO-MON with read-only access and ACLs 10 and 20?",
   "o": [
-   "{\"example-snmp:snmp\": {\"community\": {\"name\": \"RO-MON\", \"access\": \"read-only\", \"acl\": [\"10\", \"20\"]}}}",
-   "{\"example-snmp:snmp\": {\"community\": [{\"name\": \"RO-MON\", \"access\": \"read-only\", \"acl\": [\"10\", \"20\"]}]}}",
-   "{\"snmp\": {\"community\": [{\"name\": \"RO-MON\", \"access\": \"read-only\", \"acl\": [\"10\", \"20\"]}]}}",
-   "{\"example-snmp:snmp\": {\"community\": [{\"name\": \"RO-MON\", \"access\": \"read-only\", \"acl\": [{\"acl\": \"10\"}, {\"acl\": \"20\"}]}]}}"
+   "`{\"example-snmp:snmp\": {\"community\": {\"name\": \"RO-MON\", \"access\": \"read-only\", \"acl\": [\"10\", \"20\"]}}}`",
+   "`{\"example-snmp:snmp\": {\"community\": [{\"name\": \"RO-MON\", \"access\": \"read-only\", \"acl\": [\"10\", \"20\"]}]}}`",
+   "`{\"snmp\": {\"community\": [{\"name\": \"RO-MON\", \"access\": \"read-only\", \"acl\": [\"10\", \"20\"]}]}}`",
+   "`{\"example-snmp:snmp\": {\"community\": [{\"name\": \"RO-MON\", \"access\": \"read-only\", \"acl\": [{\"acl\": \"10\"}, {\"acl\": \"20\"}]}]}}`"
   ],
   "a": 1,
   "e": "The top-level member is module-qualified, a list is an array of objects, and a leaf-list is an array of values. A list written as a single object, a missing module name, and a leaf-list written as objects are all invalid.",
@@ -49,10 +49,10 @@
   "t": "1.4",
   "p": "The module's namespace is urn:example:ntp. Which XML adds server 10.0.0.5 as the preferred NTP server?",
   "o": [
-   "<ntp xmlns=\"example-ntp\"><server><address>10.0.0.5</address><prefer>true</prefer></server></ntp>",
-   "<ntp xmlns=\"urn:example:ntp\"><server><address>10.0.0.5</address><prefer>true</prefer></server></ntp>",
-   "<ntp xmlns=\"urn:example:ntp\"><server address=\"10.0.0.5\"><prefer>true</prefer></server></ntp>",
-   "<ntp xmlns=\"urn:example:ntp\"><server><address>10.0.0.5</address><prefer>True</prefer></server></ntp>"
+   "`<ntp xmlns=\"example-ntp\"><server><address>10.0.0.5</address><prefer>true</prefer></server></ntp>`",
+   "`<ntp xmlns=\"urn:example:ntp\"><server><address>10.0.0.5</address><prefer>true</prefer></server></ntp>`",
+   "`<ntp xmlns=\"urn:example:ntp\"><server address=\"10.0.0.5\"><prefer>true</prefer></server></ntp>`",
+   "`<ntp xmlns=\"urn:example:ntp\"><server><address>10.0.0.5</address><prefer>True</prefer></server></ntp>`"
   ],
   "a": 1,
   "e": "XML uses the namespace URI (not the module name), list keys are child elements (not attributes), and booleans are lowercase true or false.",
@@ -150,7 +150,7 @@
   "t": "2.3",
   "p": "A script must create Loopback300 only if it doesn't already exist, and get an error if it does. Which request fits?",
   "o": [
-   "GET /restconf/data/ietf-interfaces:interfaces, then PUT if the entry is missing",
+   "`GET /restconf/data/ietf-interfaces:interfaces`, then PUT if the entry is missing",
    "PUT to /restconf/data/ietf-interfaces:interfaces/interface=Loopback300 with the entry",
    "PATCH to /restconf/data/ietf-interfaces:interfaces with the new entry in the body",
    "POST to /restconf/data/ietf-interfaces:interfaces with the entry"
@@ -323,10 +323,10 @@
   "t": "3.1",
   "p": "Meraki serials are already in the organization's inventory. Which call places them into an existing network for Day 0?",
   "o": [
-   "PUT /devices/{serial} with the networkId field set",
-   "POST /organizations/{organizationId}/claim with the serials",
-   "POST /networks/{networkId}/devices/claim with the serials",
-   "POST /networks/{networkId}/bind with the serials"
+   "`PUT /devices/{serial}` with the networkId field set",
+   "`POST /organizations/{organizationId}/claim` with the serials",
+   "`POST /networks/{networkId}/devices/claim` with the serials",
+   "`POST /networks/{networkId}/bind` with the serials"
   ],
   "a": 2,
   "e": "A network claim assigns inventory devices to a network, and they download its configuration when they come online. The organization claim adds devices to inventory, and bind attaches a template."
@@ -376,9 +376,9 @@
   "t": "3.2",
   "p": "A script logs in to SD-WAN Manager through j_security_check. GET requests work, but POST requests return 403. Which header is missing?",
   "o": [
-   "X-CSRF-Token: fetch, sent once at login",
+   "`X-CSRF-Token: fetch`, sent once at login",
    "X-Auth-Token, with the value from POST /dataservice/auth/token",
-   "Authorization: Bearer, with the session cookie's value",
+   "`Authorization: Bearer`, with the session cookie's value",
    "X-XSRF-TOKEN, with the value from GET /dataservice/client/token"
   ],
   "a": 3,
@@ -431,11 +431,11 @@
   "t": "3.3",
   "p": "Which two Jinja2 constructs render text conditionally? (Choose two.)",
   "o": [
-   "{% when cond %} ... {% endwhen %}",
-   "{{# if cond #}} ... {{# endif #}}",
-   "{% loop if cond %} ... {% endloop %}",
-   "{% if cond %} ... {% else %} ... {% endif %}",
-   "{{ \"up\" if enabled else \"down\" }}"
+   "`{% when cond %} ... {% endwhen %}`",
+   "`{{# if cond #}} ... {{# endif #}}`",
+   "`{% loop if cond %} ... {% endloop %}`",
+   "`{% if cond %} ... {% else %} ... {% endif %}`",
+   "`{{ \"up\" if enabled else \"down\" }}`"
   ],
   "a": [
    3,
@@ -463,10 +463,10 @@
   "t": "3.4",
   "p": "Which expression gives the token from this registered result?",
   "o": [
-   "{{ auth.content.Token }}",
-   "{{ auth.Token }}",
-   "{{ auth.json.token }}",
-   "{{ auth.json.Token }}"
+   "`{{ auth.content.Token }}`",
+   "`{{ auth.Token }}`",
+   "`{{ auth.json.token }}`",
+   "`{{ auth.json.Token }}`"
   ],
   "a": 3,
   "e": "uri puts the parsed JSON body under json, and the key is Token with a capital T. content holds the raw text, and keys are case-sensitive.",
@@ -490,10 +490,10 @@
   "t": "3.5",
   "p": "A SIEM alert must quarantine an endpoint through ISE, using an existing ANC policy. Which request does that?",
   "o": [
-   "POST /ers/config/ancpolicy with the endpoint's MAC address used as the policy name",
-   "PUT /ers/config/ancendpoint/apply with the endpoint's MAC and the policy name",
-   "DELETE /ers/config/endpoint/{id} so the endpoint must authenticate again",
-   "PUT /ers/config/endpointgroup/{id} with the MAC added to its description"
+   "`POST /ers/config/ancpolicy` with the endpoint's MAC address used as the policy name",
+   "`PUT /ers/config/ancendpoint/apply` with the endpoint's MAC and the policy name",
+   "`DELETE /ers/config/endpoint/{id}` so the endpoint must authenticate again",
+   "`PUT /ers/config/endpointgroup/{id}` with the MAC added to its description"
   ],
   "a": 1,
   "e": "ancendpoint/apply ties the endpoint to an ANC policy and triggers a CoA. Creating a policy, deleting the endpoint or editing a group doesn't quarantine anything."
@@ -648,10 +648,10 @@
   "t": "4.4",
   "p": "A dashboard needs a health score for each building from Catalyst Center. Which API fits?",
   "o": [
-   "GET /dna/intent/api/v1/site-health",
-   "GET /dna/intent/api/v1/network-device",
-   "GET /dna/intent/api/v1/task",
-   "GET /dna/intent/api/v1/site/count"
+   "`GET /dna/intent/api/v1/site-health`",
+   "`GET /dna/intent/api/v1/network-device`",
+   "`GET /dna/intent/api/v1/task`",
+   "`GET /dna/intent/api/v1/site/count`"
   ],
   "a": 0,
   "e": "site-health returns network and client health per site. The other endpoints list devices, report task status and count sites."

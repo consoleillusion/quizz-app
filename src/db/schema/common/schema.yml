@@ -6,13 +6,13 @@ $defs:
   text:
     type: "string"
     minLength: 1
-    description: "The question prompt. Plain text; line breaks are preserved."
+    description: "The question prompt. Markdown; put code in `backticks` or a fenced block."
   exhibit:
     type: "string"
     description: "Optional preformatted exhibit (code, config, output) shown below the prompt. Slot markers ⟦1⟧, ⟦2⟧ … may appear here in slot-fill questions."
   explanation:
     type: "string"
-    description: "Why the correct answer is correct, shown after the learner answers. Plain text."
+    description: "Why the correct answer is correct, shown after the learner answers. Markdown."
   bloom:
     type: "integer"
     minimum: 1
@@ -47,7 +47,7 @@ $defs:
       text:
         type: "string"
         minLength: 1
-        description: "The option text shown to the learner. Plain text; line breaks are preserved."
+        description: "The option text shown to the learner. Markdown; multi-line code goes in a fenced block."
       points:
         type: "number"
         description: "Points awarded when this option is selected. Correct options are positive; wrong options are 0 or negative."

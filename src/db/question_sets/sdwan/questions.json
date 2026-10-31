@@ -147,8 +147,8 @@
   "e": "The token is tied to a logged-in session, writes need both the cookie and the token, and logging out frees the session.",
   "y": "o",
   "s": [
-   "GET /dataservice/client/token for the XSRF token",
-   "GET /logout to end the session",
+   "`GET /dataservice/client/token` for the XSRF token",
+   "`GET /logout` to end the session",
    "POST credentials to /j_security_check",
    "Send the change with the session cookie and the X-XSRF-TOKEN header"
   ]
@@ -245,7 +245,7 @@
   "t": "3.2",
   "p": "In the attachfeature body, which keys identify the device a template is pushed to?",
   "o": [
-   "//system/host-name and //system/system-ip, which the push matches against the WAN edge list",
+   "`//system/host-name` and //system/system-ip, which the push matches against the WAN edge list",
    "deviceSerial and managementIp",
    "csv-host-name and csv-site-id",
    "csv-deviceId (the device's UUID or chassis number) and csv-deviceIP (its system IP)"
@@ -321,10 +321,10 @@
   "t": "3.2",
   "p": "Which real-time API shows the routes one WAN edge has learned from the Controllers?",
   "o": [
-   "GET /dataservice/template/policy/vsmart",
-   "GET /dataservice/device/omp/routes/received?deviceId=<system-ip>",
-   "GET /dataservice/device/control/connections?deviceId=<system-ip>",
-   "GET /dataservice/device/bfd/sessions?deviceId=<system-ip>"
+   "`GET /dataservice/template/policy/vsmart`",
+   "`GET /dataservice/device/omp/routes/received?deviceId=<system-ip>`",
+   "`GET /dataservice/device/control/connections?deviceId=<system-ip>`",
+   "`GET /dataservice/device/bfd/sessions?deviceId=<system-ip>`"
   ],
   "a": 1,
   "e": "Edges learn routes over OMP from the Controllers. BFD sessions show the data plane, control connections show peerings, and the policy endpoint lists centralized policies."
@@ -334,10 +334,10 @@
   "t": "3.2",
   "p": "A report must list every authorized WAN edge, including ones that have never joined, with its certificate status. Which API fits?",
   "o": [
-   "GET /dataservice/system/device/vedges",
-   "GET /dataservice/device/control/connections",
-   "GET /dataservice/template/device",
-   "GET /dataservice/device"
+   "`GET /dataservice/system/device/vedges`",
+   "`GET /dataservice/device/control/connections`",
+   "`GET /dataservice/template/device`",
+   "`GET /dataservice/device`"
   ],
   "a": 0,
   "e": "system/device/vedges reads the WAN edge list itself, with chassis numbers and validity. /dataservice/device only shows devices that have joined."
@@ -347,10 +347,10 @@
   "t": "3.2",
   "p": "Which request lists the device templates and how many devices each is attached to?",
   "o": [
-   "GET /dataservice/template/feature",
-   "GET /dataservice/template/policy/list",
-   "GET /dataservice/device?template=true",
-   "GET /dataservice/template/device"
+   "`GET /dataservice/template/feature`",
+   "`GET /dataservice/template/policy/list`",
+   "`GET /dataservice/device?template=true`",
+   "`GET /dataservice/template/device`"
   ],
   "a": 3,
   "e": "The device template list includes devicesAttached for each template. Feature templates are the building blocks, and policy lists hold groups such as sites and VPNs."
@@ -388,10 +388,10 @@
   "t": "3.4",
   "p": "Which expression gives the XSRF token from this task's result?",
   "o": [
-   "{{ tok.content }}",
-   "{{ tok.headers['X-XSRF-TOKEN'] }}",
-   "{{ tok.cookies.XSRF }}",
-   "{{ tok.json.token }}"
+   "`{{ tok.content }}`",
+   "`{{ tok.headers['X-XSRF-TOKEN'] }}`",
+   "`{{ tok.cookies.XSRF }}`",
+   "`{{ tok.json.token }}`"
   ],
   "a": 0,
   "e": "The token is returned as plain text, so it's in content. There's no JSON body to parse.",
@@ -717,10 +717,10 @@
   "e": "Upgrades are install, then activate, and optionally set default. Each call returns an action id that's polled at /dataservice/device/action/status/{id}.",
   "y": "x",
   "s": [
-   "/dataservice/device/action/install",
-   "/dataservice/device/action/changepartition",
-   "/dataservice/device/action/defaultpartition",
-   "/dataservice/device/action/removepartition"
+   "`/dataservice/device/action/install`",
+   "`/dataservice/device/action/changepartition`",
+   "`/dataservice/device/action/defaultpartition`",
+   "`/dataservice/device/action/removepartition`"
   ],
   "r": [
    "Sets the version to keep after a software reset",
@@ -799,10 +799,10 @@
   "t": "4.4",
   "p": "A script must fetch active critical alarms raised in the last hour. Which request fits?",
   "o": [
-   "GET /dataservice/statistics/approute with a severity filter and a time range covering the last 60 minutes of alarms",
-   "GET /dataservice/event/critical",
-   "GET /dataservice/device?severity=critical",
-   "POST /dataservice/alarms with query rules for entry_time last_n_hours 1, severity Critical and active true"
+   "`GET /dataservice/statistics/approute` with a severity filter and a time range covering the last 60 minutes of alarms",
+   "`GET /dataservice/event/critical`",
+   "`GET /dataservice/device?severity=critical`",
+   "`POST /dataservice/alarms` with query rules for entry_time last_n_hours 1, severity Critical and active true"
   ],
   "a": 3,
   "e": "Alarms take the same rule-based query as statistics. Devices and app-route statistics have no alarm severity."
@@ -840,8 +840,8 @@
   "o": [
    "POST a query with a time range to /dataservice/statistics/interface",
    "Call the real-time /dataservice/device/interface for each edge every minute for a day",
-   "GET /dataservice/template/device",
-   "GET /dataservice/system/device/vedges"
+   "`GET /dataservice/template/device`",
+   "`GET /dataservice/system/device/vedges`"
   ],
   "a": 0,
   "e": "Interface statistics are stored by SD-WAN Manager, so one query covers the whole period. Real-time calls only show the current counters."

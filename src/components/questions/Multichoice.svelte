@@ -24,7 +24,7 @@
     {#each order as i, k (i)}
       <label class="option {mark(i)}">
         <input type="radio" name={q.id} value={i} bind:group={choice} />
-        <b>{String.fromCharCode(65 + k)}.</b> <span class="pre">{q.options[i].text}</span>
+        <b>{String.fromCharCode(65 + k)}.</b> <span class="md">{@html q.html.options[i]}</span>
       </label>
     {/each}
   </fieldset>

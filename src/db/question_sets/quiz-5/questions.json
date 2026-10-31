@@ -43,10 +43,10 @@
   "t": "1.3",
   "p": "Which JSON body is valid for PUT /restconf/data/example-qos:shaper?",
   "o": [
-   "{\"example-qos:shaper\": {\"rate\": 10000000000, \"burst\": 1500, \"ratio\": 0.75}}",
-   "{\"example-qos:shaper\": {\"rate\": \"10000000000\", \"burst\": 1500, \"ratio\": \"0.75\"}}",
-   "{\"example-qos:shaper\": {\"rate\": 10000000000, \"burst\": 1500, \"ratio\": \"0.75\"}}",
-   "{\"example-qos:shaper\": {\"rate\": \"10000000000\", \"burst\": \"1500\", \"ratio\": \"0.75\"}}"
+   "`{\"example-qos:shaper\": {\"rate\": 10000000000, \"burst\": 1500, \"ratio\": 0.75}}`",
+   "`{\"example-qos:shaper\": {\"rate\": \"10000000000\", \"burst\": 1500, \"ratio\": \"0.75\"}}`",
+   "`{\"example-qos:shaper\": {\"rate\": 10000000000, \"burst\": 1500, \"ratio\": \"0.75\"}}`",
+   "`{\"example-qos:shaper\": {\"rate\": \"10000000000\", \"burst\": \"1500\", \"ratio\": \"0.75\"}}`"
   ],
   "a": 1,
   "e": "RFC 7951 encodes int64, uint64 and decimal64 as JSON strings, because many JSON parsers lose precision on large numbers. Smaller integer types, such as uint32, are JSON numbers.",
@@ -57,10 +57,10 @@
   "t": "1.4",
   "p": "Which XML sets the interface type to the softwareLoopback identity from iana-if-type?",
   "o": [
-   "<type xmlns:ianaift=\"urn:ietf:params:xml:ns:yang:ietf-interfaces\">ianaift:softwareLoopback</type>",
-   "<type xmlns=\"urn:ietf:params:xml:ns:yang:iana-if-type\">softwareLoopback</type>",
-   "<type xmlns:ianaift=\"urn:ietf:params:xml:ns:yang:iana-if-type\">ianaift:softwareLoopback</type>",
-   "<type>softwareLoopback</type>"
+   "`<type xmlns:ianaift=\"urn:ietf:params:xml:ns:yang:ietf-interfaces\">ianaift:softwareLoopback</type>`",
+   "`<type xmlns=\"urn:ietf:params:xml:ns:yang:iana-if-type\">softwareLoopback</type>`",
+   "`<type xmlns:ianaift=\"urn:ietf:params:xml:ns:yang:iana-if-type\">ianaift:softwareLoopback</type>`",
+   "`<type>softwareLoopback</type>`"
   ],
   "a": 2,
   "e": "In XML, an identityref value is a qualified name whose prefix must be declared in scope. Using the module name as an undeclared prefix doesn't work, and a default xmlns would move the type element itself into the wrong namespace.",
@@ -71,10 +71,10 @@
   "t": "1.5",
   "p": "Which RESTCONF URL reads the poe container for GigabitEthernet1/0/5?",
   "o": [
-   "/restconf/data/ietf-interfaces:interfaces/interface=GigabitEthernet1%2F0%2F5/poe",
-   "/restconf/data/ietf-interfaces:interfaces/interface=GigabitEthernet1%2F0%2F5/example-poe:poe",
-   "/restconf/data/example-poe:poe/interface=GigabitEthernet1%2F0%2F5",
-   "/restconf/data/ietf-interfaces:interfaces/interface=GigabitEthernet1%2F0%2F5/example-poe:interface/poe"
+   "`/restconf/data/ietf-interfaces:interfaces/interface=GigabitEthernet1%2F0%2F5/poe`",
+   "`/restconf/data/ietf-interfaces:interfaces/interface=GigabitEthernet1%2F0%2F5/example-poe:poe`",
+   "`/restconf/data/example-poe:poe/interface=GigabitEthernet1%2F0%2F5`",
+   "`/restconf/data/ietf-interfaces:interfaces/interface=GigabitEthernet1%2F0%2F5/example-poe:interface/poe`"
   ],
   "a": 1,
   "e": "Augmented nodes live under the target path but belong to the augmenting module, so the path segment is module-qualified where the namespace changes. The augment doesn't create a new top-level tree.",
@@ -104,10 +104,10 @@
   "t": "2.1",
   "p": "The image is already on the switch's flash with a matching MD5. What does file_transfer return?",
   "o": [
-   "{'file_exists': True, 'file_transferred': True, 'file_verified': True}",
+   "`{'file_exists': True, 'file_transferred': True, 'file_verified': True}`",
    "It raises an exception, because overwrite_file=False forbids an existing file",
-   "{'file_exists': False, 'file_transferred': False, 'file_verified': False}",
-   "{'file_exists': True, 'file_transferred': False, 'file_verified': True}"
+   "`{'file_exists': False, 'file_transferred': False, 'file_verified': False}`",
+   "`{'file_exists': True, 'file_transferred': False, 'file_verified': True}`"
   ],
   "a": 3,
   "e": "file_transfer checks for the file and its MD5 first and skips the copy when they match, reporting that nothing was transferred but the file is verified. It uses SCP, so the switch needs ip scp server enable.",
@@ -134,7 +134,7 @@
    "m.server_capabilities[\"Cisco-IOS-XE-interfaces-oper\"]",
    "m.get_schema(\"Cisco-IOS-XE-interfaces-oper\")",
    "m.get_config(source=\"running\", filter=(\"xpath\", \"/interfaces-ios-xe-oper:*\"))",
-   "m.get(filter=(\"subtree\", \"<Cisco-IOS-XE-interfaces-oper/>\"))"
+   "m.get(filter=(\"subtree\", \"`<Cisco-IOS-XE-interfaces-oper/>`\"))"
   ],
   "a": 1,
   "e": "get-schema, from ietf-netconf-monitoring, returns the YANG text of a module the device supports. Capabilities only list module names and revisions, and get or get-config return data, not schemas."
@@ -144,7 +144,7 @@
   "t": "2.2",
   "p": "Which ncclient call saves the running configuration to startup on IOS XE?",
   "o": [
-   "m.dispatch(to_ele('<save-config xmlns=\"http://cisco.com/yang/cisco-ia\"/>'))",
+   "m.dispatch(to_ele('`<save-config xmlns=\"http://cisco.com/yang/cisco-ia\"/>`'))",
    "m.copy_config(source=\"running\", target=\"startup\"), which IOS XE maps to write memory",
    "m.commit()",
    "m.edit_config(target=\"startup\", config=running_cfg)"
@@ -499,10 +499,10 @@
   "t": "3.5",
   "p": "Which body fills the blank to apply group policy 101 to a client?",
   "o": [
-   "{\"devicePolicy\": \"Blocked\", \"groupPolicyId\": \"101\"}",
-   "{\"devicePolicy\": \"Group policy\", \"groupPolicy\": {\"id\": \"101\", \"name\": \"Contractors\"}}",
-   "{\"devicePolicy\": \"Group policy\", \"groupPolicyId\": \"101\"}",
-   "{\"groupPolicy\": \"101\"}"
+   "`{\"devicePolicy\": \"Blocked\", \"groupPolicyId\": \"101\"}`",
+   "`{\"devicePolicy\": \"Group policy\", \"groupPolicy\": {\"id\": \"101\", \"name\": \"Contractors\"}}`",
+   "`{\"devicePolicy\": \"Group policy\", \"groupPolicyId\": \"101\"}`",
+   "`{\"groupPolicy\": \"101\"}`"
   ],
   "a": 2,
   "e": "devicePolicy chooses the policy type, and groupPolicyId names the group policy when that type is Group policy. Blocked ignores any group policy ID.",
@@ -513,10 +513,10 @@
   "t": "3.5",
   "p": "An audit must show who changed MX firewall rules in the last 24 hours. Which Dashboard API call fits?",
   "o": [
-   "GET /networks/{networkId}/events?productType=appliance",
-   "GET /networks/{networkId}/appliance/firewall/l3FirewallRules?timespan=86400",
-   "GET /organizations/{organizationId}/apiRequests?timespan=86400",
-   "GET /organizations/{organizationId}/configurationChanges?timespan=86400&networkId=<id>"
+   "`GET /networks/{networkId}/events?productType=appliance`",
+   "`GET /networks/{networkId}/appliance/firewall/l3FirewallRules?timespan=86400`",
+   "`GET /organizations/{organizationId}/apiRequests?timespan=86400`",
+   "`GET /organizations/{organizationId}/configurationChanges?timespan=86400&networkId=<id>`"
   ],
   "a": 3,
   "e": "Configuration changes record the admin, time, page and old and new values. Events cover device activity, apiRequests covers only API calls, and the rules endpoint shows only the current state."
@@ -537,7 +537,7 @@
  {
   "g": 3,
   "t": "3.6",
-  "p": "PUT /devices/{serial}/switch/ports/GigabitEthernet1%2F0%2F12 returns 404, although the switch has 48 ports. What's wrong?",
+  "p": "`PUT /devices/{serial}/switch/ports/GigabitEthernet1%2F0%2F12` returns 404, although the switch has 48 ports. What's wrong?",
   "o": [
    "The slashes must not be encoded, so the portId is GigabitEthernet1/0/12",
    "Meraki identifies switch ports by number, so the portId is 12",
@@ -625,10 +625,10 @@
   "t": "4.3",
   "p": "Which request uploads an image file from the script's host into the Catalyst Center repository?",
   "o": [
-   "POST /dna/intent/api/v1/image/distribution with the file in the body",
-   "PUT /dna/intent/api/v1/image/importation with the file base64-encoded in JSON",
-   "POST /dna/intent/api/v1/image/importation/source/file, as a multipart/form-data upload",
-   "POST /dna/intent/api/v1/image/importation/source/url with the local path"
+   "`POST /dna/intent/api/v1/image/distribution` with the file in the body",
+   "`PUT /dna/intent/api/v1/image/importation` with the file base64-encoded in JSON",
+   "`POST /dna/intent/api/v1/image/importation/source/file`, as a multipart/form-data upload",
+   "`POST /dna/intent/api/v1/image/importation/source/url` with the local path"
   ],
   "a": 2,
   "e": "Local files are uploaded with source/file as a multipart upload. source/url makes Catalyst Center fetch from an HTTP or FTP server, so a local path won't work."
@@ -638,10 +638,10 @@
   "t": "4.3",
   "p": "Which body tags an image as golden for access switches of one family at one site?",
   "o": [
-   "{\"imageId\": \"<image-id>\", \"siteId\": \"<site-id>\", \"deviceFamilyIdentifier\": \"<family-id>\", \"deviceRole\": \"ACCESS\"}",
-   "{\"imageId\": \"<image-id>\", \"deviceUuids\": [\"<device-id>\"], \"golden\": true}",
-   "{\"imageName\": \"cat9k_iosxe.17.12.04.SPA.bin\", \"site\": \"Global/NZ/AKL\", \"role\": \"ACCESS\"}",
-   "{\"imageId\": \"<image-id>\", \"siteId\": \"<site-id>\", \"deviceFamily\": \"Cisco Catalyst 9300 Switch\", \"role\": \"ACCESS\", \"golden\": true}"
+   "`{\"imageId\": \"<image-id>\", \"siteId\": \"<site-id>\", \"deviceFamilyIdentifier\": \"<family-id>\", \"deviceRole\": \"ACCESS\"}`",
+   "`{\"imageId\": \"<image-id>\", \"deviceUuids\": [\"<device-id>\"], \"golden\": true}`",
+   "`{\"imageName\": \"cat9k_iosxe.17.12.04.SPA.bin\", \"site\": \"Global/NZ/AKL\", \"role\": \"ACCESS\"}`",
+   "`{\"imageId\": \"<image-id>\", \"siteId\": \"<site-id>\", \"deviceFamily\": \"Cisco Catalyst 9300 Switch\", \"role\": \"ACCESS\", \"golden\": true}`"
   ],
   "a": 0,
   "e": "Golden tags apply to an image for a site, device family and device role, not to individual devices, and they use IDs rather than names.",
@@ -652,10 +652,10 @@
   "t": "4.4",
   "p": "Which request lists the access switches with poor health in Catalyst Center?",
   "o": [
-   "GET /dna/intent/api/v1/device-health?deviceRole=ACCESS&health=POOR",
-   "GET /dna/intent/api/v1/site-health?deviceRole=ACCESS&health=POOR",
-   "GET /dna/intent/api/v1/client-health?health=POOR",
-   "GET /dna/intent/api/v1/network-device?role=ACCESS&reachabilityStatus=Unreachable"
+   "`GET /dna/intent/api/v1/device-health?deviceRole=ACCESS&health=POOR`",
+   "`GET /dna/intent/api/v1/site-health?deviceRole=ACCESS&health=POOR`",
+   "`GET /dna/intent/api/v1/client-health?health=POOR`",
+   "`GET /dna/intent/api/v1/network-device?role=ACCESS&reachabilityStatus=Unreachable`"
   ],
   "a": 0,
   "e": "device-health filters by role, site and health category. site-health reports per site, network-device has no health score, and client-health covers clients."
@@ -665,10 +665,10 @@
   "t": "4.4",
   "p": "A report needs loss and latency for every MX uplink in the organization over the last few minutes. Which call fits?",
   "o": [
-   "GET /organizations/{organizationId}/devices/uplinks/addresses/byDevice",
-   "GET /networks/{networkId}/appliance/uplinks/usageHistory",
-   "GET /organizations/{organizationId}/devices/uplinksLossAndLatency?timespan=300",
-   "GET /organizations/{organizationId}/devices/statuses"
+   "`GET /organizations/{organizationId}/devices/uplinks/addresses/byDevice`",
+   "`GET /networks/{networkId}/appliance/uplinks/usageHistory`",
+   "`GET /organizations/{organizationId}/devices/uplinksLossAndLatency?timespan=300`",
+   "`GET /organizations/{organizationId}/devices/statuses`"
   ],
   "a": 2,
   "e": "uplinksLossAndLatency returns loss and latency samples per uplink and destination. statuses shows online state, and usageHistory shows traffic volume."
@@ -678,10 +678,10 @@
   "t": "4.5",
   "p": "Which element turns this dynamic subscription into an on-change subscription?",
   "o": [
-   "<yp:dampening-period>0</yp:dampening-period>",
-   "<yp:update-policy>on-change</yp:update-policy>",
-   "<yp:period>0</yp:period>",
-   "<yp:on-change>true</yp:on-change>"
+   "`<yp:dampening-period>0</yp:dampening-period>`",
+   "`<yp:update-policy>on-change</yp:update-policy>`",
+   "`<yp:period>0</yp:period>`",
+   "`<yp:on-change>true</yp:on-change>`"
   ],
   "a": 0,
   "e": "yang-push uses period for periodic updates and dampening-period for on-change. A dampening period of 0 sends each change as it happens.",
@@ -706,10 +706,10 @@
   "t": "4.6",
   "p": "Before relying on a new Meraki webhook receiver, a team wants to send it a sample alert from the Dashboard API. Which calls do that?",
   "o": [
-   "POST /networks/{networkId}/webhooks/webhookTests, then GET the test by its ID for the result",
-   "POST /organizations/{organizationId}/webhooks/send with a sample payload",
-   "GET /networks/{networkId}/webhooks/httpServers/{id}/ping",
-   "POST /networks/{networkId}/alerts/settings/test with the receiver's URL and the alert type to simulate"
+   "`POST /networks/{networkId}/webhooks/webhookTests`, then GET the test by its ID for the result",
+   "`POST /organizations/{organizationId}/webhooks/send` with a sample payload",
+   "`GET /networks/{networkId}/webhooks/httpServers/{id}/ping`",
+   "`POST /networks/{networkId}/alerts/settings/test` with the receiver's URL and the alert type to simulate"
   ],
   "a": 0,
   "e": "webhookTests sends a sample payload to a URL, optionally with a payload template, and reports whether delivery succeeded."
@@ -763,10 +763,10 @@
   "t": "5.2",
   "p": "An AI assistant wrote this function. Which test input exposes its bug?",
   "o": [
-   "[\"down\"]",
-   "[\"up\", \"up\", \"down\"]",
-   "[\"down\", \"down\"]",
-   "[\"up\", \"up\"]"
+   "`[\"down\"]`",
+   "`[\"up\", \"up\", \"down\"]`",
+   "`[\"down\", \"down\"]`",
+   "`[\"up\", \"up\"]`"
   ],
   "a": 1,
   "e": "The function returns True as soon as it finds one up, so a list with up before a down gives the wrong answer. The fix is all(s == \"up\" for s in states).",
