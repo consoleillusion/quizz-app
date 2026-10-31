@@ -41,8 +41,8 @@ Each question type has its own table, because each type has its own shape:
 | `question_slotfill` | fill ⟦n⟧ slots from a token bank | `gaps[n-1].accepted_tokens` |
 | `question_open` | type the answer | `answers` |
 
-`quiz` holds set metadata; `quiz_question` places a question (`question_type` +
-`question_id`) at a `position` in a set, so sets can share and reorder questions. Views:
+`quiz` holds quiz metadata; `quiz_question` places a question (`question_type` +
+`question_id`) at a `position` in a set, so quizzes can share and reorder questions. Views:
 `question` (shared columns of every question table) and `quiz_summary` (sets with counts).
 
 ```sh
