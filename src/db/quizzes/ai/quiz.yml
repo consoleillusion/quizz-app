@@ -1,0 +1,7 @@
+title: "AI in Automation"
+description: "Cisco's modern AI for networks: AgenticOps, AI Canvas, AI Assistant and the Deep Network Model; AI-assisted coding; securing agents and MCP; building MCP servers with FastMCP. FastMCP behaviour checked against FastMCP 4.1.4."
+exam: "300-435"
+difficulty: "exam"
+randomize_question_order: false
+randomize_option_order: true
+tags: [topic, ai]
