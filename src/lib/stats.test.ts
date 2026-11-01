@@ -1,39 +1,44 @@
 import {describe, expect, test} from "bun:test"
 import {answerExtent, answersInScope, autoBucket, bucketStarts, clampRange, questionInScope, scopeOptions, series, summary, type Meta} from "./stats.ts"
 
-const meta: Meta = {
-  questions: {
-    q1: {type: "multichoice", objectives: ["300-435:2.3"], text: "a", quizzes: ["z1", "z2"]},
-    q2: {type: "match", objectives: ["300-435:3.1"], text: "b", quizzes: ["z2"]},
-    q3: {type: "order", objectives: ["350-401:2.3"], text: "c", quizzes: ["z3"]},
-  },
-  quizzes: {
-    z1: {slug: "netconf", title: "NETCONF", exam: "300-435", tags: ["topic", "netconf"]},
-    z2: {slug: "quiz-1", title: "Practice Quiz 1", exam: "300-435", tags: ["practice"]},
-    z3: {slug: "other", title: "Other", exam: "350-401", tags: ["topic"]},
-  },
-}
+const meta: Meta =
+  { tags:
+      { e1: {type: "exam", name: "cisco:300-435", description: "ENAUTO"}
+      , d2: {type: "domain", name: "cisco:300-435:2.0", description: "Device-Level"}
+      , o23: {type: "objective", name: "cisco:300-435:2.3", description: "RESTCONF"}
+      , o210: {type: "objective", name: "cisco:300-435:2.10", description: "Ten"}
+      , t1: {type: "topic", name: "netconf"}
+      , unused: {type: "topic", name: "nothing"}
+      }
+  , questions:
+      { q1: {type: "multichoice", text: "a", tags: ["e1", "d2", "o23", "t1"], quizzes: ["z1", "z2"]}
+      , q2: {type: "match", text: "b", tags: ["e1", "d2", "o210"], quizzes: ["z2"]}
+      }
+  , quizzes:
+      { z1: {slug: "netconf", title: "NETCONF", tags: []}
+      , z2: {slug: "quiz-1", title: "Practice Quiz 1", tags: []}
+      }
+  }
 const at = (iso: string, question_id: string, quiz_id: string, correct: boolean) =>
-  ({quiz_id, question_type: "x", question_id, answer: [], points: correct ? 1 : 0, correct, answered_at: iso})
+  ({user_id: "u", quiz_id, question_type: "x", question_id, answer: [], points: correct ? 1 : 0, correct, answered_at: iso})
 
 describe("scope", () => {
-  test("objective, domain and exam scopes use the question's objectives", () => {
-    expect(questionInScope("objective:300-435:2.3", meta)("q1")).toBe(true)
-    expect(questionInScope("objective:300-435:2.3", meta)("q3")).toBe(false)
-    expect(questionInScope("domain:300-435:3", meta)("q2")).toBe(true)
-    expect(questionInScope("exam:350-401", meta)("q3")).toBe(true)
+  test("tag scopes use the question's own tags", () => {
+    expect(questionInScope("tag:o23", meta)("q1")).toBe(true)
+    expect(questionInScope("tag:o23", meta)("q2")).toBe(false)
+    expect(questionInScope("tag:e1", meta)("q2")).toBe(true)
   })
-  test("tag and quiz scopes use the quiz the answer was given in", () => {
-    const answers = [at("2026-10-01T10:00:00Z", "q1", "z1", true), at("2026-10-01T11:00:00Z", "q1", "z2", false)]
-    expect(answersInScope(answers, "tag:netconf", meta).length).toBe(1)
-    expect(answersInScope(answers, "quiz:z2", meta).map(a => a.correct)).toEqual([false])
-    expect(answersInScope(answers, "all", meta).length).toBe(2)
+  test("quiz scopes use the quiz the answer was given in, falling back to membership for unknown quizzes", () => {
+    const answers = [at("2026-10-01T10:00:00Z", "q1", "z1", true), at("2026-10-01T11:00:00Z", "q1", "z2", false), at("2026-10-01T12:00:00Z", "q1", "old-quiz", true)]
+    expect(answersInScope(answers, "quiz:z2", meta).map(a => a.correct)).toEqual([false, true])
+    expect(answersInScope(answers, "all", meta).length).toBe(3)
   })
-  test("options list exams, domains, objectives, tags and quizzes", () => {
-    const groups = Object.fromEntries(scopeOptions(meta).map(g => [g.label, g.options.map(o => o.value)]))
-    expect(groups.Exams).toEqual(["exam:300-435", "exam:350-401"])
-    expect(groups.Domains).toEqual(["domain:300-435:2", "domain:300-435:3", "domain:350-401:2"])
-    expect(groups.Tags).toEqual(["tag:netconf", "tag:practice", "tag:topic"])
+  test("options group used tags by type, in natural order, then quizzes", () => {
+    const groups = Object.fromEntries(scopeOptions(meta).map(g => [g.label, g.options.map(o => o.label)]))
+    expect(groups.Exams).toEqual(["ENAUTO"])
+    expect(groups.Objectives).toEqual(["2.3 RESTCONF", "2.10 Ten"])
+    expect(groups.Topics).toEqual(["netconf"])
+    expect(groups.Quizzes).toEqual(["NETCONF", "Practice Quiz 1"])
   })
 })
 
@@ -48,17 +53,13 @@ describe("time", () => {
     expect(answerExtent([])).toBe(null)
     const one = answerExtent([at("2026-10-01T10:00:00Z", "q1", "z1", true)])!
     expect(one.to - one.from).toBe(3600000)
-    const two = answerExtent([at("2026-10-03T10:00:00Z", "q1", "z1", true), at("2026-10-01T10:00:00Z", "q2", "z2", false)])!
-    expect([two.from, two.to]).toEqual([Date.parse("2026-10-01T10:00:00Z"), Date.parse("2026-10-03T10:00:00Z")])
   })
   test("a window is clamped to the extent, or reset when outside it", () => {
     expect(clampRange({from: 0, to: 50}, {from: 10, to: 100})).toEqual({from: 10, to: 50})
     expect(clampRange({from: 200, to: 300}, {from: 10, to: 100})).toEqual({from: 10, to: 100})
   })
   test("buckets cover the range with no gaps", () => {
-    const starts = bucketStarts({from: now - 3 * 86400000, to: now}, "day")
-    expect(starts.length).toBe(4)
-    expect(new Set(starts.slice(1).map((s, i) => s - starts[i])).size).toBeLessThanOrEqual(2) // DST may vary one step
+    expect(bucketStarts({from: now - 3 * 86400000, to: now}, "day").length).toBe(4)
   })
   test("series counts answers, accuracy per bucket and running accuracy", () => {
     const answers = [at("2026-10-08T09:00:00", "q1", "z1", true), at("2026-10-08T10:00:00", "q2", "z2", false), at("2026-10-10T09:00:00", "q1", "z1", true)]

@@ -1,0 +1,17 @@
+---
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: "Question Tag"
+type: "object"
+additionalProperties: false
+description: "Attaches a tag to a question. question_id points into the table named by question_type."
+required: ["question_type", "question_id", "tag_id"]
+x-unique: [["question_type", "question_id", "tag_id"]]
+properties:
+  question_type: { $ref: "./common/schema.yml#/$defs/question_type" }
+  question_id:
+    type: "string"
+    format: "uuid"
+  tag_id:
+    type: "string"
+    format: "uuid"
+    x-references: "tag"

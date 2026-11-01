@@ -5,7 +5,7 @@ x-question-type: "match"
 type: "object"
 additionalProperties: false
 description: "One-to-one matching: each prompt is paired with exactly one response."
-required: ["text", "prompts", "responses", "answer", "objectives"]
+required: ["text", "prompts", "responses", "answer"]
 properties:
   text: { $ref: "./common/schema.yml#/$defs/text" }
   exhibit: { $ref: "./common/schema.yml#/$defs/exhibit" }
@@ -22,6 +22,5 @@ properties:
     uniqueItems: true
     items: { type: "integer", minimum: 0 }
   explanation: { $ref: "./common/schema.yml#/$defs/explanation" }
-  objectives: { $ref: "./common/schema.yml#/$defs/objectives" }
   bloom: { $ref: "./common/schema.yml#/$defs/bloom" }
   links: { $ref: "./common/schema.yml#/$defs/links" }

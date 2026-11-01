@@ -3,14 +3,15 @@ $schema: "https://json-schema.org/draft/2020-12/schema"
 title: "Quiz Tag"
 type: "object"
 additionalProperties: false
-description: "Searchable tags/categories for quizzes."
-required: ["quiz_id", "name"]
-x-unique: [["quiz_id", "name"]]
+description: "Attaches a tag to a quiz, for finding and grouping quizzes."
+required: ["quiz_id", "tag_id"]
+x-unique: [["quiz_id", "tag_id"]]
 properties:
   quiz_id:
     type: "string"
     format: "uuid"
     x-references: "quiz"
-  name:
+  tag_id:
     type: "string"
-    minLength: 1
+    format: "uuid"
+    x-references: "tag"

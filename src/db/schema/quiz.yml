@@ -3,7 +3,7 @@ $schema: "https://json-schema.org/draft/2020-12/schema"
 title: "Quiz"
 type: "object"
 additionalProperties: false
-description: "A named, ordered collection of questions. Membership lives in quiz_question, so quizzes can share questions."
+description: "A named collection of questions. Questions are chosen explicitly (quiz_question, ordered) and/or by tag rules (quiz_rule); any question can be in any number of quizzes."
 required: ["slug", "title"]
 x-unique: [["slug"]]
 properties:
@@ -31,3 +31,8 @@ properties:
   randomize_option_order:
     type: "boolean"
     default: true
+  rule_match:
+    type: "string"
+    enum: ["all", "any"]
+    default: "all"
+    description: "For quizzes with tag rules: include questions carrying all of the rule tags, or any one of them."

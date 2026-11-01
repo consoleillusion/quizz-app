@@ -3,6 +3,7 @@
   // Runs client-only (client:only) because shuffles and IndexedDB are browser-side.
   import {onMount} from "svelte"
   import {grade} from "../lib/grade.ts"
+  import {number, ofType} from "../lib/tags.ts"
   import {loadAnswers, saveAnswer, clearAnswers, type AnswerRecord} from "../lib/progress.ts"
   import Results from "./Results.svelte"
   import Multichoice from "./questions/Multichoice.svelte"
@@ -117,7 +118,7 @@
 
   <article id="question" aria-live="polite">
     <header>
-      <small>Question {pos + 1} of {questions.length} · {typeLabels[q.type]} · Objective {q.objectives[0].split(":")[1]}</small>
+      <small>Question {pos + 1} of {questions.length} · {typeLabels[q.type]} · Objective {number(ofType("objective")(q.tags))}</small>
     </header>
     <div class="prompt">{@html q.html.text}</div>
     {#if q.exhibit && q.type !== "slotfill"}<pre>{q.exhibit}</pre>{/if}

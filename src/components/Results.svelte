@@ -1,6 +1,6 @@
 <script lang="ts">
   // End-of-set summary: score, breakdown by blueprint domain, and links to missed questions.
-  import {domainLabel} from "../lib/exams.ts"
+  import {label, number, ofType} from "../lib/tags.ts"
   let {questions, order, answers, onjump} = $props()
 
   const scored = $derived(order.map((qi: number, pos: number) => ({q: questions[qi], pos, record: answers[questions[qi].id]})))
@@ -10,11 +10,12 @@
     // Purpose: tally right and total answers per blueprint domain
     const rows = new Map<string, {right: number, total: number}>()
     for (const {q, record} of scored) {
-      const label = domainLabel(q.objectives[0])
-      const row = rows.get(label) ?? {right: 0, total: 0}
+      const domain = ofType("domain")(q.tags)
+      const key = domain ? label(domain) : "Untagged"
+      const row = rows.get(key) ?? {right: 0, total: 0}
       row.total++
       if (record?.correct) row.right++
-      rows.set(label, row)
+      rows.set(key, row)
     }
     return [...rows].sort(([a], [b]) => a.localeCompare(b))
   })
@@ -39,7 +40,7 @@
     <h3>Missed</h3>
     <ul>
       {#each missed as {q, pos}}
-        <li><button type="button" class="link" data-pos={pos} onclick={jump}>Q{pos + 1}</button> {q.objectives[0].split(":")[1]}: {@html q.html.text}</li>
+        <li><button type="button" class="link" data-pos={pos} onclick={jump}>Q{pos + 1}</button> {number(ofType("objective")(q.tags))}: {@html q.html.text}</li>
       {/each}
     </ul>
   {/if}

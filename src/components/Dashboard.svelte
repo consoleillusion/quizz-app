@@ -5,6 +5,7 @@
   import {syncLog, type AnswerRecord} from "../lib/progress.ts"
   import {answerExtent, answersInRange, answersInScope, autoBucket, clampRange, questionInScope, scopeOptions, series, summary, type Bucket, type Meta} from "../lib/stats.ts"
   import TimeChart from "./TimeChart.svelte"
+  import {number} from "../lib/tags.ts"
   import RangeSlider from "./RangeSlider.svelte"
 
 
@@ -109,7 +110,7 @@
           <tr class={a.correct ? "ok" : "bad"}>
             <td>{new Date(a.answered_at).toLocaleString()}</td>
             <td>{#if quizOf(a)}<a href={`/quiz/${quizOf(a).slug}`}>{quizOf(a).title}</a>{/if}</td>
-            <td>{meta.questions[a.question_id]?.objectives.map(o => o.split(":")[1]).join(", ")}</td>
+            <td>{(meta.questions[a.question_id]?.tags ?? []).map(id => meta.tags[id]).filter(t => t?.type === "objective").map(number).join(", ")}</td>
             <td>{meta.questions[a.question_id]?.text ?? "(question no longer exists)"}</td>
             <td>{a.correct ? "✓" : "✗"}</td>
           </tr>

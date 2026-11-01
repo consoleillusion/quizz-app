@@ -29,7 +29,9 @@ Only one process can open `.db` at a time, so stop the server before `db:reset` 
 
 ## Database
 
-Tables are generated from the JSON Schemas in `src/db/schema` (one `.yml` per table).
+All data lives in the database (`.db`, Turso/SQLite). The only YAML is the table schemas in
+`src/db/schema`, one file per table; tables, views and triggers are generated from them.
+
 Each question type has its own table, because each type has its own shape:
 
 | Table | Type | Answer is stored as |
@@ -41,35 +43,32 @@ Each question type has its own table, because each type has its own shape:
 | `question_slotfill` | fill ⟦n⟧ slots from a token bank | `gaps[n-1].accepted_tokens` |
 | `question_open` | type the answer | `answers` |
 
-`quiz` holds quiz metadata; `quiz_question` places a question (`question_type` +
-`question_id`) at a `position` in a set, so quizzes can share and reorder questions. Views:
-`question` (shared columns of every question table) and `quiz_summary` (sets with counts).
+Questions belong to no quiz. They carry typed tags (`question_tag` → `tag`): `vendor`, `exam`,
+`domain`, `objective`, `topic` and `generic`, namespaced from the vendor down
+(`cisco`, `cisco:300-435`, `cisco:300-435:5.0`, `cisco:300-435:5.4`). A quiz picks questions
+explicitly (`quiz_question`, ordered) and/or by tag rules (`quiz_rule`, matching all or any of
+the rule tags); the `quiz_member` view resolves both.
 
 ```sh
-bun run db:init    # create missing tables; fails if the DB has drifted from the schema
-bun run db:reset   # delete .db, rebuild from schema, seed all sets
-bun run db:seed    # validate and load src/db/quizzes/*  (--prune drops unused questions)
-bun run db:check   # validate the quizzes without writing
-bun run db:sql     # print the generated SQL
+bun run db:init      # create missing tables, views and triggers; safe to run any time
+bun run db:migrate   # back up, then apply pending migrations in src/db/migrations
+bun run db:backup    # copy the live database to backups/<timestamp>.db
+bun run db:sql       # print the generated SQL
 ```
 
-Changing a schema: edit the `.yml`, then `bun run db:reset`. `init` records each table's schema
-in `table_schema` and refuses to run against a database built from a different schema.
+`init` only ever creates what's missing and warns if a schema file no longer matches the table it
+built. Changing a schema means writing a migration (`src/db/migrations/NNN-name.ts` exporting
+`up(db)`); the database is never rebuilt.
 
-Validation happens in three layers: ajv against the schema, the per-type rules in
-`src/db/rules.ts`, and SQL constraints (NOT NULL, CHECK, UNIQUE, foreign keys and triggers for the
-polymorphic question reference).
+Content is written through `src/lib/questions.ts` (`createQuestion`, `addQuiz`, `ensureTag`), which
+validates against the schemas and the per-type rules in `src/db/rules.ts`.
 
 ### Schema extensions
 
 - `x-references: <table>` foreign key to `<table>(id)` (CASCADE if required, else SET NULL)
 - `x-unique: [[col, ...], ...]` table-level UNIQUE constraints
 - `x-question-type: <name>` marks a question table
+- `x-widget: textarea` renders a textarea in generated forms
+- `x-private: [col, ...]` columns never sent to clients
 
-Every table also gets `id` (uuid7), `created_at` and `updated_at`. Seeded question ids are UUIDv5
-of the question's content, so re-seeding is idempotent.
-
-### Adding a quiz
-
-Create `src/db/quizzes/<slug>/` with `quiz.yml` (title, description, exam, difficulty, tags)
-and `questions.json` in the compact quizlet format, then `bun run db:seed`.
+Every table also gets `id` (uuid7), `created_at` and `updated_at`.

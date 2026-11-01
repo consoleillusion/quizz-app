@@ -5,7 +5,7 @@ x-question-type: "open"
 type: "object"
 additionalProperties: false
 description: "Free entry: the learner types an exact word, number or value."
-required: ["text", "answers", "objectives"]
+required: ["text", "answers"]
 properties:
   text: { $ref: "./common/schema.yml#/$defs/text" }
   exhibit: { $ref: "./common/schema.yml#/$defs/exhibit" }
@@ -23,6 +23,5 @@ properties:
     minItems: 1
     items: { type: "string", minLength: 1 }
   explanation: { $ref: "./common/schema.yml#/$defs/explanation" }
-  objectives: { $ref: "./common/schema.yml#/$defs/objectives" }
   bloom: { $ref: "./common/schema.yml#/$defs/bloom" }
   links: { $ref: "./common/schema.yml#/$defs/links" }

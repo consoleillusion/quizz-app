@@ -42,7 +42,7 @@ if (asJson) return json(page)
         <article>
           <h3><a href={quiz.url}>{quiz.title}</a></h3>
           <p>{quiz.description}</p>
-          <small>{quiz.question_count} questions{quiz.tags.length ? ` · ${quiz.tags.join(", ")}` : ""}</small><br />
+          <small>{quiz.question_count} questions{quiz.tags.length ? ` · ${quiz.tags.map((t: {name: string}) => t.name).join(", ")}` : ""}</small><br />
           <small data-progress={quiz.id} data-total={quiz.question_count}></small>
         </article>
       </li>

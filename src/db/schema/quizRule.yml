@@ -1,0 +1,17 @@
+---
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: "Quiz Rule"
+type: "object"
+additionalProperties: false
+description: "Makes a quiz dynamic: it also includes every question carrying this tag. With several rules, the quiz's rule_match decides whether a question needs all of the tags or any one."
+required: ["quiz_id", "tag_id"]
+x-unique: [["quiz_id", "tag_id"]]
+properties:
+  quiz_id:
+    type: "string"
+    format: "uuid"
+    x-references: "quiz"
+  tag_id:
+    type: "string"
+    format: "uuid"
+    x-references: "tag"

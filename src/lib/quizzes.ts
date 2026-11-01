@@ -1,5 +1,6 @@
 // The quiz resource: queries and creation. Server-only.
 import {kebabCase} from "change-case"
+import {ascend, fromPairs, groupBy, map, sortWith} from "ramda"
 import {db} from "../db/db.ts"
 import {HttpError} from "./rest.ts"
 import {insertRow, parseRow, questionTables, selectColumns, validate} from "./schemas.ts"
@@ -9,13 +10,24 @@ const isUuid = (key: string) =>
   // Purpose: true when a URL key is a UUID rather than a slug
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(key)
 
-const summaryColumns = `${selectColumns("quiz", "q")},
-  (SELECT count(*) FROM quiz_question i WHERE i.quiz_id = q.id) AS question_count,
-  (SELECT json_group_array(name) FROM quiz_tag t WHERE t.quiz_id = q.id) AS tags`
+const tagObject =
+  "json_object('type', t.type, 'name', t.name, 'description', t.description)"
 
-const toQuiz = (row: any) =>
-  // Purpose: a quiz row as JSON, with its question count, tags and URL
-  ({...parseRow("quiz")(row), question_count: row.question_count, tags: JSON.parse(row.tags), url: `/quiz/${row.slug}`})
+const summaryColumns =
+  `${selectColumns("quiz", "q")}
+  , (SELECT count(*) FROM quiz_member m WHERE m.quiz_id = q.id) AS question_count
+  , (SELECT json_group_array(${tagObject}) FROM quiz_tag qt JOIN tag t ON t.id = qt.tag_id WHERE qt.quiz_id = q.id) AS tags
+  , (SELECT json_group_array(${tagObject}) FROM quiz_rule r JOIN tag t ON t.id = r.tag_id WHERE r.quiz_id = q.id) AS rules`
+
+const toQuiz =
+  (row: any) =>
+    // Purpose: a quiz row as JSON, with its question count, tags, tag rules and URL
+    ( { ...parseRow("quiz")(row)
+      , question_count: row.question_count
+      , tags: JSON.parse(row.tags)
+      , rules: JSON.parse(row.rules)
+      , url: `/quiz/${row.slug}`
+      })
 
 export const listQuizzes = async ({limit, offset}: {limit: number, offset: number}) => {
   // Purpose: one page of quizzes, ordered by title, plus the total count
@@ -31,15 +43,37 @@ export const getQuiz = async (key: string) => {
   return toQuiz(row)
 }
 
+const tagsByQuestion =
+  async (quizId: string) => {
+    // Purpose: the tags of every question in a quiz, keyed by question id
+    const rows = await db.prepare(`SELECT qt.question_id, t.type, t.name, t.description
+      FROM quiz_member m JOIN question_tag qt ON qt.question_id = m.question_id AND qt.question_type = m.question_type
+      JOIN tag t ON t.id = qt.tag_id WHERE m.quiz_id = ?`).all([quizId])
+    return groupBy((r: any) => r.question_id, map((r: any) => ({...r}), rows)) as Record<string, any[]>
+  }
+
 export const getQuestions = async (quizId: string) => {
-  // Purpose: a quiz's questions from every question table, in quiz order
+  // Purpose: a quiz's questions (explicit and tag-rule matched) from every question table, with their tags.
+  // Explicit questions come first in their set order; rule-matched ones follow, oldest first.
+  const tags = await tagsByQuestion(quizId)
   const perType = await Promise.all(questionTables.map(async ([table, schema]) => {
-    const rows = await db.prepare(`SELECT i.position, ${selectColumns(table, "q")}
-      FROM quiz_question i JOIN ${table} q ON q.id = i.question_id
-      WHERE i.quiz_id = ? AND i.question_type = ?`).all([quizId, schema["x-question-type"]])
-    return rows.map((r: any) => ({...parseRow(table)(r), id: r.id, position: r.position, type: schema["x-question-type"]}))
+    const rows = await db.prepare(`SELECT m.position, ${selectColumns(table, "q")}
+      FROM quiz_member m JOIN ${table} q ON q.id = m.question_id
+      WHERE m.quiz_id = ? AND m.question_type = ?`).all([quizId, schema["x-question-type"]])
+    return rows.map((r: any) =>
+      ( { ...parseRow(table)(r)
+        , id: r.id
+        , position: r.position
+        , type: schema["x-question-type"]
+        , tags: map(({question_id, ...t}: any) => t, tags[r.id] ?? [])
+        }))
   }))
-  return perType.flat().sort((a: any, b: any) => a.position - b.position)
+  return sortWith
+    ( [ ascend((q: any) => q.position ?? Number.MAX_SAFE_INTEGER)
+      , ascend((q: any) => q.id)
+      ]
+    , perType.flat()
+    )
 }
 
 export const withRendering = (q: any) => {
@@ -65,19 +99,25 @@ export const createQuiz = async (input: Record<string, unknown>) => {
 }
 
 export const questionIndex = async () => {
-  // Purpose: a compact lookup of every question in a quiz (type, objectives, short text, quizzes) and of every quiz, for the dashboard
-  const rows = await db.prepare(`
-    SELECT i.quiz_id, q.id, q.question_type, q.text, json(q.objectives) AS objectives
-    FROM quiz_question i JOIN question q ON q.id = i.question_id AND q.question_type = i.question_type`).all()
-  const questions: Record<string, {type: string, objectives: string[], text: string, quizzes: string[]}> = {}
-  for (const r of rows as any[]) {
-    questions[r.id] ??= {type: r.question_type, objectives: JSON.parse(r.objectives), text: shorten(toPlain(r.text)), quizzes: []}
+  // Purpose: a compact lookup for the dashboard: every question (type, short text, tag ids, quizzes),
+  // every tag, and every quiz
+  const members = await db.prepare(`SELECT m.quiz_id, q.id, q.question_type, q.text
+    FROM quiz_member m JOIN question q ON q.id = m.question_id AND q.question_type = m.question_type`).all()
+  const links = await db.prepare("SELECT question_id, tag_id FROM question_tag").all()
+  const tagRows = await db.prepare("SELECT id, type, name, description FROM tag").all()
+  const quizRows = await db.prepare(`SELECT q.id, q.slug, q.title,
+    (SELECT json_group_array(qt.tag_id) FROM quiz_tag qt WHERE qt.quiz_id = q.id) AS tags FROM quiz q`).all()
+  const tagIds = map(map((l: any) => l.tag_id), groupBy((l: any) => l.question_id, links)) as Record<string, string[]>
+  const questions: Record<string, {type: string, text: string, tags: string[], quizzes: string[]}> = {}
+  for (const r of members as any[]) {
+    questions[r.id] ??= {type: r.question_type, text: shorten(toPlain(r.text)), tags: tagIds[r.id] ?? [], quizzes: []}
     questions[r.id].quizzes.push(r.quiz_id)
   }
-  const quizRows = await db.prepare(`SELECT q.id, q.slug, q.title, q.exam,
-    (SELECT json_group_array(name) FROM quiz_tag t WHERE t.quiz_id = q.id) AS tags FROM quiz q`).all()
-  const quizzes = Object.fromEntries((quizRows as any[]).map(r => [r.id, {slug: r.slug, title: r.title, exam: r.exam, tags: JSON.parse(r.tags)}]))
-  return {questions, quizzes}
+  return (
+    { questions
+    , tags: fromPairs(map((t: any) => [t.id, {type: t.type, name: t.name, description: t.description}], tagRows))
+    , quizzes: fromPairs(map((r: any) => [r.id, {slug: r.slug, title: r.title, tags: JSON.parse(r.tags)}], quizRows))
+    })
 }
 
 const shorten = (s: string, n = 140) =>

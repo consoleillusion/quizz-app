@@ -17,27 +17,27 @@ const check = (ok: boolean, message: string) =>
   // Purpose: turn a condition into a zero- or one-item problem list
   ok ? [] : [message]
 
-export const rules: Record<string, (q: any) => string[]> = {
-  multichoice: q =>
-    // Purpose: exactly one option must be correct
-    check(positive(q.options) === 1, `expected exactly 1 correct option, found ${positive(q.options)}`),
+export const rules: Record<string, (q: any) => string[]> = (
+  // Purpose: exactly one option must be correct
+  { multichoice: q => check(positive(q.options) === 1, `expected exactly 1 correct option, found ${positive(q.options)}`)
 
-  multiselect: q =>
-    // Purpose: the number of correct options must equal number_of_selections
-    check(positive(q.options) === q.number_of_selections,
-      `number_of_selections is ${q.number_of_selections} but ${positive(q.options)} options are correct`),
+  // Purpose: the number of correct options must equal number_of_selections
+  , multiselect: q =>
+      check( positive(q.options) === q.number_of_selections
+           , `number_of_selections is ${q.number_of_selections} but ${positive(q.options)} options are correct`
+           )
 
-  match: q =>
-    // Purpose: answer must pair every prompt with a distinct response
+  // Purpose: answer must pair every prompt with a distinct response
+  , match: q =>
     [...check(q.prompts.length === q.responses.length, "prompts and responses must be the same length"),
-     ...check(q.answer.length === q.prompts.length && isPermutation(q.answer, q.responses.length), "answer must map each prompt to a distinct response index")],
+     ...check(q.answer.length === q.prompts.length && isPermutation(q.answer, q.responses.length), "answer must map each prompt to a distinct response index")]
 
-  order: q =>
-    // Purpose: answer must be a permutation of the item indexes
-    check(isPermutation(q.answer, q.items.length), "answer must list every item index exactly once"),
+  // Purpose: answer must be a permutation of the item indexes
+  , order: q =>
+    check(isPermutation(q.answer, q.items.length), "answer must list every item index exactly once")
 
-  slotfill: q => {
     // Purpose: slots must be numbered 1..n with one gap each, and accepted tokens must be in the bank
+  , slotfill: q => {
     const slots = slotNumbers(q)
     return [
       ...check(slots.length === q.gaps.length && slots.every((n, i) => n === i + 1),
@@ -47,7 +47,6 @@ export const rules: Record<string, (q: any) => string[]> = {
     ]
   },
 
-  open: () =>
-    // Purpose: open questions have no rules beyond their schema
-    [],
-}
+  // Purpose: open questions have no rules beyond their schema
+  open: () => []
+  })

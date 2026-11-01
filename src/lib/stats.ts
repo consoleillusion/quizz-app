@@ -1,39 +1,29 @@
 // Pure dashboard maths: which answers fall in a scope and time range, how they bucket
 // over time, and the arrays uPlot plots. No DOM or storage access here.
 //
-// A scope is a string:
-//   all | exam:<code> | domain:<code>:<n> | objective:<code>:<n.n> | tag:<name> | quiz:<quiz id>
-import {domainLabel, exams, parseObjective} from "./exams.ts"
+// A scope is a string: all | tag:<tag id> | quiz:<quiz id>
+import {ascend, filter, groupBy, isNil, map, pipe, sortWith, toPairs, uniq, values} from "ramda"
+import {label, tagTypes, type Tag} from "./tags.ts"
 import type {AnswerRecord} from "./progress.ts"
 
-export type QuestionMeta = {type: string, objectives: string[], text: string, quizzes: string[]}
-export type QuizMeta = {slug: string, title: string, exam: string, tags: string[]}
-export type Meta = {questions: Record<string, QuestionMeta>, quizzes: Record<string, QuizMeta>}
+export type QuestionMeta = {type: string, text: string, tags: string[], quizzes: string[]}
+export type QuizMeta = {slug: string, title: string, tags: string[]}
+export type Meta = {questions: Record<string, QuestionMeta>, tags: Record<string, Tag>, quizzes: Record<string, QuizMeta>}
 export type Bucket = "hour" | "day" | "week"
 
 const HOUR = 3_600_000
 const DAY = 24 * HOUR
 
-const objectiveMatches = (scope: string) => {
-  // Purpose: a test on one objective string ("300-435:2.3") for an exam, domain or objective scope
-  const [kind, exam, rest] = scope.split(":")
-  return (objective: string) => {
-    const o = parseObjective(objective)
-    return o.exam === exam && (kind === "exam" || (kind === "domain" && o.domain === rest) || (kind === "objective" && o.number === rest))
+export const questionInScope =
+  (scope: string, meta: Meta) => (questionId: string, quizId?: string) => {
+    // Purpose: true when a question (optionally as answered in a given quiz) belongs to the scope
+    if (scope === "all") return true
+    const [kind, id] = scope.split(":")
+    const q = meta.questions[questionId]
+    if (!q) return false
+    if (kind === "tag") return q.tags.includes(id)
+    return quizId && meta.quizzes[quizId] ? quizId === id : q.quizzes.includes(id)
   }
-}
-
-export const questionInScope = (scope: string, meta: Meta) => (questionId: string, quizId?: string) => {
-  // Purpose: true when a question (optionally as answered in a given quiz) belongs to the scope
-  if (scope === "all") return true
-  const [kind, ...rest] = scope.split(":")
-  const q = meta.questions[questionId]
-  if (!q) return false
-  const quizzes = quizId && meta.quizzes[quizId] ? [quizId] : q.quizzes
-  if (kind === "quiz") return quizzes.includes(rest.join(":"))
-  if (kind === "tag") return quizzes.some(id => meta.quizzes[id]?.tags.includes(rest.join(":")))
-  return q.objectives.some(objectiveMatches(scope))
-}
 
 export const answersInScope = (answers: AnswerRecord[], scope: string, meta: Meta) =>
   // Purpose: the answers whose question, in the quiz it was answered in, belongs to the scope
@@ -116,22 +106,42 @@ export const summary = (answers: AnswerRecord[], scopeQuestionIds: string[]) => 
   }
 }
 
-const byObjective = (a: string, b: string) =>
-  // Purpose: order objectives like 2.3 < 2.10 < 3.1
-  a.localeCompare(b, undefined, {numeric: true})
+const tagOrder =
+  (meta: Meta) =>
+    // Purpose: sort tags by type, then naturally by name (so 2.3 < 2.10 < 3.1)
+    sortWith<[string, Tag]>
+      ( [ ascend(([, t]) => tagTypes.indexOf(t.type as any))
+        , ([, a], [, b]) => a.name.localeCompare(b.name, undefined, {numeric: true})
+        ]
+      )
 
-export const scopeOptions = (meta: Meta) => {
-  // Purpose: the grouped choices for the scope selector, built from the question and quiz index
-  const objectives = [...new Set(Object.values(meta.questions).flatMap(q => q.objectives))].sort(byObjective)
-  const examCodes = [...new Set(objectives.map(o => parseObjective(o).exam))]
-  const domains = [...new Set(objectives.map(o => { const p = parseObjective(o); return `${p.exam}:${p.domain}` }))].sort(byObjective)
-  const tags = [...new Set(Object.values(meta.quizzes).flatMap(q => q.tags))].sort()
-  return [
-    {label: "Everything", options: [{value: "all", label: "All answers"}]},
-    {label: "Exams", options: examCodes.map(code => ({value: `exam:${code}`, label: exams[code]?.name ?? code}))},
-    {label: "Domains", options: domains.map(d => ({value: `domain:${d}`, label: domainLabel(`${d}.0`)}))},
-    {label: "Objectives", options: objectives.map(o => ({value: `objective:${o}`, label: `Objective ${parseObjective(o).number}`}))},
-    {label: "Tags", options: tags.map(t => ({value: `tag:${t}`, label: t}))},
-    {label: "Quizzes", options: Object.entries(meta.quizzes).sort(([, a], [, b]) => a.title.localeCompare(b.title)).map(([id, q]) => ({value: `quiz:${id}`, label: q.title}))},
-  ].filter(g => g.options.length)
-}
+const typeHeading: Record<string, string> =
+  { exam: "Exams"
+  , domain: "Domains"
+  , objective: "Objectives"
+  , topic: "Topics"
+  , generic: "Other tags"
+  , vendor: "Vendors"
+  }
+
+export const scopeOptions =
+  (meta: Meta) => {
+    // Purpose: the grouped choices for the scope selector: tags in use, grouped by type, then quizzes
+    const used = new Set(uniq(values(meta.questions).flatMap((q: QuestionMeta) => q.tags)))
+    const tags = tagOrder(meta)(filter(([id]) => used.has(id), toPairs(meta.tags)) as [string, Tag][])
+    const byType = groupBy(([, t]: [string, Tag]) => t.type, tags)
+    return (
+      [ {label: "Everything", options: [{value: "all", label: "All answers"}]}
+      , ...map
+          ( (type: string) => ({label: typeHeading[type], options: map(([id, t]: [string, Tag]) => ({value: `tag:${id}`, label: label(t)}), byType[type] ?? [])})
+          , tagTypes as unknown as string[]
+          )
+      , { label: "Quizzes"
+        , options: pipe
+            ( toPairs
+            , sortWith([ascend(([, q]: [string, QuizMeta]) => q.title)])
+            , map(([id, q]: [string, QuizMeta]) => ({value: `quiz:${id}`, label: q.title}))
+            )(meta.quizzes)
+        }
+      ].filter(g => g.options.length && !isNil(g.label)))
+  }

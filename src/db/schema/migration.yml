@@ -1,0 +1,12 @@
+---
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: "Migration"
+type: "object"
+additionalProperties: false
+description: "A schema migration that has been applied to this database (see src/db/migrations)."
+required: ["name"]
+x-unique: [["name"]]
+properties:
+  name:
+    type: "string"
+    pattern: "^[0-9]{3}-[a-z0-9-]+$"

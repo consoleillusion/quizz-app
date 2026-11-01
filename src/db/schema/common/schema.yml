@@ -18,14 +18,6 @@ $defs:
     minimum: 1
     maximum: 6
     description: "The Bloom level the question intends to test: 1 remember, 2 understand, 3 apply, 4 analyze, 5 evaluate, 6 create."
-  objectives:
-    type: "array"
-    description: "Objectives this question maps to, one entry per exam. Format EXAM-CODE:OBJECTIVE, for example 300-435:2.3."
-    minItems: 1
-    uniqueItems: true
-    items:
-      type: "string"
-      pattern: "^[A-Za-z0-9-]+:[0-9]+(\\.[0-9]+){1,3}$"
   links:
     type: "array"
     description: "Useful links relevant to the topic."

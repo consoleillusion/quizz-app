@@ -13,7 +13,7 @@ test("generates distinct, valid v7 ids with the current time", () => {
 test("rejects other versions, bad variants, malformed and implausible ids", () => {
   expect(isUuidV7("6ba7b811-9dad-11d1-80b4-00c04fd430c8")).toBe(false) // v1
   expect(isUuidV7("bb5ef3a8-68cd-5fa8-85b2-a074ba550112")).toBe(false) // v5
-  expect(isUuidV7(uuidv7().replace(/-[89ab]/, "-c"))).toBe(false)       // variant
+  expect(isUuidV7((id => `${id.slice(0, 19)}c${id.slice(20)}`)(uuidv7()))).toBe(false) // variant nibble at index 19
   expect(isUuidV7(uuidv7().toUpperCase())).toBe(false)
   expect(isUuidV7("not-a-uuid")).toBe(false)
   expect(isUuidV7(uuidv7(Date.UTC(2010, 0, 1)))).toBe(false)

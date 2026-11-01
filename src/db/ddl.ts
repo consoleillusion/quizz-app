@@ -88,7 +88,7 @@ BEGIN
 END`
 }
 
-const questionColumns = ["text", "exhibit", "explanation", "objectives"]
+const questionColumns = ["text", "exhibit", "explanation"]
 
 export const questionViewSQL = (schemas: any[]) =>
   // Purpose: render a view that unions the shared columns of every question table
@@ -97,11 +97,27 @@ export const questionViewSQL = (schemas: any[]) =>
     .map(s => `SELECT id, ${sqlString(s["x-question-type"])} AS question_type, ${questionColumns.join(", ")} FROM ${tableName(s)}`)
     .join("\nUNION ALL\n")
 
+export const quizMemberSQL = () =>
+  // Purpose: render a view of every quiz's questions: chosen explicitly (with a position) or matched by its tag rules
+  `CREATE VIEW IF NOT EXISTS quiz_member AS
+SELECT quiz_id, question_type, question_id, min(position) AS position
+FROM
+  ( SELECT quiz_id, question_type, question_id, position FROM quiz_question
+    UNION ALL
+    SELECT r.quiz_id, qt.question_type, qt.question_id, NULL
+    FROM quiz_rule r
+    JOIN quiz z ON z.id = r.quiz_id
+    JOIN question_tag qt ON qt.tag_id = r.tag_id
+    GROUP BY r.quiz_id, qt.question_type, qt.question_id
+    HAVING z.rule_match = 'any' OR count(DISTINCT r.tag_id) = (SELECT count(*) FROM quiz_rule r2 WHERE r2.quiz_id = r.quiz_id)
+  )
+GROUP BY quiz_id, question_type, question_id`
+
 export const quizSummarySQL = () =>
-  // Purpose: render a view of each quiz with its question count
+  // Purpose: render a view of each quiz with its question count (explicit and rule-matched)
   `CREATE VIEW IF NOT EXISTS quiz_summary AS
-SELECT s.id, s.slug, s.title, s.description, s.exam, s.difficulty, count(i.id) AS question_count
-FROM quiz s LEFT JOIN quiz_question i ON i.quiz_id = s.id
+SELECT s.id, s.slug, s.title, s.description, s.exam, s.difficulty, count(m.question_id) AS question_count
+FROM quiz s LEFT JOIN quiz_member m ON m.quiz_id = s.id
 GROUP BY s.id`
 
 const refersToQuestions = (schema: any) =>
@@ -157,17 +173,25 @@ export const tableSchemaUpsertSQL = (schema: any) =>
   `INSERT INTO table_schema (table_name, jsonschema) VALUES (${sqlString(tableName(schema))}, ${sqlString(JSON.stringify(schema))})
 ON CONFLICT (table_name) DO UPDATE SET jsonschema = excluded.jsonschema`
 
-export const databaseSQL = (schemas: any[]) => {
-  // Purpose: render every statement needed to build the database, in execution order
+export const databaseSQL = (schemas: any[], record: (table: string) => boolean = () => true) => {
+  // Purpose: render every statement needed to build the database, in execution order. Everything is
+  // CREATE ... IF NOT EXISTS; `record` picks which tables' schemas are written to table_schema.
   const tables = sortByDependency(schemas)
   const referencing = tables.filter(refersToQuestions)
   return [
     ...tables.map(createTableSQL),
     questionViewSQL(tables),
+    quizMemberSQL(),
     quizSummarySQL(),
     ...tables.map(updatedAtTriggerSQL),
     ...chain(questionRefTriggersSQL, referencing),
     ...tables.filter(isQuestionTable).map(questionDeleteTriggerSQL(referencing)),
-    ...tables.map(tableSchemaUpsertSQL),
+    ...tables.filter(s => record(tableName(s))).map(tableSchemaUpsertSQL),
   ]
+}
+
+export const rebuildDerivedSQL = async (db: any, schemas: any[]) => {
+  // Purpose: for migrations only: drop every view and trigger so databaseSQL recreates them from the current schemas
+  const derived = await db.prepare("SELECT type, name FROM sqlite_master WHERE type IN ('view', 'trigger')").all()
+  return derived.map((o: any) => `DROP ${o.type.toUpperCase()} IF EXISTS ${o.name}`)
 }

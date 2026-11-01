@@ -10,12 +10,11 @@
     "build": "bun --bun astro build",
     "preview": "bun --bun astro preview",
     "db:init": "bun src/db/init.ts",
-    "db:reset": "bun src/db/init.ts --reset && bun src/db/seed.ts",
-    "db:seed": "bun src/db/seed.ts",
-    "db:check": "bun src/db/seed.ts --check",
     "db:sql": "bun src/db/init.ts --print",
     "test": "bun test src",
-    "start": "HOST=0.0.0.0 PORT=${PORT:-4359} bun ./dist/server/entry.mjs"
+    "start": "HOST=0.0.0.0 PORT=${PORT:-4359} bun ./dist/server/entry.mjs",
+    "db:migrate": "bun src/db/migrate.ts",
+    "db:backup": "bun src/db/backup.ts"
   },
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^16.0.5",
