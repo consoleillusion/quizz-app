@@ -80,8 +80,22 @@ export const clearAnswers = async (quizId: string) => {
   await Promise.all(keys.map(k => request(s.delete(k))))
 }
 
+const logKey = (r: AnswerRecord) =>
+  // Purpose: identify one answer event, to spot current answers already in the log
+  `${r.quiz_id}|${r.question_id}|${r.answered_at}`
+
 export const loadLog = async (): Promise<AnswerRecord[]> => {
-  // Purpose: read every answer ever given, oldest first
-  const s = await store(LOG, "readonly")
-  return s ? request(s.index("by_time").getAll()) : [...memory.log]
+  // Purpose: read every answer ever given, oldest first, first copying in any current answers the log
+  // doesn't have yet (answers given before the log existed)
+  const log = await store(LOG, "readonly")
+  if (!log) return [...memory.log].sort((a, b) => a.answered_at.localeCompare(b.answered_at))
+  const logged: AnswerRecord[] = await request(log.index("by_time").getAll())
+  const current: AnswerRecord[] = await request((await store(CURRENT, "readonly"))!.getAll())
+  const seen = new Set(logged.map(logKey))
+  const missing = current.filter(r => !seen.has(logKey(r)))
+  if (missing.length) {
+    const writable = (await store(LOG, "readwrite"))!
+    await Promise.all(missing.map(r => request(writable.add(r))))
+  }
+  return [...logged, ...missing].sort((a, b) => a.answered_at.localeCompare(b.answered_at))
 }
