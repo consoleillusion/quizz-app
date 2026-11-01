@@ -2,6 +2,7 @@
 // Page shell: Sakura dark for global styling, plus a few shared feedback classes.
 interface Props { title: string, description?: string }
 const {title, description = "ENAUTO 300-435 practice quizzes"} = Astro.props
+const user = Astro.locals.user
 ---
 <!doctype html>
 <html lang="en">
@@ -13,7 +14,11 @@ const {title, description = "ENAUTO 300-435 practice quizzes"} = Astro.props
     <title>{title} · ENAUTO Quiz</title>
   </head>
   <body>
-    <header><nav class="bar"><a href="/quiz"><strong>ENAUTO Quiz</strong></a> <a href="/quiz">Quizzes</a> <a href="/dashboard">Dashboard</a></nav></header>
+    <header><nav class="bar">
+      <a href="/quiz"><strong>ENAUTO Quiz</strong></a> <a href="/quiz">Quizzes</a> <a href="/dashboard">Dashboard</a>
+      <span class="spacer"></span>
+      {user ? <a href="/session" data-user={user.username}>{user.username}</a> : <><a href={`/session?next=${encodeURIComponent(Astro.url.pathname)}`}>Log in</a> <a href={`/user?next=${encodeURIComponent(Astro.url.pathname)}`}>Sign up</a></>}
+    </nav></header>
     <main><slot /></main>
   </body>
 </html>
@@ -39,6 +44,7 @@ const {title, description = "ENAUTO 300-435 practice quizzes"} = Astro.props
   button.link { background: none; border: 0; padding: 0; color: inherit; text-decoration: underline; cursor: pointer; }
   nav.bar { display: flex; flex-wrap: wrap; gap: 0.5em; align-items: center; }
   nav.bar select { width: auto; margin: 0; }
+  nav.bar .spacer { flex: 1; }
   progress { width: 100%; }
   pre { overflow-x: auto; }
   ul.cards { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 1em; }

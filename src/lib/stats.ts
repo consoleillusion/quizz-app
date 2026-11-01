@@ -29,7 +29,7 @@ export const questionInScope = (scope: string, meta: Meta) => (questionId: strin
   const [kind, ...rest] = scope.split(":")
   const q = meta.questions[questionId]
   if (!q) return false
-  const quizzes = quizId ? [quizId] : q.quizzes
+  const quizzes = quizId && meta.quizzes[quizId] ? [quizId] : q.quizzes
   if (kind === "quiz") return quizzes.includes(rest.join(":"))
   if (kind === "tag") return quizzes.some(id => meta.quizzes[id]?.tags.includes(rest.join(":")))
   return q.objectives.some(objectiveMatches(scope))

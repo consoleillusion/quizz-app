@@ -89,3 +89,12 @@ export const readBody = async (request: Request, table: string) => {
   }
   return body
 }
+
+const overridable = ["DELETE", "PUT", "PATCH"]
+
+export const effectiveMethod = async (request: Request) => {
+  // Purpose: the request's method, honouring a _method field on form posts (HTML forms can only GET or POST)
+  if (request.method !== "POST" || !(request.headers.get("content-type") ?? "").includes("form")) return request.method
+  const method = String((await request.clone().formData()).get("_method") ?? "").toUpperCase()
+  return overridable.includes(method) ? method : "POST"
+}

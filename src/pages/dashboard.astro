@@ -15,6 +15,6 @@ if (wantsJson(Astro.request)) return json(meta)
 <Layout title="Dashboard" description="Your quiz progress over time">
   <h1>Dashboard</h1>
   <p>Your answers over time, from this browser. Choose a scope (an exam, a domain, an objective, a tag or a quiz) and a time range.</p>
-  <Dashboard client:only="svelte" meta={meta} />
+  <Dashboard client:only="svelte" meta={meta} loggedIn={!!Astro.locals.user} />
   <noscript><p>The dashboard needs JavaScript.</p></noscript>
 </Layout>

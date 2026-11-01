@@ -16,6 +16,10 @@ const args = new Set(Bun.argv.slice(2))
 const quizzesDir = join(import.meta.dirname, "quizzes")
 const QUESTION_NAMESPACE = "8a3d6f0e-5c2b-4e71-9f4a-2b7c1d9e0a55"
 
+const quizId = (slug: string) =>
+  // Purpose: derive a stable quiz id from its slug, so ids survive a database rebuild
+  Bun.randomUUIDv5(`quiz:${slug}`, QUESTION_NAMESPACE)
+
 const questionId = (type: string, row: object) =>
   // Purpose: derive a stable id from a question's type and content
   Bun.randomUUIDv5(JSON.stringify([type, row]), QUESTION_NAMESPACE)
@@ -73,8 +77,8 @@ const writeSets = async (db: any, schemas: Record<string, any>, sets: any[]) => 
       }
       const metaCols = Object.keys(set.metaRow)
       const updates = metaCols.filter(c => c !== "slug").map(c => `${c} = excluded.${c}`).join(", ")
-      const {id: setId} = await db.prepare(insertSQL("quiz", metaCols, `ON CONFLICT (slug) DO UPDATE SET ${updates} RETURNING id`))
-        .get(toParams(setJson, set.metaRow))
+      const {id: setId} = await db.prepare(insertSQL("quiz", ["id", ...metaCols], `ON CONFLICT (slug) DO UPDATE SET ${updates} RETURNING id`))
+        .get([quizId(set.slug), ...toParams(setJson, set.metaRow)])
       await db.prepare("DELETE FROM quiz_question WHERE quiz_id = ?").run([setId])
       await db.prepare("DELETE FROM quiz_tag WHERE quiz_id = ?").run([setId])
       const item = db.prepare("INSERT INTO quiz_question (quiz_id, question_type, question_id, position) VALUES (?, ?, ?, ?)")

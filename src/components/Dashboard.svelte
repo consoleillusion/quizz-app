@@ -2,16 +2,17 @@
   // Progress dashboard: reads the answer log from this browser, filters it by scope and time
   // range, and plots it with uPlot. Filters are mirrored in the URL so views can be bookmarked.
   import {onMount} from "svelte"
-  import {loadLog, type AnswerRecord} from "../lib/progress.ts"
+  import {syncLog, type AnswerRecord} from "../lib/progress.ts"
   import {answerExtent, answersInRange, answersInScope, autoBucket, clampRange, questionInScope, scopeOptions, series, summary, type Bucket, type Meta} from "../lib/stats.ts"
   import TimeChart from "./TimeChart.svelte"
   import RangeSlider from "./RangeSlider.svelte"
 
-  let {meta}: {meta: Meta} = $props()
 
   const params = new URLSearchParams(location.search)
+  let {meta, loggedIn}: {meta: Meta, loggedIn: boolean} = $props()
   let log: AnswerRecord[] = $state([])
   let ready = $state(false)
+  let synced = $state(false)
   let scope = $state(params.get("scope") ?? "all")
   let lo = $state(Number(params.get("from")) || 0)
   let hi = $state(Number(params.get("to")) || 0)
@@ -56,8 +57,8 @@
   }
 
   onMount(async () => {
-    // Purpose: load the answer log from IndexedDB once the page is in the browser
-    log = await loadLog()
+    // Purpose: load the answer log, merged with the server's copy when logged in
+    ;({answers: log, synced} = await syncLog())
     ready = true
   })
 </script>
@@ -82,6 +83,10 @@
   </label>
 </form>
 
+{#if ready}
+  <p><small>{synced ? "Synced with your account: answers from all your devices." : loggedIn ? "Couldn't reach the server; showing answers from this browser only." : "Showing answers from this browser only."}
+    {#if !loggedIn}<a href="/session?next=/dashboard">Log in</a> to see answers from all your devices.{/if}</small></p>
+{/if}
 {#if !ready}
   <p>Loading your answers…</p>
 {:else if !log.length}

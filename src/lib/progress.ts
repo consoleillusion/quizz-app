@@ -67,9 +67,9 @@ export const saveAnswer = async (record: AnswerRecord) => {
   // Purpose: make this the current answer for the question, and append it to the answer log
   const current = await store(CURRENT, "readwrite")
   const log = await store(LOG, "readwrite")
-  if (current && log) { await request(current.put(record)); await request(log.add(record)); return }
-  memory.current.set(`${record.quiz_id}/${record.question_id}`, record)
-  memory.log.push(record)
+  if (current && log) { await request(current.put(record)); await request(log.add(record)) }
+  else { memory.current.set(`${record.quiz_id}/${record.question_id}`, record); memory.log.push(record) }
+  pushAnswers([record]).catch(() => {}) // best effort; the dashboard's sync resends anything missed
 }
 
 export const clearAnswers = async (quizId: string) => {
@@ -81,8 +81,8 @@ export const clearAnswers = async (quizId: string) => {
 }
 
 const logKey = (r: AnswerRecord) =>
-  // Purpose: identify one answer event, to spot current answers already in the log
-  `${r.quiz_id}|${r.question_id}|${r.answered_at}`
+  // Purpose: identify one answer event (the same key the server uses to ignore repeats)
+  `${r.question_id}|${new Date(r.answered_at).toISOString()}`
 
 export const loadLog = async (): Promise<AnswerRecord[]> => {
   // Purpose: read every answer ever given, oldest first, first copying in any current answers the log
@@ -98,4 +98,27 @@ export const loadLog = async (): Promise<AnswerRecord[]> => {
     await Promise.all(missing.map(r => request(writable.add(r))))
   }
   return [...logged, ...missing].sort((a, b) => a.answered_at.localeCompare(b.answered_at))
+}
+
+const pushAnswers = async (records: AnswerRecord[]) => {
+  // Purpose: send answers to the server for the logged-in user; false when not logged in or offline
+  if (!records.length) return true
+  const r = await fetch("/answer", {method: "POST", headers: {"content-type": "application/json", accept: "application/json"}, body: JSON.stringify(records)})
+  return r.ok
+}
+
+export const syncLog = async (): Promise<{answers: AnswerRecord[], synced: boolean}> => {
+  // Purpose: merge this browser's answer log with the server's (both directions), when logged in
+  const local = await loadLog()
+  const r = await fetch("/answer?format=json", {headers: {accept: "application/json"}}).catch(() => null)
+  if (!r?.ok) return {answers: local, synced: false}
+  const remote: AnswerRecord[] = await r.json()
+  const localKeys = new Set(local.map(logKey)), remoteKeys = new Set(remote.map(logKey))
+  const toServer = local.filter(a => !remoteKeys.has(logKey(a)))
+  for (let i = 0; i < toServer.length; i += 500) await pushAnswers(toServer.slice(i, i + 500))
+  const fromServer = remote.filter(a => !localKeys.has(logKey(a)))
+  const log = await store(LOG, "readwrite")
+  if (log) await Promise.all(fromServer.map(a => request(log.add(a))))
+  else memory.log.push(...fromServer)
+  return {answers: [...local, ...fromServer].sort((a, b) => Date.parse(a.answered_at) - Date.parse(b.answered_at)), synced: true}
 }

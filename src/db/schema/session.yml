@@ -1,0 +1,19 @@
+---
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: "Session"
+type: "object"
+additionalProperties: false
+description: "A login session. The browser holds a random token in a cookie; only its SHA-256 is stored."
+required: ["user_id", "token_hash", "expires_at"]
+x-unique: [["token_hash"]]
+properties:
+  user_id:
+    type: "string"
+    format: "uuid"
+    x-references: "user"
+  token_hash:
+    type: "string"
+    pattern: "^[0-9a-f]{64}$"
+  expires_at:
+    type: "string"
+    format: "date-time"

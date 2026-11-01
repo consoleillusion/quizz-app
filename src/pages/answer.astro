@@ -1,0 +1,24 @@
+---
+// /answer: the logged-in user's answer history (JSON only; the dashboard is its HTML view).
+//   GET   [?since=<timestamp>]  the user's answers, oldest first
+//   POST  one answer or an array of them; repeats are ignored. 200 with {stored, duplicate, skipped}.
+import {HttpError, json, jsonError, methodNotAllowed} from "../lib/rest.ts"
+import {requireUser} from "../lib/auth.ts"
+import {listAnswers, storeAnswers} from "../lib/answers.ts"
+
+const allow = ["GET", "POST"]
+const {request, url, locals} = Astro
+if (!allow.includes(request.method)) return methodNotAllowed(allow)
+if (request.method === "GET" && !url.searchParams.has("format") && (request.headers.get("accept") ?? "").includes("text/html"))
+  return Astro.redirect("/dashboard", 303)
+try {
+  const user = requireUser(locals.user)
+  if (request.method === "GET") return json(await listAnswers(user.id, url.searchParams.get("since") ?? undefined))
+  if (!(request.headers.get("content-type") ?? "").includes("application/json")) throw new HttpError(415, "Send application/json")
+  const body = await request.json().catch(() => { throw new HttpError(400, "Body is not valid JSON") })
+  return json(await storeAnswers(user.id, body))
+} catch (e) {
+  if (e instanceof HttpError) return jsonError(e)
+  throw e
+}
+---

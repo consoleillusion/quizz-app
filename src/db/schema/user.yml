@@ -3,17 +3,25 @@ $schema: "https://json-schema.org/draft/2020-12/schema"
 title: "User"
 type: "object"
 additionalProperties: false
-required: ["username"]
+description: "A person who can log in. password_hash is never sent to clients."
+required: ["username", "password_hash"]
 x-unique: [["username"], ["email"]]
+x-private: ["password_hash"]
 properties:
-  email:
-    description: "User's email"
-    type: "string"
-    format: "email"
   username:
-    description: "User's preferred name"
+    description: "Login name: letters, digits, dot, dash or underscore."
+    type: "string"
+    minLength: 2
+    maxLength: 32
+    pattern: "^[A-Za-z0-9._-]+$"
+  password_hash:
+    description: "scrypt$<salt hex>$<hash hex>. Written by the server from the password; never accepted from or returned to clients."
     type: "string"
     minLength: 1
+  email:
+    description: "User's email (optional, not verified)"
+    type: "string"
+    format: "email"
   public_key:
     description: "User's public key"
     $ref: "./common/jwk.yml"

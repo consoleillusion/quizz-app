@@ -3,8 +3,9 @@ $schema: "https://json-schema.org/draft/2020-12/schema"
 title: "User Answer"
 type: "object"
 additionalProperties: false
-description: "One answer a user gave. Mirrored to IndexedDB in the browser and kept in sync."
-required: ["user_id", "question_type", "question_id", "answer", "answered_at"]
+description: "One answer a user gave. The browser keeps the same records in IndexedDB; they're synced through /answer."
+required: ["user_id", "question_type", "question_id", "answer", "points", "correct", "answered_at"]
+x-unique: [["user_id", "question_id", "answered_at"]]
 properties:
   user_id:
     type: "string"
@@ -14,7 +15,7 @@ properties:
     type: "string"
     format: "uuid"
     x-references: "quiz"
-    description: "The set the question was answered in, if any."
+    description: "The quiz the question was answered in, if any."
   question_type: { $ref: "./common/schema.yml#/$defs/question_type" }
   question_id:
     type: "string"
@@ -25,6 +26,9 @@ properties:
   points:
     type: "number"
     description: "Points awarded."
+  correct:
+    type: "boolean"
+    description: "Whether the answer was fully correct."
   answered_at:
     type: "string"
     format: "date-time"
