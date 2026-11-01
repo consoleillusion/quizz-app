@@ -16,14 +16,13 @@
   let scope = $state(params.get("scope") ?? "all")
   let lo = $state(Number(params.get("from")) || 0)
   let hi = $state(Number(params.get("to")) || 0)
-  let bucketChoice = $state(params.get("bucket") ?? "auto")
 
   const groups = scopeOptions(meta)
   const inScope = $derived(answersInScope(log, scope, meta))
   const extent = $derived(answerExtent(inScope))
   const span = $derived(extent ? clampRange({from: lo, to: hi}, extent) : {from: 0, to: 0})
   const step = $derived(extent && extent.to - extent.from > 7 * 86_400_000 ? 3_600_000 : 60_000)
-  const bucket: Bucket = $derived(bucketChoice === "auto" ? autoBucket(span) : (bucketChoice as Bucket))
+  const bucket: Bucket = $derived(autoBucket(span))
   const shown = $derived(answersInRange(inScope, span))
   const data = $derived(series(shown, span, bucket))
   const scopeIds = $derived(Object.keys(meta.questions).filter(id => questionInScope(scope, meta)(id)))
@@ -41,7 +40,7 @@
 
   $effect(() => {
     // Purpose: keep the URL query in step with the filters
-    const q = new URLSearchParams({scope, bucket: bucketChoice})
+    const q = new URLSearchParams({scope})
     if (lo && hi) { q.set("from", String(Math.round(lo))); q.set("to", String(Math.round(hi))) }
     history.replaceState(null, "", `${location.pathname}?${q}`)
   })
@@ -71,14 +70,6 @@
           {#each group.options as o}<option value={o.value}>{o.label}</option>{/each}
         </optgroup>
       {/each}
-    </select>
-  </label>
-  <label>Group by
-    <select bind:value={bucketChoice}>
-      <option value="auto">Auto ({autoBucket(span)})</option>
-      <option value="hour">Hour</option>
-      <option value="day">Day</option>
-      <option value="week">Week</option>
     </select>
   </label>
 </form>
