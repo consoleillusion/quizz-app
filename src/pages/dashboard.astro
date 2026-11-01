@@ -1,0 +1,20 @@
+---
+// /dashboard: progress over time. Answers live in this browser (IndexedDB), so the page ships
+// a compact index of questions and quizzes and the chart is drawn client-side.
+//   GET  HTML: the dashboard.  JSON (?format=json): the question and quiz index it uses.
+import Layout from "../layouts/Layout.astro"
+import Dashboard from "../components/Dashboard.svelte"
+import {json, methodNotAllowed, wantsJson} from "../lib/rest.ts"
+import {questionIndex} from "../lib/quizzes.ts"
+
+const allow = ["GET"]
+if (!allow.includes(Astro.request.method)) return methodNotAllowed(allow)
+const meta = await questionIndex()
+if (wantsJson(Astro.request)) return json(meta)
+---
+<Layout title="Dashboard" description="Your quiz progress over time">
+  <h1>Dashboard</h1>
+  <p>Your answers over time, from this browser. Choose a scope (an exam, a domain, an objective, a tag or a quiz) and a time range.</p>
+  <Dashboard client:only="svelte" meta={meta} />
+  <noscript><p>The dashboard needs JavaScript.</p></noscript>
+</Layout>

@@ -63,3 +63,23 @@ export const createQuiz = async (input: Record<string, unknown>) => {
   const id = await insertRow("quiz", row)
   return getQuiz(id)
 }
+
+export const questionIndex = async () => {
+  // Purpose: a compact lookup of every question in a quiz (type, objectives, short text, quizzes) and of every quiz, for the dashboard
+  const rows = await db.prepare(`
+    SELECT i.quiz_id, q.id, q.question_type, q.text, json(q.objectives) AS objectives
+    FROM quiz_question i JOIN question q ON q.id = i.question_id AND q.question_type = i.question_type`).all()
+  const questions: Record<string, {type: string, objectives: string[], text: string, quizzes: string[]}> = {}
+  for (const r of rows as any[]) {
+    questions[r.id] ??= {type: r.question_type, objectives: JSON.parse(r.objectives), text: shorten(toPlain(r.text)), quizzes: []}
+    questions[r.id].quizzes.push(r.quiz_id)
+  }
+  const quizRows = await db.prepare(`SELECT q.id, q.slug, q.title, q.exam,
+    (SELECT json_group_array(name) FROM quiz_tag t WHERE t.quiz_id = q.id) AS tags FROM quiz q`).all()
+  const quizzes = Object.fromEntries((quizRows as any[]).map(r => [r.id, {slug: r.slug, title: r.title, exam: r.exam, tags: JSON.parse(r.tags)}]))
+  return {questions, quizzes}
+}
+
+const shorten = (s: string, n = 140) =>
+  // Purpose: one-line preview of a question, cut at n characters
+  (s = s.replace(/\s+/g, " ").trim()).length > n ? `${s.slice(0, n - 1)}…` : s

@@ -13,7 +13,7 @@ const {title, description = "ENAUTO 300-435 practice quizzes"} = Astro.props
     <title>{title} · ENAUTO Quiz</title>
   </head>
   <body>
-    <header><a href="/quiz">ENAUTO Quiz</a></header>
+    <header><nav class="bar"><a href="/quiz"><strong>ENAUTO Quiz</strong></a> <a href="/quiz">Quizzes</a> <a href="/dashboard">Dashboard</a></nav></header>
     <main><slot /></main>
   </body>
 </html>
@@ -45,5 +45,9 @@ const {title, description = "ENAUTO 300-435 practice quizzes"} = Astro.props
   ul.cards article { border: 1px solid #4a4a4a; border-radius: 6px; padding: 0.8em 1em; height: 100%; }
   ul.cards h3 { margin-top: 0; }
   details { margin: 2em 0; }
+  form.filters { gap: 1em; align-items: flex-end; }
+  form.filters label { display: flex; flex-direction: column; font-size: 0.9em; }
+  form.filters select, form.filters input { width: auto; margin: 0.2em 0 0; }
+  p.stats { font-size: 1.1em; }
   form small { display: block; opacity: 0.8; }
 </style>
