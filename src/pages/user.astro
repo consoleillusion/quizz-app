@@ -40,9 +40,10 @@ const next = values.next ?? url.searchParams.get("next") ?? "/quiz"
 <Layout title="Sign up">
   <h1>Sign up</h1>
   {locals.user && <p>You're logged in as <strong>{locals.user.username}</strong>. <a href="/session">Log out</a> to create another account.</p>}
-  <p>Your answers are saved to your account, so your progress follows you between devices.</p>
+  <p>Answers you've already given in this browser move into your new account, and from then on your progress follows you between devices.</p>
   <form method="post" action="/user">
     <input type="hidden" name="next" value={next} />
+    <input type="hidden" name="id" value={values.id ?? ""} data-client-id />
     {errorFor("") && <p class="bad">{errorFor("")}</p>}
     <p>
       <label for="username">Username</label>
@@ -61,7 +62,16 @@ const next = values.next ?? url.searchParams.get("next") ?? "/quiz"
       <input id="email" name="email" type="email" autocomplete="email" value={values.email ?? ""} />
       {errorFor("email") && <small class="bad">{errorFor("email")}</small>}
     </p>
+    {errorFor("id") && <p class="bad">Client id {errorFor("id")}.</p>}
     <button>Create account</button>
   </form>
   <p>Already have an account? <a href={`/session?next=${encodeURIComponent(next)}`}>Log in</a></p>
 </Layout>
+
+<script>
+  import {anonymousId} from "../lib/identity.ts"
+
+  // Register under the id this browser has been answering as, so its answers belong to the new account.
+  const field = document.querySelector<HTMLInputElement>("[data-client-id]")
+  if (field && !document.body.dataset.userId) field.value = anonymousId()
+</script>

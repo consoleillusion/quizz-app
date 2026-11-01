@@ -29,7 +29,7 @@ export const validate = (table: string, row: object) =>
   validators[table](row) ? [] : errorsByField(validators[table].errors)
 
 export const insertRow = async (table: string, row: Record<string, unknown>) => {
-  // Purpose: insert a validated row and return its new id
+  // Purpose: insert a validated row (id optional; the database makes one when absent) and return its id
   const props = schemas[table].properties
   const cols = Object.keys(row)
   const values = cols.map(k => (jsonTypes.includes(props[k]?.type) ? JSON.stringify(row[k]) : row[k]))

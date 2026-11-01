@@ -6,6 +6,7 @@ import type {AstroCookies} from "astro"
 import {db} from "../db/db.ts"
 import {HttpError} from "./rest.ts"
 import {insertRow, validate} from "./schemas.ts"
+import {isUuidV7, uuidv7} from "./uuid.ts"
 
 export type User = {id: string, username: string, email?: string, created_at: string}
 
@@ -36,16 +37,22 @@ const publicUser = (row: any): User =>
   ({id: row.id, username: row.username, ...(row.email ? {email: row.email} : {}), created_at: row.created_at})
 
 export const register = async (input: Record<string, unknown>) => {
-  // Purpose: create an account from a username and password (email optional), or explain why not
+  // Purpose: create an account from a username and password (email optional), or explain why not.
+  // id is the UUIDv7 the browser has been answering under; it becomes the account id, so the
+  // browser's existing answers belong to the new account. Without one, the server makes one.
   const {username, password, email} = input as Record<string, string>
+  const id = input.id === undefined || input.id === "" ? uuidv7() : input.id
   const errors = typeof password === "string" && password.length >= MIN_PASSWORD ? []
     : [{field: "password", message: `must be at least ${MIN_PASSWORD} characters`}]
+  if (!isUuidV7(id)) errors.push({field: "id", message: "must be a lower-case UUIDv7 with a plausible timestamp"})
   const row = {username: String(username ?? "").trim(), password_hash: "pending", ...(email ? {email: String(email).trim()} : {})}
   errors.push(...validate("user", row))
   if (errors.length) throw new HttpError(422, "Can't create that account", errors)
   if (await db.prepare("SELECT 1 FROM user WHERE username = ? COLLATE NOCASE").get([row.username]))
     throw new HttpError(409, `The username ${row.username} is taken`, [{field: "username", message: "is already taken"}])
-  const id = await insertRow("user", {...row, password_hash: hashPassword(password)})
+  if (await db.prepare("SELECT 1 FROM user WHERE id = ?").get([id]))
+    throw new HttpError(409, "That client id already belongs to an account", [{field: "id", message: "is already registered"}])
+  await insertRow("user", {id, ...row, password_hash: hashPassword(password)})
   return publicUser(await db.prepare("SELECT * FROM user WHERE id = ?").get([id]))
 }
 

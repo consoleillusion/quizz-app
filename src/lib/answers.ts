@@ -15,14 +15,15 @@ export const listAnswers = async (userId: string, since?: string) => {
   const rows = await db.prepare(`SELECT ${selectColumns("user_answer", "a")} FROM user_answer a
     WHERE a.user_id = ? ${since ? "AND a.created_at > ?" : ""} ORDER BY a.answered_at`).all(since ? [userId, since] : [userId])
   return rows.map((r: any) => {
-    const {user_id, id, created_at, updated_at, ...rest} = parseRow("user_answer")(r)
+    const {id, created_at, updated_at, ...rest} = parseRow("user_answer")(r)
     return {...rest, answered_at: toIso(r.answered_at)}
   })
 }
 
 export const storeAnswers = async (userId: string, body: unknown) => {
-  // Purpose: save a batch of answers; repeats are ignored, so clients can resend safely.
-  // Answers to questions that no longer exist are skipped; an unknown quiz_id is dropped.
+  // Purpose: save a batch of the signed-in user's answers; repeats are ignored, so clients can resend safely.
+  // Every record must name its user_id, and it must be the session user: nobody can write another
+  // person's answers. Answers to questions that no longer exist are skipped; an unknown quiz_id is dropped.
   const batch = Array.isArray(body) ? body : [body]
   if (batch.length > MAX_BATCH) throw new HttpError(413, `Send at most ${MAX_BATCH} answers at a time`)
   const known = new Set((await db.prepare("SELECT id FROM quiz").all()).map((r: any) => r.id))
@@ -31,6 +32,9 @@ export const storeAnswers = async (userId: string, body: unknown) => {
   const insert = db.prepare(`INSERT INTO user_answer (user_id, ${fields.join(", ")}) VALUES (?, ${fields.map(() => "?").join(", ")})
     ON CONFLICT (user_id, question_id, answered_at) DO NOTHING`)
   for (const [index, item] of batch.entries()) {
+    if (item?.user_id !== userId) {
+      skipped.push({index, reason: item?.user_id ? "belongs to another user" : "user_id is required"}); continue
+    }
     const picked = Object.fromEntries(fields.filter(f => item?.[f] !== undefined && item?.[f] !== null).map(f => [f, item[f]]))
     if (picked.quiz_id && !known.has(picked.quiz_id)) delete picked.quiz_id
     const row = {user_id: userId, ...picked}

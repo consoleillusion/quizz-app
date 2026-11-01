@@ -52,7 +52,7 @@
   async function submit(answer: any[]) {
     // Purpose: grade the current question's answer, then keep and persist it
     const {correct, points} = grade(q, answer)
-    const record: AnswerRecord = {quiz_id: quiz.id, question_type: q.type, question_id: q.id, answer, points, correct, answered_at: new Date().toISOString()}
+    const record = {quiz_id: quiz.id, question_type: q.type, question_id: q.id, answer, points, correct, answered_at: new Date().toISOString()}
     answers[q.id] = record
     await saveAnswer($state.snapshot(record))
   }
