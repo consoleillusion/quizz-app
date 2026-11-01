@@ -24,7 +24,7 @@ bun run dev        # dev server (add -- --port 4359 to pick a port)
 bun run build && bun run start   # production server on $PORT (default 4359)
 ```
 
-Only one process can open `.db` at a time, so stop the server before `db:reset` or `db:seed`.
+Only one process can open `.db` at a time, so stop the server before running database scripts other than `db:backup`.
 
 
 ## Database
