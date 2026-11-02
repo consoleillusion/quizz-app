@@ -1,12 +1,17 @@
 ---
 $schema: "https://json-schema.org/draft/2020-12/schema"
-title: "Author"
+title: "Tag"
 type: "object"
 additionalProperties: false
-description: "Author"
+description: "Tag"
 properties:
   name:
     description: "name"
     type: "string"
     minLength: 1
     maxLength: 100
+  kind:
+    description: "What the tag refers to"
+    enum:
+    - "exam"
+    - "topic"
