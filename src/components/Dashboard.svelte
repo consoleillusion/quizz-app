@@ -7,6 +7,8 @@
   import TimeChart from "./TimeChart.svelte"
   import {number} from "../lib/tags.ts"
   import {Slider} from "bits-ui"
+  import {MorphIcon} from "morphicons/svelte"
+  import {Check, X} from "lucide"
 
 
   const params = new URLSearchParams(location.search)
@@ -110,7 +112,7 @@
 
   {#if recent.length}
     <h2>Recent answers</h2>
-    <table>
+    <div class="overflow-auto"><table>
       <thead><tr><th>When</th><th>Quiz</th><th>Objective</th><th>Question</th><th>Result</th></tr></thead>
       <tbody>
         {#each recent as a}
@@ -119,11 +121,11 @@
             <td>{#if quizOf(a)}<a href={`/quiz/${quizOf(a).slug}`}>{quizOf(a).title}</a>{/if}</td>
             <td>{(meta.questions[a.question_id]?.tags ?? []).map(id => meta.tags[id]).filter(t => t?.type === "objective").map(number).join(", ")}</td>
             <td>{meta.questions[a.question_id]?.text ?? "(question no longer exists)"}</td>
-            <td>{a.correct ? "✓" : "✗"}</td>
+            <td><MorphIcon icon={a.correct ? Check : X} size="1.25em" label={a.correct ? "Correct" : "Wrong"} /></td>
           </tr>
         {/each}
       </tbody>
-    </table>
+    </table></div>
   {/if}
 {/if}
 

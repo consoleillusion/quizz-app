@@ -16,7 +16,7 @@
   function options(width: number): uPlot.Options {
     // Purpose: chart options for the current width: series styling, axes and scales
     return {
-      width, height: 320,
+      width, height: heightFor(width),
       cursor: {points: {size: 6}},
       legend: {live: true},
       scales: {x: {time: true}, pct: {range: [0, 100]}, n: {range: (_u, _min, max) => [0, Math.max(1, max) * 1.1]}},
@@ -34,6 +34,10 @@
     }
   }
 
+  const heightFor = (width: number) =>
+    // Purpose: chart height that shrinks with the width on phones, up to 320 px (uPlot sizes in pixels)
+    Math.round(Math.min(320, Math.max(200, width * 0.6)))
+
   function draw() {
     // Purpose: rebuild the chart for the current data, bucket size and width
     chart?.destroy()
@@ -48,7 +52,7 @@
 
   onMount(() => {
     // Purpose: follow the container's width, and tear the chart down when the component goes away
-    const observer = new ResizeObserver(() => chart?.setSize({width: host.clientWidth, height: 320}))
+    const observer = new ResizeObserver(() => chart?.setSize({width: host.clientWidth, height: heightFor(host.clientWidth)}))
     observer.observe(host)
     return () => { observer.disconnect(); chart?.destroy() }
   })

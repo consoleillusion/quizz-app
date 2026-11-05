@@ -37,7 +37,7 @@ if (asJson) return json(page)
   <h1>Quizzes{tag && <> · {tag}</>}</h1>
   <p>{total} quizzes · page {page.page} of {page.pages} · <a href={`${page.links.self}&format=json`}>JSON</a></p>
 
-  <section>
+  <section class="cards">
     {page.items.map(quiz => (
         <article>
           <h3><a href={quiz.url}>{quiz.title}</a></h3>

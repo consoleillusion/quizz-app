@@ -28,14 +28,14 @@
 
 <section aria-labelledby="results-title">
   <h2 id="results-title">Results: {correct}/{questions.length} ({Math.round((correct / questions.length) * 100)}%)</h2>
-  <table>
+  <div class="overflow-auto"><table>
     <thead><tr><th>Domain</th><th>Score</th></tr></thead>
     <tbody>
       {#each domains as [label, row]}
         <tr class={row.right < row.total ? "bad" : "ok"}><td>{label}</td><td>{row.right}/{row.total}</td></tr>
       {/each}
     </tbody>
-  </table>
+  </table></div>
   {#if missed.length}
     <h3>Missed</h3>
     <ul>

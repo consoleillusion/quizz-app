@@ -15,7 +15,7 @@
 <form onsubmit={submit}>
   <fieldset disabled={!!saved}>
     <legend>Match each item on the left with one on the right</legend>
-    <table>
+    <div class="overflow-auto"><table>
       <tbody>
         {#each q.prompts as _, p}
           <tr class={saved ? (saved.answer[p] === q.answer[p] ? "ok" : "bad") : ""}>
@@ -34,7 +34,7 @@
           </tr>
         {/each}
       </tbody>
-    </table>
+    </table></div>
   </fieldset>
   {#if !saved}<button disabled={!complete}>Check answer</button>{/if}
 </form>

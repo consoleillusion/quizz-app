@@ -6,6 +6,8 @@
   import {number, ofType} from "../lib/tags.ts"
   import {loadAnswers, saveAnswer, clearAnswers, type AnswerRecord} from "../lib/progress.ts"
   import Results from "./Results.svelte"
+  import {MorphIcon} from "morphicons/svelte"
+  import {ChevronLeft, ChevronRight, CircleCheck, CircleX, RotateCcw} from "lucide"
   import Multichoice from "./questions/Multichoice.svelte"
   import Multiselect from "./questions/Multiselect.svelte"
   import Match from "./questions/Match.svelte"
@@ -108,12 +110,12 @@
   </p>
 
   <div role="group" aria-label="Question navigation">
-    <button type="button" onclick={() => go(pos - 1)} disabled={pos === 0}>← Previous</button>
+    <button type="button" onclick={() => go(pos - 1)} disabled={pos === 0}><MorphIcon icon={ChevronLeft} size="1.25em" /> <span class="icon-label">Previous</span></button>
     <select aria-label="Jump to question" value={pos} onchange={e => go(Number(e.currentTarget.value))}>
       {#each order as _, i}<option value={i}>{marker(i)} Q{i + 1}</option>{/each}
     </select>
-    <button type="button" onclick={() => go(pos + 1)} disabled={pos === order.length - 1}>Next →</button>
-    <button type="button" onclick={restart}>Restart</button>
+    <button type="button" onclick={() => go(pos + 1)} disabled={pos === order.length - 1}><span class="icon-label">Next</span> <MorphIcon icon={ChevronRight} size="1.25em" /></button>
+    <button type="button" onclick={restart}><MorphIcon icon={RotateCcw} size="1.25em" /> <span class="icon-label">Restart</span></button>
   </div>
 
   <article id="question" aria-live="polite">
@@ -130,10 +132,10 @@
 
     {#if saved}
       <p class={saved.correct ? "ok" : "bad"}>
-        <strong>{saved.correct ? "Correct." : "Not quite."}</strong>
+        <strong><MorphIcon icon={saved.correct ? CircleCheck : CircleX} size="1.25em" /> {saved.correct ? "Correct." : "Not quite."}</strong>
         {#if q.html.explanation}{@html q.html.explanation}{/if}
       </p>
-      {#if pos < order.length - 1}<button type="button" onclick={() => go(pos + 1)}>Next question →</button>{/if}
+      {#if pos < order.length - 1}<button type="button" onclick={() => go(pos + 1)}>Next question <MorphIcon icon={ChevronRight} size="1.25em" /></button>{/if}
     {/if}
   </article>
 

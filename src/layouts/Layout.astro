@@ -1,5 +1,7 @@
 ---
 // Page shell: Pico CSS styles plain HTML; a few lines below add answer feedback colours.
+import MorphIcon from "morphicons/astro"
+import {ChartLine, CircleUser, GraduationCap, ListChecks, LogIn, Moon, UserPlus} from "lucide"
 interface Props { title: string, description?: string }
 const {title, description = "Cisco certification practice quizzes"} = Astro.props
 const user = Astro.locals.user
@@ -23,25 +25,35 @@ const theme = {primary: "#6b8a6e", primaryHover: "#58745b", darkBackground: "#1c
   <body data-user-id={user?.id}>
     <header class="container">
       <nav>
-        <ul><li><a href="/"><strong>Exam Practice</strong></a></li></ul>
+        <ul><li><a href="/"><strong><MorphIcon icon={GraduationCap} size="1.25em" /> Exam Practice</strong></a></li></ul>
         <ul>
-          <li><a href="/quiz">Quizzes</a></li>
-          <li><a href="/dashboard">Dashboard</a></li>
+          <li><a href="/quiz"><MorphIcon icon={ListChecks} size="1.25em" /> <span class="icon-label">Quizzes</span></a></li>
+          <li><a href="/dashboard"><MorphIcon icon={ChartLine} size="1.25em" /> <span class="icon-label">Dashboard</span></a></li>
           {user
-            ? <li><a href="/session" data-user={user.username}>{user.username}</a></li>
-            : <><li><a href={`/session?next=${next}`}>Log in</a></li><li><a href={`/user?next=${next}`}>Sign up</a></li></>}
-          <li><button type="button" class="outline secondary" data-theme-toggle aria-label="Switch light or dark theme">◐</button></li>
+            ? <li><a href="/session" data-user={user.username}><MorphIcon icon={CircleUser} size="1.25em" /> <span class="icon-label">{user.username}</span></a></li>
+            : <><li><a href={`/session?next=${next}`}><MorphIcon icon={LogIn} size="1.25em" /> <span class="icon-label">Log in</span></a></li><li><a href={`/user?next=${next}`}><MorphIcon icon={UserPlus} size="1.25em" /> <span class="icon-label">Sign up</span></a></li></>}
+          <li><button type="button" class="outline secondary" data-theme-toggle aria-label="Switch light or dark theme"><MorphIcon icon={Moon} size="1.25em" /></button></li>
         </ul>
       </nav>
     </header>
     <main class="container"><slot /></main>
-    <script is:inline>
-      document.querySelector("[data-theme-toggle]").addEventListener("click", () => {
-        // Purpose: flip between light and dark, starting from whatever is showing now, and remember it
-        const html = document.documentElement
-        const current = html.dataset.theme ?? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
-        html.dataset.theme = current === "dark" ? "light" : "dark"
+    <script>
+      import {Moon, Sun} from "lucide"
+      const html = document.documentElement
+      const toggle = document.querySelector("[data-theme-toggle]") as HTMLButtonElement
+      const icon = toggle.querySelector("morph-icon") as HTMLElement & {set: (i: unknown) => void, morphTo: (i: unknown) => void}
+      const showing = () =>
+        // Purpose: the theme on screen now: the saved choice, else the system setting
+        html.dataset.theme ?? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+      const iconFor = (theme: string) =>
+        // Purpose: the icon for the theme a click would switch to
+        theme === "dark" ? Sun : Moon
+      customElements.whenDefined("morph-icon").then(() => icon.set(iconFor(showing())))
+      toggle.addEventListener("click", () => {
+        // Purpose: flip between light and dark, remember the choice, and morph the icon to match
+        html.dataset.theme = showing() === "dark" ? "light" : "dark"
         try { localStorage.setItem("theme", html.dataset.theme) } catch {}
+        icon.morphTo(iconFor(html.dataset.theme))
       })
     </script>
   </body>
@@ -65,6 +77,15 @@ const theme = {primary: "#6b8a6e", primaryHover: "#58745b", darkBackground: "#1c
   @media (prefers-color-scheme: dark) {
     html:root:not([data-theme]) { --pico-background-color: var(--darkBackground); --pico-card-background-color: var(--darkSurface); --pico-card-sectioning-background-color: var(--darkSurface); }
   }
+  /* Icons sit on the text baseline; on narrow screens nav and button labels collapse to their icons. */
+  morph-icon, svg.lucide { vertical-align: -0.2em; }
+  @media (max-width: 36rem) {
+    .icon-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+    nav ul { gap: 0; }
+  }
+  /* Card lists: as many columns as fit at 18rem or more, one column on phones. */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr)); gap: var(--pico-spacing); margin-bottom: var(--pico-spacing); }
+  .cards > article { margin: 0; }
   .ok { color: var(--pico-ins-color); }
   .bad { color: var(--pico-del-color); }
   .pre { white-space: pre-wrap; }

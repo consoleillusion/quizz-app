@@ -9,7 +9,7 @@ if (wantsJson(Astro.request)) return json({items: exams})
 ---
 <Layout title="Exams">
   <h1>Exams</h1>
-  <section>
+  <section class="cards">
     {exams.map(exam => (
       <article>
         <h3><a href={exam.url}>{exam.name}</a></h3>
