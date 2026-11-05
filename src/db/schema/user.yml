@@ -15,7 +15,7 @@ properties:
     maxLength: 32
     pattern: "^[A-Za-z0-9._-]+$"
   password_hash:
-    description: "scrypt$<salt hex>$<hash hex>. Written by the server from the password; never accepted from or returned to clients."
+    description: "opaque$<OPAQUE registration record>. The password itself never reaches the server; never returned to clients."
     type: "string"
     minLength: 1
   email:

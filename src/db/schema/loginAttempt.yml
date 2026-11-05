@@ -1,0 +1,17 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: "Login Attempt"
+type: "object"
+additionalProperties: false
+description: "The server's OPAQUE state between the two requests of a login. Deleted when the login finishes; expired rows can be purged."
+required: ["username", "server_login_state", "expires_at"]
+x-private: ["server_login_state"]
+properties:
+  username:
+    type: "string"
+    minLength: 1
+  server_login_state:
+    type: "string"
+    minLength: 1
+  expires_at:
+    type: "string"
+    format: "date-time"

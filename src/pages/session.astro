@@ -1,42 +1,38 @@
 ---
 // /session: logging in and out.
 //   GET     HTML: login form, or who you are with a log-out button.  JSON: the session's user, or 401.
-//   POST    log in {username, password}.  Form: 303 to ?next.  JSON: 201 with the user.
+//   POST    OPAQUE login, JSON only (the page's script drives it; the password never leaves the browser):
+//           1. {username, startLoginRequest}                    → {loginId, loginResponse}
+//           2. {loginId, finishLoginRequest, publicKey, proof}  → 201 with the user; starts a session
 //   DELETE  log out (forms send POST with _method=DELETE).  Form: 303 to /session.  JSON: 204.
 import Layout from "../layouts/Layout.astro"
 import {HttpError, effectiveMethod, json, jsonError, methodNotAllowed, seeOther, wantsJson} from "../lib/rest.ts"
-import {authenticate, endSession, safeNext, startSession} from "../lib/auth.ts"
+import {endSession, finishLogin, safeNext, startLogin, startSession} from "../lib/auth.ts"
 
 const allow = ["GET", "POST", "DELETE"]
 const {request, url, cookies, locals} = Astro
 const method = await effectiveMethod(request)
 if (!allow.includes(method)) return methodNotAllowed(allow)
-const asJson = wantsJson(request)
 
-let error = ""
-let values: Record<string, string> = {}
 if (method === "DELETE") {
   await endSession(cookies)
-  return asJson ? new Response(null, {status: 204}) : seeOther("/session")
+  return wantsJson(request) ? new Response(null, {status: 204}) : seeOther("/session")
 }
 if (method === "POST") {
-  const type = request.headers.get("content-type") ?? ""
-  values = type.includes("json") ? await request.json().catch(() => ({})) : Object.fromEntries(await request.formData()) as Record<string, string>
   try {
-    const user = await authenticate(values.username, values.password)
+    const input = await request.json().catch(() => ({}))
+    if (!("finishLoginRequest" in input)) return json(await startLogin(input))
+    const {user, publicKey} = await finishLogin(input)
     await endSession(cookies)
-    await startSession(cookies, user, url.protocol === "https:")
-    return asJson ? json(user, 201, {location: "/session"}) : seeOther(safeNext(values.next))
+    await startSession(cookies, user, publicKey, url.protocol === "https:")
+    return json(user, 201, {location: "/session"})
   } catch (e) {
     if (!(e instanceof HttpError)) throw e
-    if (asJson) return jsonError(e)
-    error = e.message
-    Astro.response.status = e.status
+    return jsonError(e)
   }
-} else if (asJson) {
-  return locals.user ? json(locals.user) : jsonError(new HttpError(401, "Not logged in"))
 }
-const next = values.next ?? url.searchParams.get("next") ?? "/quiz"
+if (wantsJson(request)) return locals.user ? json(locals.user) : jsonError(new HttpError(401, "Not logged in"))
+const next = url.searchParams.get("next") ?? "/quiz"
 ---
 <Layout title={locals.user ? "Account" : "Log in"}>
   {locals.user ? (
@@ -51,16 +47,37 @@ const next = values.next ?? url.searchParams.get("next") ?? "/quiz"
   ) : (
     <>
       <h1>Log in</h1>
-      <form method="post" action="/session">
-        <input type="hidden" name="next" value={next} />
-        {error && <p class="bad">{error}</p>}
+      <noscript><p class="bad">Logging in needs JavaScript: your password is processed in the browser and never sent to the server.</p></noscript>
+      <form data-login data-next={safeNext(next)}>
+        <p class="bad" data-error aria-live="polite"></p>
         <p><label for="username">Username</label>
-          <input id="username" name="username" required autocomplete="username" value={values.username ?? ""} /></p>
+          <input id="username" name="username" required autocomplete="username" /></p>
         <p><label for="password">Password</label>
-          <input id="password" name="password" type="password" required autocomplete="current-password" /></p>
+          <!-- No name attribute: the password is never submitted with the form. -->
+          <input id="password" type="password" required autocomplete="current-password" /></p>
         <button>Log in</button>
       </form>
       <p>No account? <a href={`/user?next=${encodeURIComponent(next)}`}>Sign up</a></p>
     </>
   )}
 </Layout>
+
+<script>
+  import {logIn} from "../lib/opaque-client.ts"
+
+  const form = document.querySelector<HTMLFormElement>("[data-login]")
+  form?.addEventListener("submit", async event => {
+    // Purpose: log in with OPAQUE, then go on to where the visitor was heading
+    event.preventDefault()
+    const button = form.querySelector("button")!, error = form.querySelector<HTMLElement>("[data-error]")!
+    button.setAttribute("aria-busy", "true"); button.disabled = true; error.textContent = ""
+    const value = (id: string) => (form.querySelector(`#${id}`) as HTMLInputElement).value
+    try {
+      await logIn({username: value("username"), password: value("password")})
+      location.assign(form.dataset.next!)
+    } catch (e: any) {
+      error.textContent = e.message
+      button.removeAttribute("aria-busy"); button.disabled = false
+    }
+  })
+</script>

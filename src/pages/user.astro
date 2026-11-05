@@ -1,68 +1,54 @@
 ---
 // /user: accounts.
 //   GET   HTML: the sign-up form.  JSON: the logged-in user, or 401.
-//   POST  create an account {username, password, email?}, then log in.
-//         Form: 303 to ?next (default /quiz).  JSON: 201 with the user.
+//   POST  OPAQUE sign-up, JSON only (the page's script drives it; the password never leaves the browser):
+//         1. {username, email?, id?, registrationRequest}                → {registrationResponse}
+//         2. {username, email?, id?, registrationRecord, publicKey}      → 201 with the user; starts a session
 import Layout from "../layouts/Layout.astro"
-import {HttpError, json, jsonError, methodNotAllowed, seeOther, wantsJson} from "../lib/rest.ts"
-import {register, safeNext, startSession} from "../lib/auth.ts"
+import {HttpError, json, jsonError, methodNotAllowed, wantsJson} from "../lib/rest.ts"
+import {register, registrationResponse, safeNext, startSession} from "../lib/auth.ts"
 
 const allow = ["GET", "POST"]
 const {request, url, cookies, locals} = Astro
 if (!allow.includes(request.method)) return methodNotAllowed(allow)
-const asJson = wantsJson(request)
-const secure = url.protocol === "https:"
 
-let errors: {field: string, message: string}[] = []
-let values: Record<string, string> = {}
 if (request.method === "POST") {
-  const type = request.headers.get("content-type") ?? ""
-  values = type.includes("json") ? await request.json().catch(() => ({})) : Object.fromEntries(await request.formData()) as Record<string, string>
   try {
-    const user = await register(values)
-    await startSession(cookies, user, secure)
-    return asJson ? json(user, 201, {location: "/user"}) : seeOther(safeNext(values.next))
+    const input = await request.json().catch(() => ({}))
+    if (!("registrationRecord" in input)) return json(await registrationResponse(input))
+    const {user, publicKey} = await register(input)
+    await startSession(cookies, user, publicKey, url.protocol === "https:")
+    return json(user, 201, {location: "/user"})
   } catch (e) {
     if (!(e instanceof HttpError)) throw e
-    if (asJson) return jsonError(e)
-    errors = e.errors.length ? e.errors : [{field: "", message: e.message}]
-    Astro.response.status = e.status
+    return jsonError(e)
   }
-} else if (asJson) {
-  return locals.user ? json(locals.user) : jsonError(new HttpError(401, "Not logged in"))
 }
-
-const errorFor = (field: string) =>
-  // Purpose: the error messages for one form field, joined
-  errors.filter(e => e.field === field).map(e => e.message).join("; ")
-const next = values.next ?? url.searchParams.get("next") ?? "/quiz"
+if (wantsJson(request)) return locals.user ? json(locals.user) : jsonError(new HttpError(401, "Not logged in"))
+const next = url.searchParams.get("next") ?? "/quiz"
 ---
 <Layout title="Sign up">
   <h1>Sign up</h1>
   {locals.user && <p>You're logged in as <strong>{locals.user.username}</strong>. <a href="/session">Log out</a> to create another account.</p>}
   <p>Answers you've already given in this browser move into your new account, and from then on your progress follows you between devices.</p>
-  <form method="post" action="/user">
-    <input type="hidden" name="next" value={next} />
-    <input type="hidden" name="id" value={values.id ?? ""} data-client-id />
-    {errorFor("") && <p class="bad">{errorFor("")}</p>}
+  <noscript><p class="bad">Signing up needs JavaScript: your password is processed in the browser and never sent to the server.</p></noscript>
+  <form data-signup data-next={safeNext(next)}>
+    <p class="bad" data-error aria-live="polite"></p>
     <p>
       <label for="username">Username</label>
-      <input id="username" name="username" required minlength="2" maxlength="32" pattern="[A-Za-z0-9._\-]+" autocomplete="username" value={values.username ?? ""} />
+      <input id="username" name="username" required minlength="2" maxlength="32" pattern="[A-Za-z0-9._\-]+" autocomplete="username" />
       <small>Letters, digits, dot, dash or underscore.</small>
-      {errorFor("username") && <small class="bad">{errorFor("username")}</small>}
     </p>
     <p>
       <label for="password">Password</label>
-      <input id="password" name="password" type="password" required minlength="8" autocomplete="new-password" />
+      <!-- No name attribute: the password is never submitted with the form. -->
+      <input id="password" type="password" required minlength="8" autocomplete="new-password" />
       <small>At least 8 characters.</small>
-      {errorFor("password") && <small class="bad">{errorFor("password")}</small>}
     </p>
     <p>
       <label for="email">Email (optional)</label>
-      <input id="email" name="email" type="email" autocomplete="email" value={values.email ?? ""} />
-      {errorFor("email") && <small class="bad">{errorFor("email")}</small>}
+      <input id="email" name="email" type="email" autocomplete="email" />
     </p>
-    {errorFor("id") && <p class="bad">Client id {errorFor("id")}.</p>}
     <button>Create account</button>
   </form>
   <p>Already have an account? <a href={`/session?next=${encodeURIComponent(next)}`}>Log in</a></p>
@@ -70,8 +56,22 @@ const next = values.next ?? url.searchParams.get("next") ?? "/quiz"
 
 <script>
   import {anonymousId} from "../lib/identity.ts"
+  import {signUp} from "../lib/opaque-client.ts"
 
-  // Register under the id this browser has been answering as, so its answers belong to the new account.
-  const field = document.querySelector<HTMLInputElement>("[data-client-id]")
-  if (field && !document.body.dataset.userId) field.value = anonymousId()
+  const form = document.querySelector<HTMLFormElement>("[data-signup]")!
+  const error = form.querySelector<HTMLElement>("[data-error]")!
+  form.addEventListener("submit", async event => {
+    // Purpose: sign up with OPAQUE under this browser's id (so its answers join the account), then go on
+    event.preventDefault()
+    const button = form.querySelector("button")!
+    button.setAttribute("aria-busy", "true"); button.disabled = true; error.textContent = ""
+    const value = (id: string) => (form.querySelector(`#${id}`) as HTMLInputElement).value
+    try {
+      await signUp({username: value("username"), password: value("password"), email: value("email") || undefined, id: document.body.dataset.userId ? undefined : anonymousId()})
+      location.assign(form.dataset.next!)
+    } catch (e: any) {
+      error.textContent = [e.message, ...(e.errors ?? []).map((x: any) => `${x.field} ${x.message}`)].join(". ")
+      button.removeAttribute("aria-busy"); button.disabled = false
+    }
+  })
 </script>
