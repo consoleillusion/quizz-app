@@ -40,7 +40,7 @@
     <h3>Missed</h3>
     <ul>
       {#each missed as {q, pos}}
-        <li><button type="button" class="link" data-pos={pos} onclick={jump}>Q{pos + 1}</button> {number(ofType("objective")(q.tags))}: {@html q.html.text}</li>
+        <li><button type="button" class="outline secondary" data-pos={pos} onclick={jump}>Q{pos + 1}</button> {number(ofType("objective")(q.tags))}: {@html q.html.text}</li>
       {/each}
     </ul>
   {/if}

@@ -6,7 +6,7 @@
   import {answerExtent, answersInRange, answersInScope, autoBucket, clampRange, questionInScope, scopeOptions, series, summary} from "../lib/stats.ts"
   import TimeChart from "./TimeChart.svelte"
   import {number} from "../lib/tags.ts"
-  import RangeSlider from "./RangeSlider.svelte"
+  import {Slider} from "bits-ui"
 
 
   const params = new URLSearchParams(location.search)
@@ -63,7 +63,7 @@
   })
 </script>
 
-<form class="bar filters" onsubmit={e => e.preventDefault()}>
+<form onsubmit={e => e.preventDefault()}>
   <label>Scope
     <select bind:value={scope}>
       {#each groups as group}
@@ -87,10 +87,17 @@
   {#if extent}
     <fieldset class="timeline">
       <legend>Time range: drag either end, anywhere from your first answer to your last</legend>
-      <RangeSlider min={extent.from} max={extent.to} {step} gap={step} bind:lo bind:hi format={when} />
+      <Slider.Root type="multiple" min={extent.from} max={extent.to} {step}
+        bind:value={() => [lo, hi], ([a, b]) => { lo = a; hi = b }}>
+        {#snippet children({thumbItems})}
+          <Slider.Range />
+          {#each thumbItems as {index}}<Slider.Thumb {index} aria-label={index ? "End" : "Start"} />{/each}
+        {/snippet}
+      </Slider.Root>
+      <small>{when(span.from)} – {when(span.to)}</small>
     </fieldset>
   {/if}
-  <p class="stats">
+  <p>
     <strong>{stats.answered}</strong> answers ·
     <strong>{stats.percent ?? "–"}{stats.percent === null ? "" : "%"}</strong> correct ·
     <strong>{stats.distinct}</strong> of {stats.inScope} questions in scope answered ({stats.coverage ?? 0}%)
@@ -119,3 +126,10 @@
     </table>
   {/if}
 {/if}
+
+<style>
+  /* bits-ui is headless: just a track, its selected range and two round thumbs, in Pico's colours. */
+  .timeline :global([data-slider-root]) { position: relative; display: flex; align-items: center; height: 1.5rem; margin: 0.5rem 0.6rem; background: linear-gradient(var(--pico-muted-border-color), var(--pico-muted-border-color)) center / 100% 4px no-repeat; touch-action: none; }
+  .timeline :global([data-slider-range]) { position: absolute; height: 4px; background: var(--pico-primary-background); }
+  .timeline :global([data-slider-thumb]) { width: 1.2rem; height: 1.2rem; border-radius: 50%; background: var(--pico-primary-background); border: 2px solid var(--pico-background-color); cursor: grab; }
+</style>

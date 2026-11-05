@@ -26,8 +26,8 @@
         <li class={saved ? (q.answer[k] === item ? "ok" : "bad") : ""}>
           <span class="md">{@html q.html.items[item]}</span>
           {#if !saved}
-            <button type="button" class="small" data-at={k} data-by="-1" onclick={move} disabled={k === 0} aria-label="Move up">↑</button>
-            <button type="button" class="small" data-at={k} data-by="1" onclick={move} disabled={k === sequence.length - 1} aria-label="Move down">↓</button>
+            <button type="button" class="outline secondary" data-at={k} data-by="-1" onclick={move} disabled={k === 0} aria-label="Move up">↑</button>
+            <button type="button" class="outline secondary" data-at={k} data-by="1" onclick={move} disabled={k === sequence.length - 1} aria-label="Move down">↓</button>
           {/if}
         </li>
       {/each}

@@ -36,23 +36,21 @@ if (asJson) return json(page)
   <h1>Quizzes</h1>
   <p>{total} quizzes · page {page.page} of {page.pages} · <a href={`${url.pathname}?format=json&page=${page.page}&limit=${page.limit}`}>JSON</a></p>
 
-  <ul class="cards">
+  <section>
     {page.items.map(quiz => (
-      <li>
         <article>
           <h3><a href={quiz.url}>{quiz.title}</a></h3>
           <p>{quiz.description}</p>
           <small>{quiz.question_count} questions{quiz.tags.length ? ` · ${quiz.tags.map((t: {name: string}) => t.name).join(", ")}` : ""}</small><br />
           <small data-progress={quiz.id} data-total={quiz.question_count}></small>
         </article>
-      </li>
     ))}
-  </ul>
+  </section>
 
-  <nav class="bar" aria-label="Pages">
-    {page.links.prev ? <a href={page.links.prev} rel="prev">← Previous</a> : <span>← Previous</span>}
-    <span>Page {page.page} of {page.pages}</span>
-    {page.links.next ? <a href={page.links.next} rel="next">Next →</a> : <span>Next →</span>}
+  <nav aria-label="Pages">
+    <ul><li>{page.links.prev ? <a href={page.links.prev} rel="prev">← Previous</a> : "← Previous"}</li></ul>
+    <ul><li>Page {page.page} of {page.pages}</li></ul>
+    <ul><li>{page.links.next ? <a href={page.links.next} rel="next">Next →</a> : "Next →"}</li></ul>
   </nav>
 
   <details open={formErrors.length > 0}>

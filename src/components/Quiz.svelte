@@ -107,14 +107,14 @@
     {correct} correct of {answered} answered ({questions.length} total)
   </p>
 
-  <nav class="bar" aria-label="Question navigation">
+  <div role="group" aria-label="Question navigation">
     <button type="button" onclick={() => go(pos - 1)} disabled={pos === 0}>← Previous</button>
     <select aria-label="Jump to question" value={pos} onchange={e => go(Number(e.currentTarget.value))}>
       {#each order as _, i}<option value={i}>{marker(i)} Q{i + 1}</option>{/each}
     </select>
     <button type="button" onclick={() => go(pos + 1)} disabled={pos === order.length - 1}>Next →</button>
     <button type="button" onclick={restart}>Restart</button>
-  </nav>
+  </div>
 
   <article id="question" aria-live="polite">
     <header>

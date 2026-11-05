@@ -1,8 +1,9 @@
 ---
-// Page shell: Sakura dark for global styling, plus a few shared feedback classes.
+// Page shell: Pico CSS styles plain HTML; a few lines below add answer feedback colours.
 interface Props { title: string, description?: string }
-const {title, description = "ENAUTO 300-435 practice quizzes"} = Astro.props
+const {title, description = "Cisco certification practice quizzes"} = Astro.props
 const user = Astro.locals.user
+const next = encodeURIComponent(Astro.url.pathname)
 ---
 <!doctype html>
 <html lang="en">
@@ -10,53 +11,48 @@ const user = Astro.locals.user
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sakura.css/css/sakura-dark.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.1.1/css/pico.min.css" />
     <!--
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.1.0/build/pure-min.css" integrity="sha384-kj0X2NG2KHBie8Tq8fH1kxnyWM9XsXQpq7XdwbKmFKjwwaXGKBlB2Klu3VOltSFx" crossorigin="anonymous">
     -->
-    <title>{title} · ENAUTO Quiz</title>
+    <script is:inline>
+      // Apply the saved theme before first paint; Pico follows the system setting when none is saved.
+      try { const theme = localStorage.getItem("theme"); if (theme) document.documentElement.dataset.theme = theme } catch {}
+    </script>
+    <title>{title} · Exam Practice</title>
   </head>
   <body data-user-id={user?.id}>
-    <header><nav class="bar">
-      <a href="/quiz"><strong>ENAUTO Quiz</strong></a> <a href="/quiz">Quizzes</a> <a href="/dashboard">Dashboard</a>
-      <span class="spacer"></span>
-      {user ? <a href="/session" data-user={user.username}>{user.username}</a> : <><a href={`/session?next=${encodeURIComponent(Astro.url.pathname)}`}>Log in</a> <a href={`/user?next=${encodeURIComponent(Astro.url.pathname)}`}>Sign up</a></>}
-    </nav></header>
-    <main><slot /></main>
+    <header class="container">
+      <nav>
+        <ul><li><a href="/"><strong>Exam Practice</strong></a></li></ul>
+        <ul>
+          <li><a href="/quiz">Quizzes</a></li>
+          <li><a href="/dashboard">Dashboard</a></li>
+          {user
+            ? <li><a href="/session" data-user={user.username}>{user.username}</a></li>
+            : <><li><a href={`/session?next=${next}`}>Log in</a></li><li><a href={`/user?next=${next}`}>Sign up</a></li></>}
+          <li><button type="button" class="outline secondary" data-theme-toggle aria-label="Switch light or dark theme">◐</button></li>
+        </ul>
+      </nav>
+    </header>
+    <main class="container"><slot /></main>
+    <script is:inline>
+      document.querySelector("[data-theme-toggle]").addEventListener("click", () => {
+        // Purpose: flip between light and dark, starting from whatever is showing now, and remember it
+        const html = document.documentElement
+        const current = html.dataset.theme ?? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+        html.dataset.theme = current === "dark" ? "light" : "dark"
+        try { localStorage.setItem("theme", html.dataset.theme) } catch {}
+      })
+    </script>
   </body>
 </html>
 
 <style is:global>
-  /* Minimal additions to Sakura: feedback colours, preserved line breaks, option rows. */
-  :root { --ok: #6fd08f; --bad: #ff8a80; }
+  .ok { color: var(--pico-ins-color); }
+  .bad { color: var(--pico-del-color); }
   .pre { white-space: pre-wrap; }
   .md > p:only-child, .prompt > p:only-child { margin: 0; }
-  .md pre { margin: 0.3em 0; }
-  .prompt { font-weight: bold; margin-bottom: 1em; }
-  .ok { color: var(--ok); }
-  .bad { color: var(--bad); }
-  label.option { display: block; padding: 0.4em 0; font-weight: normal; }
-  label.option.ok, label.option.bad, tr.ok, tr.bad, li.ok, li.bad { font-weight: bold; }
-  fieldset { border: 0; padding: 0; margin: 0 0 1em; }
-  fieldset:disabled { opacity: 1; }
-  legend { font-size: 0.9em; opacity: 0.8; }
-  select.slot { width: auto; display: inline; padding: 0 0.2em; margin: 0; font: inherit; }
-  select.slot.ok { outline: 2px solid var(--ok); }
-  select.slot.bad { outline: 2px solid var(--bad); }
-  button.small { padding: 0.1em 0.6em; margin-left: 0.3em; }
-  button.link { background: none; border: 0; padding: 0; color: inherit; text-decoration: underline; cursor: pointer; }
-  nav.bar { display: flex; flex-wrap: wrap; gap: 0.5em; align-items: center; }
-  nav.bar select { width: auto; margin: 0; }
-  nav.bar .spacer { flex: 1; }
-  progress { width: 100%; }
-  pre { overflow-x: auto; }
-  ul.cards { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 1em; }
-  ul.cards article { border: 1px solid #4a4a4a; border-radius: 6px; padding: 0.8em 1em; height: 100%; }
-  ul.cards h3 { margin-top: 0; }
-  details { margin: 2em 0; }
-  form.filters { gap: 1em; align-items: flex-end; }
-  form.filters label { display: flex; flex-direction: column; font-size: 0.9em; }
-  form.filters select, form.filters input { width: auto; margin: 0.2em 0 0; }
-  p.stats { font-size: 1.1em; }
-  form small { display: block; opacity: 0.8; }
+  label.option { display: block; }
+  select.slot { display: inline-block; width: auto; height: auto; margin: 0; padding: 0 2rem 0 0.4rem; }
 </style>

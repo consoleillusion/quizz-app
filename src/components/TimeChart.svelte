@@ -9,7 +9,8 @@
   let host: HTMLDivElement
   let chart: uPlot | undefined
 
-  const colors = {correct: "#6fd08f", running: "#8aa8ff", answered: "rgba(201, 201, 201, 0.35)", axis: "#c9c9c9", grid: "rgba(255, 255, 255, 0.08)"}
+  // Mid-greys and saturated lines read on both the light and dark themes.
+  const colors = {correct: "#2e9e5b", running: "#5b7fd6", answered: "rgba(128, 128, 128, 0.35)", axis: "#888", grid: "rgba(128, 128, 128, 0.2)"}
   const axis = {stroke: colors.axis, grid: {stroke: colors.grid}, ticks: {stroke: colors.grid}}
 
   function options(width: number): uPlot.Options {
