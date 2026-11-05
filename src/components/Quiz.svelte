@@ -110,7 +110,8 @@
   </p>
 
   <div role="group" aria-label="Question navigation">
-    <button type="button" onclick={() => go(pos - 1)} disabled={pos === 0}><MorphIcon icon={ChevronLeft} size="1.25em" /> <span class="icon-label">Previous</span></button>
+      <button type="button" onclick={() => go(pos - 1)} disabled={pos === 0}><span class="icon-label">Previous</span><MorphIcon icon={ChevronLeft} size="1.25em" />
+      </button>
     <select aria-label="Jump to question" value={pos} onchange={e => go(Number(e.currentTarget.value))}>
       {#each order as _, i}<option value={i}>{marker(i)} Q{i + 1}</option>{/each}
     </select>

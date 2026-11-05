@@ -75,13 +75,12 @@ The goal is to build a learning and quiz app.
 **Authentication & Authorization**
 - Authentication / Authorization: [Serenity](<https://github.com/serenity-kit/opaque>)
 **Programming Paradigms & Utilities**
-- Functional Programming: [Ramda](<https://ramdajs.com/docs/>)
+- Functional Programming: [Ramda](<https://ramdajs.com/docs/>). [zamda]() mostly just ramda but with some special cases like pipes take a list of functions not variadic number of functions. Also it has functions like `Z.camelCase(x)`.
 
 ### Coding Style
 - Modular sections, using components.
 - Prefer prerendered content where possible. If something that needs to be done can be done in astro rather than svelte, do it there, since it can be done without delivering javascript so it will be more performant.
 - Rely heavily on global style. Please only minimally style components
-- Simply Use the Sakura Dark CSS stylesheet. 
 - Codebase should be small, Readable, Use libraries if necessary, but try to keep few dependencies as well. To meet these goals, use
     - Modular code
     - Functional style, often tacit/pointfree
@@ -96,31 +95,45 @@ The goal is to build a learning and quiz app.
 
 ### Code style (for new and changed code; don't restyle existing code just for this)
 - Functional style with Ramda: small pure functions composed with `pipe`/`compose`; avoid loops and mutation where a Ramda function does the job.
-- Use `const`. Avoid `let` and never use `var`.
+- Use `const`. Avoid `let` and `var` where possible, but use where necessariy, such as svelte components.
 - No classes. JSON Schema (in `src/db/schema/*.yml`) describes data shapes; use plain objects and functions.
 - Leading commas, Haskell style, for multi-line objects, arrays and argument lists:
+
 ```ts
-  import {pipe} from 'ramda'
+import Z from '@consoleillusion/zamda'
 
-
-  // Defining records
-  const x =
+// Defining records
+const x =
     { a: 1
     , b: 2
     , c: 3
     }
 
-  // Defining functions
-  const fn =
-    (val: string) => pipe
-      ( fn1
+// Defining functions
+const fn =
+    (val: string) => Z.pipe(
+      [ fn1
       , fn2
       , fn3
-      ) (val) 
-  ```
+      ]) (val) 
 
-- TypeScript with type annotations on parameters (and on exported values where it helps).
-- Every function's first line is a `// Purpose: ...` comment.
+// Follows sanctuary style pipes with list argument of functions
+const pipeline = 
+    (val: string) => Z.pipe(
+        [ Z.pascalCase
+        , Z.trim
+        ]) (val)
+
+// Z.pipeSync auto awaits, making functional asyncronous programming less messy
+const pipeline2 = 
+    (url: string) => Z.pipeSync(
+        [ fetch
+        , Z.log
+        ]) (url)
+```
+
+- Only use TypeScript type annotations when its native, do not make new types
+- Every function has a comment above it `// Purpose: ...` 
 
 ### Data
 - All data lives in the database. YAML is only for the table schemas in `src/db/schema`. No seed or fixture data files.
