@@ -4,6 +4,8 @@ interface Props { title: string, description?: string }
 const {title, description = "Cisco certification practice quizzes"} = Astro.props
 const user = Astro.locals.user
 const next = encodeURIComponent(Astro.url.pathname)
+// Theme colours: set here, exposed as CSS variables on <html>, and mapped onto Pico's variables below.
+const theme = {primary: "#6b8a6e", primaryHover: "#58745b", darkBackground: "#1c1c1b", darkSurface: "#262624"}
 ---
 <!doctype html>
 <html lang="en">
@@ -12,9 +14,6 @@ const next = encodeURIComponent(Astro.url.pathname)
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.1.1/css/pico.min.css" />
-    <!--
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.1.0/build/pure-min.css" integrity="sha384-kj0X2NG2KHBie8Tq8fH1kxnyWM9XsXQpq7XdwbKmFKjwwaXGKBlB2Klu3VOltSFx" crossorigin="anonymous">
-    -->
     <script is:inline>
       // Apply the saved theme before first paint; Pico follows the system setting when none is saved.
       try { const theme = localStorage.getItem("theme"); if (theme) document.documentElement.dataset.theme = theme } catch {}
@@ -48,7 +47,24 @@ const next = encodeURIComponent(Astro.url.pathname)
   </body>
 </html>
 
-<style is:global>
+<style is:global define:vars={theme}>
+  /* Selectors here are (0,2,1), out-ranking Pico's (0,2,0) theme selectors whatever order the stylesheets load in. */
+  html[lang]:root {
+    --pico-primary: var(--primary);
+    --pico-primary-background: var(--primary);
+    --pico-primary-border: var(--primary);
+    --pico-primary-underline: color-mix(in srgb, var(--primary) 50%, transparent);
+    --pico-primary-hover: var(--primaryHover);
+    --pico-primary-hover-background: var(--primaryHover);
+    --pico-primary-hover-border: var(--primaryHover);
+    --pico-primary-hover-underline: var(--primaryHover);
+    --pico-primary-focus: color-mix(in srgb, var(--primary) 40%, transparent);
+    --pico-primary-inverse: #fff;
+  }
+  html:root[data-theme="dark"] { --pico-background-color: var(--darkBackground); --pico-card-background-color: var(--darkSurface); --pico-card-sectioning-background-color: var(--darkSurface); }
+  @media (prefers-color-scheme: dark) {
+    html:root:not([data-theme]) { --pico-background-color: var(--darkBackground); --pico-card-background-color: var(--darkSurface); --pico-card-sectioning-background-color: var(--darkSurface); }
+  }
   .ok { color: var(--pico-ins-color); }
   .bad { color: var(--pico-del-color); }
   .pre { white-space: pre-wrap; }

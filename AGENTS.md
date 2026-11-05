@@ -66,8 +66,8 @@ The goal is to build a learning and quiz app.
 **Frontend & UI**
 - Meta-framework: [Astro](<https://docs.astro.build/)
 - Interactive Components: [Svelte](<https://docs.astro.build/en/guides/integrations-guide/svelte/>)
-- Changing from Sakura CSS Framework: [Sakura](<https://oxal.org/projects/sakura/>)
-- New CSS Framework:  [Pure CSS](<https://pure-css.github.io/start/>)
+- CSS Framework:  [Pico CSS](<https://picocss.com/docs/>)
+- Icons: [Lucide Icons](https://lucide.dev/icons/) with [Morphicons](https://www.morphicons.com/)
 **Backend & Data**
 - Database: [Turso](<https://docs.turso.tech/sdk/ts/reference>)
 - JSON API Server: [Elysia](<https://www.npmjs.com/package/elysia>)
@@ -99,7 +99,7 @@ The goal is to build a learning and quiz app.
 - Use `const`. Avoid `let` and never use `var`.
 - No classes. JSON Schema (in `src/db/schema/*.yml`) describes data shapes; use plain objects and functions.
 - Leading commas, Haskell style, for multi-line objects, arrays and argument lists:
-  ```ts
+```ts
   import {pipe} from 'ramda'
 
 
