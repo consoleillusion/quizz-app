@@ -1,6 +1,6 @@
 ---
 // /quiz: the quiz collection.
-//   GET  /quiz[?page=&limit=]   cards (HTML) or {items, total, page, limit, pages, links} (JSON)
+//   GET  /quiz[?page=&limit=&filter[tag]=]   cards (HTML) or {items, total, page, limit, pages, links} (JSON)
 //   POST /quiz                  create a quiz from a form or a JSON body
 import Layout from "../../layouts/Layout.astro"
 import SchemaForm from "../../components/SchemaForm.astro"
@@ -28,13 +28,14 @@ if (request.method === "POST") {
 }
 
 const paging = pageParams(url)
-const {items, total} = await listQuizzes(paging)
+const tag = url.searchParams.get("filter[tag]")
+const {items, total} = await listQuizzes({...paging, tag})
 const page = collection(url, items, total, paging)
 if (asJson) return json(page)
 ---
 <Layout title="Quizzes">
-  <h1>Quizzes</h1>
-  <p>{total} quizzes · page {page.page} of {page.pages} · <a href={`${url.pathname}?format=json&page=${page.page}&limit=${page.limit}`}>JSON</a></p>
+  <h1>Quizzes{tag && <> · {tag}</>}</h1>
+  <p>{total} quizzes · page {page.page} of {page.pages} · <a href={`${page.links.self}&format=json`}>JSON</a></p>
 
   <section>
     {page.items.map(quiz => (

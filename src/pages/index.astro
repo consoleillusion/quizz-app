@@ -1,4 +1,21 @@
 ---
-// The site root forwards to the quiz collection.
-return Astro.redirect("/quiz", 302)
+// /: the exams (tags of type exam) as cards, each linking to its quizzes. JSON with ?format=json.
+import Layout from "../layouts/Layout.astro"
+import {json, wantsJson} from "../lib/rest.ts"
+import {listExams} from "../lib/quizzes.ts"
+
+const exams = await listExams()
+if (wantsJson(Astro.request)) return json({items: exams})
 ---
+<Layout title="Exams">
+  <h1>Exams</h1>
+  <section>
+    {exams.map(exam => (
+      <article>
+        <h3><a href={exam.url}>{exam.name}</a></h3>
+        <p>{exam.description}</p>
+        <small>{exam.quiz_count} quizzes</small>
+      </article>
+    ))}
+  </section>
+</Layout>

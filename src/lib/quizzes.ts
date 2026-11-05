@@ -29,11 +29,25 @@ const toQuiz =
       , url: `/quiz/${row.slug}`
       })
 
-export const listQuizzes = async ({limit, offset}: {limit: number, offset: number}) => {
-  // Purpose: one page of quizzes, ordered by title, plus the total count
-  const items = await db.prepare(`SELECT ${summaryColumns} FROM quiz q ORDER BY q.title LIMIT ? OFFSET ?`).all([limit, offset])
-  const {total} = await db.prepare("SELECT count(*) AS total FROM quiz").get()
+const taggedWith =
+  // Purpose: SQL condition for quizzes carrying the tag named by the bound parameter
+  "EXISTS (SELECT 1 FROM quiz_tag qt JOIN tag t ON t.id = qt.tag_id WHERE qt.quiz_id = q.id AND t.name = ?)"
+
+export const listQuizzes = async ({limit, offset, tag}: {limit: number, offset: number, tag?: string | null}) => {
+  // Purpose: one page of quizzes, ordered by title, optionally only those tagged `tag`, plus the total count
+  const where = tag ? `WHERE ${taggedWith}` : ""
+  const args = tag ? [tag] : []
+  const items = await db.prepare(`SELECT ${summaryColumns} FROM quiz q ${where} ORDER BY q.title LIMIT ? OFFSET ?`).all([...args, limit, offset])
+  const {total} = await db.prepare(`SELECT count(*) AS total FROM quiz q ${where}`).get(args)
   return {items: items.map(toQuiz), total: total as number}
+}
+
+export const listExams = async () => {
+  // Purpose: every exam tag with how many quizzes carry it, ordered by name
+  const rows = await db.prepare(
+    `SELECT t.name, t.description, (SELECT count(*) FROM quiz_tag qt WHERE qt.tag_id = t.id) AS quiz_count
+     FROM tag t WHERE t.type = 'exam' ORDER BY t.name`).all()
+  return rows.map((row: any) => ({...row, url: `/quiz?filter[tag]=${encodeURIComponent(row.name)}`}))
 }
 
 export const getQuiz = async (key: string) => {
