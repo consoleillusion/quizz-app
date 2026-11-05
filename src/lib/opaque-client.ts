@@ -6,6 +6,11 @@ import * as opaque from "@serenity-kit/opaque"
 // Argon2id stretching of the password before OPAQUE; changing it breaks every existing account.
 export const keyStretching = {"argon2id-custom": {memory: 2 ** 16, iterations: 4, parallelism: 2}} as const
 
+const requireSecureContext = () => {
+  // Purpose: fail clearly where WebCrypto is missing: browsers only provide it on HTTPS or localhost
+  if (!globalThis.crypto?.subtle) throw Object.assign(new Error("This page must be opened over HTTPS (or on localhost) to sign up or log in."), {errors: []})
+}
+
 const post = async (url: string, body: object) => {
   // Purpose: POST JSON and return the reply, or throw an Error carrying the server's message and field errors
   const res = await fetch(url, {method: "POST", headers: {"content-type": "application/json", accept: "application/json"}, body: JSON.stringify(body)})
@@ -49,6 +54,7 @@ const newSessionKey = async () => {
 
 export const signUp = async ({username, password, email, id}: {username: string, password: string, email?: string, id?: string}) => {
   // Purpose: register an account with OPAQUE and start its session; returns the new user
+  requireSecureContext()
   await opaque.ready
   const {clientRegistrationState, registrationRequest} = opaque.client.startRegistration({password})
   const {registrationResponse} = await post("/user", {username, email, id, registrationRequest})
@@ -58,6 +64,7 @@ export const signUp = async ({username, password, email, id}: {username: string,
 
 export const logIn = async ({username, password}: {username: string, password: string}) => {
   // Purpose: log in with OPAQUE and start a session bound to a fresh signing key; returns the user
+  requireSecureContext()
   await opaque.ready
   const {clientLoginState, startLoginRequest} = opaque.client.startLogin({password})
   const {loginId, loginResponse} = await post("/session", {username, startLoginRequest})
