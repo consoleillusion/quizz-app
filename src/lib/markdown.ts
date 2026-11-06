@@ -2,7 +2,7 @@
 // things like <rpc-reply> outside code markers are escaped, never interpreted.
 import MarkdownIt from "markdown-it"
 
-const md = new MarkdownIt({html: false, linkify: false, typographer: false})
+const md = new MarkdownIt({ html: false, linkify: false, typographer: false })
 
 export const toHtml = (s: string) =>
   // Purpose: render a string as block Markdown when it has line breaks, otherwise inline

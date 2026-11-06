@@ -2,21 +2,29 @@
 // their answers are stored under it. When they sign up, that id becomes their account id. When
 // a session is active the page tells us the account id (<body data-user-id>), and that wins.
 // Stored as {id, account}: account=true means the id belongs to a signed-in account.
-import {uuidv7} from "./uuid.ts"
+import { uuidv7 } from "./uuid.ts"
 
 const KEY = "enauto.identity"
-export type Identity = {id: string, account: boolean}
+export type Identity = { id: string; account: boolean }
 let memory: Identity | null = null
 
 const read = (): Identity | null => {
   // Purpose: the saved identity, or null when none is saved or storage is blocked
-  try { return JSON.parse(localStorage.getItem(KEY) ?? "null") } catch { return memory }
+  try {
+    return JSON.parse(localStorage.getItem(KEY) ?? "null")
+  } catch {
+    return memory
+  }
 }
 
 const write = (identity: Identity) => {
   // Purpose: save the identity, keeping an in-memory copy when storage is blocked
   memory = identity
-  try { localStorage.setItem(KEY, JSON.stringify(identity)) } catch { /* in-memory only */ }
+  try {
+    localStorage.setItem(KEY, JSON.stringify(identity))
+  } catch {
+    /* in-memory only */
+  }
 }
 
 export const sessionUserId = () =>
@@ -30,15 +38,19 @@ export const resolveIdentity = () => {
   const saved = read()
   const account = sessionUserId()
   if (account) {
-    write({id: account, account: true})
-    return {id: account, adopt: saved && !saved.account && saved.id !== account ? saved.id : null, left: null}
+    write({ id: account, account: true })
+    return {
+      id: account,
+      adopt: saved && !saved.account && saved.id !== account ? saved.id : null,
+      left: null,
+    }
   }
   if (!saved || saved.account) {
-    const fresh = {id: uuidv7(), account: false}
+    const fresh = { id: uuidv7(), account: false }
     write(fresh)
-    return {id: fresh.id, adopt: null, left: saved?.id ?? null}
+    return { id: fresh.id, adopt: null, left: saved?.id ?? null }
   }
-  return {id: saved.id, adopt: null, left: null}
+  return { id: saved.id, adopt: null, left: null }
 }
 
 export const anonymousId = () =>

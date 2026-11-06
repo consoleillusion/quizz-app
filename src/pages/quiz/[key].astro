@@ -1,13 +1,19 @@
 ---
+import Quiz from "../../components/Quiz.svelte"
 // /quiz/<slug or id>: one quiz.
 //   GET  HTML: the quiz player.  JSON: the quiz with its questions (stored form, no rendering).
 import Layout from "../../layouts/Layout.astro"
-import Quiz from "../../components/Quiz.svelte"
-import {HttpError, json, jsonError, methodNotAllowed, wantsJson} from "../../lib/rest.ts"
-import {getQuestions, getQuiz, withRendering} from "../../lib/quizzes.ts"
+import { getQuestions, getQuiz, withRendering } from "../../lib/quizzes.ts"
+import {
+  HttpError,
+  json,
+  jsonError,
+  methodNotAllowed,
+  wantsJson,
+} from "../../lib/rest.ts"
 
 const allow = ["GET"]
-const {request, params} = Astro
+const { request, params } = Astro
 if (!allow.includes(request.method)) return methodNotAllowed(allow)
 const asJson = wantsJson(request)
 
@@ -20,10 +26,15 @@ try {
   Astro.response.status = e.status
 }
 const questions = quiz ? await getQuestions(quiz.id) : []
-if (asJson) return json({...quiz, questions})
+if (asJson) return json({ ...quiz, questions })
 
-const player = quiz && {id: quiz.id, slug: quiz.slug, title: quiz.title,
-  randomize_question_order: quiz.randomize_question_order, randomize_option_order: quiz.randomize_option_order}
+const player = quiz && {
+  id: quiz.id,
+  slug: quiz.slug,
+  title: quiz.title,
+  randomize_question_order: quiz.randomize_question_order,
+  randomize_option_order: quiz.randomize_option_order,
+}
 ---
 <Layout title={quiz?.title ?? "Quiz not found"} description={quiz?.description}>
   <p><a href="/quiz">← All quizzes</a></p>

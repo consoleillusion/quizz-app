@@ -1,29 +1,35 @@
 <script lang="ts">
-  // Fill ⟦n⟧ slots in the exhibit from the token bank. Answer is [token per gap].
-  let {q, saved, onsubmit} = $props()
-  let fills: (string | null)[] = $state(saved ? [...saved.answer] : q.gaps.map(() => null))
-  const complete = $derived(fills.every(f => f !== null))
+// Fill ⟦n⟧ slots in the exhibit from the token bank. Answer is [token per gap].
+let { q, saved, onsubmit } = $props()
+let fills: (string | null)[] = $state(
+  saved ? [...saved.answer] : q.gaps.map(() => null),
+)
+const complete = $derived(fills.every((f) => f !== null))
 
-  const parts = (q.exhibit ?? "").split(/(⟦\d+⟧)/).map((part: string) => {
-    const slot = part.match(/^⟦(\d+)⟧$/)
-    return slot ? {slot: Number(slot[1]) - 1} : {text: part}
-  })
+const parts = (q.exhibit ?? "").split(/(⟦\d+⟧)/).map((part: string) => {
+  const slot = part.match(/^⟦(\d+)⟧$/)
+  return slot ? { slot: Number(slot[1]) - 1 } : { text: part }
+})
 
-  function mark(g: number) {
-    // Purpose: feedback class for a slot once the question is answered
-    return saved ? (q.gaps[g].accepted_tokens.includes(saved.answer[g]) ? "ok" : "bad") : ""
-  }
+function mark(g: number) {
+  // Purpose: feedback class for a slot once the question is answered
+  return saved
+    ? q.gaps[g].accepted_tokens.includes(saved.answer[g])
+      ? "ok"
+      : "bad"
+    : ""
+}
 
-  function takenElsewhere(token: string, g: number) {
-    // Purpose: when tokens can't be reused, true if another slot already holds this token
-    return !q.reuse_tokens && fills.some((f, i) => i !== g && f === token)
-  }
+function takenElsewhere(token: string, g: number) {
+  // Purpose: when tokens can't be reused, true if another slot already holds this token
+  return !q.reuse_tokens && fills.some((f, i) => i !== g && f === token)
+}
 
-  function submit(event: SubmitEvent) {
-    // Purpose: send the slot fills to the quiz
-    event.preventDefault()
-    if (complete) onsubmit([...fills])
-  }
+function submit(event: SubmitEvent) {
+  // Purpose: send the slot fills to the quiz
+  event.preventDefault()
+  if (complete) onsubmit([...fills])
+}
 </script>
 
 <form onsubmit={submit}>

@@ -1,21 +1,21 @@
 <script lang="ts">
-  // Single choice: radio buttons. Answer is [optionIndex] in stored order.
-  let {q, display, saved, onsubmit} = $props()
-  const order: number[] = display ?? q.options.map((_: unknown, i: number) => i)
-  let choice: number | null = $state(saved?.answer[0] ?? null)
+// Single choice: radio buttons. Answer is [optionIndex] in stored order.
+let { q, display, saved, onsubmit } = $props()
+const order: number[] = display ?? q.options.map((_: unknown, i: number) => i)
+let choice: number | null = $state(saved?.answer[0] ?? null)
 
-  function mark(i: number) {
-    // Purpose: feedback class for an option once the question is answered
-    if (!saved) return ""
-    if (q.options[i].points > 0) return "ok"
-    return saved.answer.includes(i) ? "bad" : ""
-  }
+function mark(i: number) {
+  // Purpose: feedback class for an option once the question is answered
+  if (!saved) return ""
+  if (q.options[i].points > 0) return "ok"
+  return saved.answer.includes(i) ? "bad" : ""
+}
 
-  function submit(event: SubmitEvent) {
-    // Purpose: send the chosen option to the quiz
-    event.preventDefault()
-    if (choice !== null) onsubmit([choice])
-  }
+function submit(event: SubmitEvent) {
+  // Purpose: send the chosen option to the quiz
+  event.preventDefault()
+  if (choice !== null) onsubmit([choice])
+}
 </script>
 
 <form onsubmit={submit}>

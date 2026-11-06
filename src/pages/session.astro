@@ -6,32 +6,51 @@
 //           2. {loginId, finishLoginRequest, publicKey, proof}  → 201 with the user; starts a session
 //   DELETE  log out (forms send POST with _method=DELETE).  Form: 303 to /session.  JSON: 204.
 import Layout from "../layouts/Layout.astro"
-import {HttpError, effectiveMethod, json, jsonError, methodNotAllowed, seeOther, wantsJson} from "../lib/rest.ts"
-import {endSession, finishLogin, safeNext, startLogin, startSession} from "../lib/auth.ts"
+import {
+  endSession,
+  finishLogin,
+  safeNext,
+  startLogin,
+  startSession,
+} from "../lib/auth.ts"
+import {
+  effectiveMethod,
+  HttpError,
+  json,
+  jsonError,
+  methodNotAllowed,
+  seeOther,
+  wantsJson,
+} from "../lib/rest.ts"
 
 const allow = ["GET", "POST", "DELETE"]
-const {request, url, cookies, locals} = Astro
+const { request, url, cookies, locals } = Astro
 const method = await effectiveMethod(request)
 if (!allow.includes(method)) return methodNotAllowed(allow)
 
 if (method === "DELETE") {
   await endSession(cookies)
-  return wantsJson(request) ? new Response(null, {status: 204}) : seeOther("/session")
+  return wantsJson(request)
+    ? new Response(null, { status: 204 })
+    : seeOther("/session")
 }
 if (method === "POST") {
   try {
     const input = await request.json().catch(() => ({}))
     if (!("finishLoginRequest" in input)) return json(await startLogin(input))
-    const {user, publicKey} = await finishLogin(input)
+    const { user, publicKey } = await finishLogin(input)
     await endSession(cookies)
     await startSession(cookies, user, publicKey, url.protocol === "https:")
-    return json(user, 201, {location: "/session"})
+    return json(user, 201, { location: "/session" })
   } catch (e) {
     if (!(e instanceof HttpError)) throw e
     return jsonError(e)
   }
 }
-if (wantsJson(request)) return locals.user ? json(locals.user) : jsonError(new HttpError(401, "Not logged in"))
+if (wantsJson(request))
+  return locals.user
+    ? json(locals.user)
+    : jsonError(new HttpError(401, "Not logged in"))
 const next = url.searchParams.get("next") ?? "/quiz"
 ---
 <Layout title={locals.user ? "Account" : "Log in"}>

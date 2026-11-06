@@ -1,11 +1,11 @@
 ---
+import Dashboard from "../components/Dashboard.svelte"
 // /dashboard: progress over time. Answers live in this browser (IndexedDB), so the page ships
 // a compact index of questions and quizzes and the chart is drawn client-side.
 //   GET  HTML: the dashboard.  JSON (?format=json): the question and quiz index it uses.
 import Layout from "../layouts/Layout.astro"
-import Dashboard from "../components/Dashboard.svelte"
-import {json, methodNotAllowed, wantsJson} from "../lib/rest.ts"
-import {questionIndex} from "../lib/quizzes.ts"
+import { questionIndex } from "../lib/quizzes.ts"
+import { json, methodNotAllowed, wantsJson } from "../lib/rest.ts"
 
 const allow = ["GET"]
 if (!allow.includes(Astro.request.method)) return methodNotAllowed(allow)

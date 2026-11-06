@@ -1,6 +1,8 @@
-import {connect} from "@tursodatabase/database"
+import { connect } from "@tursodatabase/database"
 
-const options = {experimental: ["views", "custom_types", "encryption", "vacuum"]}
+const options = {
+  experimental: ["views", "custom_types", "encryption", "vacuum"],
+}
 
 export const open = async (path: string = process.env.DB_PATH ?? ".db") => {
   // Purpose: open the database with foreign key enforcement switched on

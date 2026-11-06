@@ -1,35 +1,47 @@
 ---
+import SchemaForm from "../../components/SchemaForm.astro"
 // /quiz: the quiz collection.
 //   GET  /quiz[?page=&limit=&filter[tag]=]   cards (HTML) or {items, total, page, limit, pages, links} (JSON)
 //   POST /quiz                  create a quiz from a form or a JSON body
 import Layout from "../../layouts/Layout.astro"
-import SchemaForm from "../../components/SchemaForm.astro"
-import {HttpError, collection, json, jsonError, methodNotAllowed, pageParams, seeOther, readBody, wantsJson} from "../../lib/rest.ts"
-import {createQuiz, listQuizzes} from "../../lib/quizzes.ts"
+import { createQuiz, listQuizzes } from "../../lib/quizzes.ts"
+import {
+  collection,
+  HttpError,
+  json,
+  jsonError,
+  methodNotAllowed,
+  pageParams,
+  readBody,
+  seeOther,
+  wantsJson,
+} from "../../lib/rest.ts"
 
 const allow = ["GET", "POST"]
-const {request, url} = Astro
+const { request, url } = Astro
 if (!allow.includes(request.method)) return methodNotAllowed(allow)
 const asJson = wantsJson(request)
 
-let formErrors: {field: string, message: string}[] = []
+let formErrors: { field: string; message: string }[] = []
 let formValues: Record<string, unknown> = {}
 if (request.method === "POST") {
   try {
     formValues = await readBody(request, "quiz")
     const quiz = await createQuiz(formValues)
-    return asJson ? json(quiz, 201, {location: quiz.url}) : seeOther(quiz.url)
+    return asJson ? json(quiz, 201, { location: quiz.url }) : seeOther(quiz.url)
   } catch (e) {
     if (!(e instanceof HttpError)) throw e
     if (asJson) return jsonError(e)
-    formErrors = e.errors.length ? e.errors : [{field: "", message: e.message}]
+    formErrors = e.errors.length
+      ? e.errors
+      : [{ field: "", message: e.message }]
     Astro.response.status = e.status
   }
 }
 
 const paging = pageParams(url)
 const tag = url.searchParams.get("filter[tag]")
-const {items, total} = await listQuizzes({...paging, tag})
+const { items, total } = await listQuizzes({ ...paging, tag })
 const page = collection(url, items, total, paging)
 if (asJson) return json(page)
 ---

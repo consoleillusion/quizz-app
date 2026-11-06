@@ -4,7 +4,16 @@ title: "User Answer"
 type: "object"
 additionalProperties: false
 description: "One answer a user gave. The browser keeps the same records in IndexedDB; they're synced through /answer."
-required: ["user_id", "question_type", "question_id", "answer", "points", "correct", "answered_at"]
+required:
+  [
+    "user_id",
+    "question_type",
+    "question_id",
+    "answer",
+    "points",
+    "correct",
+    "answered_at",
+  ]
 x-unique: [["user_id", "question_id", "answered_at"]]
 properties:
   user_id:

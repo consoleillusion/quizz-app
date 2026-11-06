@@ -64,78 +64,65 @@ The goal is to build a learning and quiz app.
 ## Technology Stack
 
 **Frontend & UI**
+
 - Meta-framework: [Astro](<https://docs.astro.build/)
 - Interactive Components: [Svelte](<https://docs.astro.build/en/guides/integrations-guide/svelte/>)
-- CSS Framework:  [Pico CSS](<https://picocss.com/docs/>)
+- CSS Framework: [Pico CSS](<https://picocss.com/docs/>)
 - Icons: [Lucide Icons](https://lucide.dev/icons/) with [Morphicons](https://www.morphicons.com/)
-**Backend & Data**
+  **Backend & Data**
 - Database: [Turso](<https://docs.turso.tech/sdk/ts/reference>)
 - JSON API Server: [Elysia](<https://www.npmjs.com/package/elysia>)
 - JSON:API Serialization: [ts-japi](<https://www.npmjs.com/package/ts-japi>)
-**Authentication & Authorization**
+  **Authentication & Authorization**
 - Authentication / Authorization: [Serenity](<https://github.com/serenity-kit/opaque>)
-**Programming Paradigms & Utilities**
+  **Programming Paradigms & Utilities**
 - Functional Programming: [Ramda](<https://ramdajs.com/docs/>). [zamda]() mostly just ramda but with some special cases like pipes take a list of functions not variadic number of functions. Also it has functions like `Z.camelCase(x)`.
 
 ### Coding Style
+
 - Modular sections, using components.
 - Prefer prerendered content where possible. If something that needs to be done can be done in astro rather than svelte, do it there, since it can be done without delivering javascript so it will be more performant.
 - Rely heavily on global style. Please only minimally style components
 - Codebase should be small, Readable, Use libraries if necessary, but try to keep few dependencies as well. To meet these goals, use
-    - Modular code
-    - Functional style, often tacit/pointfree
-    - Leverage well known conventions such as
-        - jsonschema used to describe tables
-        - native html functionality is used rather than reinventing with javascript
-        - if importing a library could save a substantial amount of code without significantly forcing structural changes or slowing performance or security it should be considered.
-        - LATER openapi used to describe api. Dont do this now, focus on the main tasks.
+  - Modular code
+  - Functional style, often tacit/pointfree
+  - Leverage well known conventions such as
+    - jsonschema used to describe tables
+    - native html functionality is used rather than reinventing with javascript
+    - if importing a library could save a substantial amount of code without significantly forcing structural changes or slowing performance or security it should be considered.
+    - LATER openapi used to describe api. Dont do this now, focus on the main tasks.
 - Schema of the tables is defined in the schema folder, and the sqld/sqlite tables are generated directly from the schema. So you can rely on these types.
 - Users can register, and their accounts are saved to the users table.
 - Users answers are saved in the user_answers table on the server, but are also persisted to indexeddb in the browser. IndexedDB and the users answers on the server should be kept in sync.
 
 ### Code style (for new and changed code; don't restyle existing code just for this)
+
 - Functional style with Ramda: small pure functions composed with `pipe`/`compose`; avoid loops and mutation where a Ramda function does the job.
 - Use `const`. Avoid `let` and `var` where possible, but use where necessariy, such as svelte components.
 - No classes. JSON Schema (in `src/db/schema/*.yml`) describes data shapes; use plain objects and functions.
 - Leading commas, Haskell style, for multi-line objects, arrays and argument lists:
 
 ```ts
-import Z from '@consoleillusion/zamda'
+import Z from "@consoleillusion/zamda";
 
 // Defining records
-const x =
-    { a: 1
-    , b: 2
-    , c: 3
-    }
+const x = { a: 1, b: 2, c: 3 };
 
 // Defining functions
-const fn =
-    (val: string) => Z.pipe(
-      [ fn1
-      , fn2
-      , fn3
-      ]) (val) 
+const fn = (val: string) => Z.pipe([fn1, fn2, fn3])(val);
 
 // Follows sanctuary style pipes with list argument of functions
-const pipeline = 
-    (val: string) => Z.pipe(
-        [ Z.pascalCase
-        , Z.trim
-        ]) (val)
+const pipeline = (val: string) => Z.pipe([Z.pascalCase, Z.trim])(val);
 
 // Z.pipeSync auto awaits, making functional asyncronous programming less messy
-const pipeline2 = 
-    (url: string) => Z.pipeSync(
-        [ fetch
-        , Z.log
-        ]) (url)
+const pipeline2 = (url: string) => Z.pipeSync([fetch, Z.log])(url);
 ```
 
 - Only use TypeScript type annotations when its native, do not make new types
-- Every function has a comment above it `// Purpose: ...` 
+- Every function has a comment above it `// Purpose: ...`
 
 ### Data
+
 - All data lives in the database. YAML is only for the table schemas in `src/db/schema`. No seed or fixture data files.
 - Schema changes are applied with migrations in `src/db/migrations`, which change the database in place. Never rebuild the database to change its schema.
 - Back up before migrating: `bun run db:backup`.
@@ -143,6 +130,7 @@ const pipeline2 =
 - Questions belong to no quiz. Quizzes reference questions explicitly (`quiz_question`) and/or by tag rules (`quiz_rule`).
 
 ## Extra Instructions
+
 - Ignore whats in experimental folder for now
 - Don't change all the coding unless you are already editing that file for some other reason
 - If you are editing a file, do change the coding style to match it

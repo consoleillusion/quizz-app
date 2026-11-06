@@ -1,68 +1,98 @@
 <script lang="ts">
-  // Progress dashboard: reads the answer log from this browser, filters it by scope and time
-  // range, and plots it with uPlot. Filters are mirrored in the URL so views can be bookmarked.
-  import {onMount} from "svelte"
-  import {syncLog, type AnswerRecord} from "../lib/progress.ts"
-  import {answerExtent, answersInRange, answersInScope, autoBucket, clampRange, questionInScope, scopeOptions, series, summary} from "../lib/stats.ts"
-  import TimeChart from "./TimeChart.svelte"
-  import {number} from "../lib/tags.ts"
-  import {Slider} from "bits-ui"
-  import {MorphIcon} from "morphicons/svelte"
-  import {Check, X} from "lucide"
+// Progress dashboard: reads the answer log from this browser, filters it by scope and time
+// range, and plots it with uPlot. Filters are mirrored in the URL so views can be bookmarked.
 
+import { Slider } from "bits-ui"
+import { Check, X } from "lucide"
+import { MorphIcon } from "morphicons/svelte"
+import { onMount } from "svelte"
+import { type AnswerRecord, syncLog } from "../lib/progress.ts"
+import {
+  answerExtent,
+  answersInRange,
+  answersInScope,
+  autoBucket,
+  clampRange,
+  questionInScope,
+  scopeOptions,
+  series,
+  summary,
+} from "../lib/stats.ts"
+import { number } from "../lib/tags.ts"
+import TimeChart from "./TimeChart.svelte"
 
-  const params = new URLSearchParams(location.search)
-  let {meta, loggedIn}: {meta, loggedIn: boolean} = $props()
-  let log: AnswerRecord[] = $state([])
-  let ready = $state(false)
-  let synced = $state(false)
-  let scope = $state(params.get("scope") ?? "all")
-  let lo = $state(Number(params.get("from")) || 0)
-  let hi = $state(Number(params.get("to")) || 0)
+const params = new URLSearchParams(location.search)
+let { meta, loggedIn }: { meta; loggedIn: boolean } = $props()
+let log: AnswerRecord[] = $state([])
+let ready = $state(false)
+let synced = $state(false)
+let scope = $state(params.get("scope") ?? "all")
+let lo = $state(Number(params.get("from")) || 0)
+let hi = $state(Number(params.get("to")) || 0)
 
-  const groups = scopeOptions(meta)
-  const inScope = $derived(answersInScope(log, scope, meta))
-  const extent = $derived(answerExtent(inScope))
-  const span = $derived(extent ? clampRange({from: lo, to: hi}, extent) : {from: 0, to: 0})
-  const step = $derived(extent && extent.to - extent.from > 7 * 86_400_000 ? 3_600_000 : 60_000)
-  const bucket = $derived(autoBucket(span))
-  const shown = $derived(answersInRange(inScope, span))
-  const data = $derived(series(shown, span, bucket))
-  const scopeIds = $derived(Object.keys(meta.questions).filter(id => questionInScope(scope, meta)(id)))
-  const stats = $derived(summary(shown, scopeIds))
-  const recent = $derived(shown.slice(-50).reverse())
+const groups = scopeOptions(meta)
+const inScope = $derived(answersInScope(log, scope, meta))
+const extent = $derived(answerExtent(inScope))
+const span = $derived(
+  extent ? clampRange({ from: lo, to: hi }, extent) : { from: 0, to: 0 },
+)
+const step = $derived(
+  extent && extent.to - extent.from > 7 * 86_400_000 ? 3_600_000 : 60_000,
+)
+const bucket = $derived(autoBucket(span))
+const shown = $derived(answersInRange(inScope, span))
+const data = $derived(series(shown, span, bucket))
+const scopeIds = $derived(
+  Object.keys(meta.questions).filter((id) => questionInScope(scope, meta)(id)),
+)
+const stats = $derived(summary(shown, scopeIds))
+const recent = $derived(shown.slice(-50).reverse())
 
-  let lastScope = scope
-  $effect(() => {
-    // Purpose: when the scope changes (or the log first loads), widen the slider to the scope's whole span
-    if (!extent) return
-    if (scope !== lastScope || !lo || !hi) { lastScope = scope; lo = extent.from; hi = extent.to; return }
-    const clamped = clampRange({from: lo, to: hi}, extent)
-    if (clamped.from !== lo || clamped.to !== hi) { lo = clamped.from; hi = clamped.to }
-  })
-
-  $effect(() => {
-    // Purpose: keep the URL query in step with the filters
-    const q = new URLSearchParams({scope})
-    if (lo && hi) { q.set("from", String(Math.round(lo))); q.set("to", String(Math.round(hi))) }
-    history.replaceState(null, "", `${location.pathname}?${q}`)
-  })
-
-  function when(ms: number) {
-    // Purpose: format a slider position as a short local date and time
-    return new Date(ms).toLocaleString(undefined, {dateStyle: "medium", timeStyle: "short"})
+let lastScope = scope
+$effect(() => {
+  // Purpose: when the scope changes (or the log first loads), widen the slider to the scope's whole span
+  if (!extent) return
+  if (scope !== lastScope || !lo || !hi) {
+    lastScope = scope
+    lo = extent.from
+    hi = extent.to
+    return
   }
-
-  function quizOf(a: AnswerRecord) {
-    // Purpose: the quiz an answer was given in, for the recent-answers table
-    return meta.quizzes[a.quiz_id]
+  const clamped = clampRange({ from: lo, to: hi }, extent)
+  if (clamped.from !== lo || clamped.to !== hi) {
+    lo = clamped.from
+    hi = clamped.to
   }
+})
 
-  onMount(async () => {
-    // Purpose: load the answer log, merged with the server's copy when logged in
-    ;({answers: log, synced} = await syncLog())
-    ready = true
+$effect(() => {
+  // Purpose: keep the URL query in step with the filters
+  const q = new URLSearchParams({ scope })
+  if (lo && hi) {
+    q.set("from", String(Math.round(lo)))
+    q.set("to", String(Math.round(hi)))
+  }
+  history.replaceState(null, "", `${location.pathname}?${q}`)
+})
+
+function when(ms: number) {
+  // Purpose: format a slider position as a short local date and time
+  return new Date(ms).toLocaleString(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
   })
+}
+
+function quizOf(a: AnswerRecord) {
+  // Purpose: the quiz an answer was given in, for the recent-answers table
+  return meta.quizzes[a.quiz_id]
+}
+
+onMount(async () => {
+  // Purpose: load the answer log, merged with the server's copy when logged in
+  ;({ answers: log, synced } = await syncLog())
+  ready = true
+})
 </script>
 
 <form onsubmit={e => e.preventDefault()}>

@@ -1,29 +1,36 @@
 <script lang="ts">
-  // End-of-set summary: score, breakdown by blueprint domain, and links to missed questions.
-  import {label, number, ofType} from "../lib/tags.ts"
-  let {questions, order, answers, onjump} = $props()
+// End-of-set summary: score, breakdown by blueprint domain, and links to missed questions.
+import { label, number, ofType } from "../lib/tags.ts"
 
-  const scored = $derived(order.map((qi: number, pos: number) => ({q: questions[qi], pos, record: answers[questions[qi].id]})))
-  const correct = $derived(scored.filter((s: any) => s.record?.correct).length)
-  const missed = $derived(scored.filter((s: any) => !s.record?.correct))
-  const domains = $derived.by(() => {
-    // Purpose: tally right and total answers per blueprint domain
-    const rows = new Map<string, {right: number, total: number}>()
-    for (const {q, record} of scored) {
-      const domain = ofType("domain")(q.tags)
-      const key = domain ? label(domain) : "Untagged"
-      const row = rows.get(key) ?? {right: 0, total: 0}
-      row.total++
-      if (record?.correct) row.right++
-      rows.set(key, row)
-    }
-    return [...rows].sort(([a], [b]) => a.localeCompare(b))
-  })
+let { questions, order, answers, onjump } = $props()
 
-  function jump(event: MouseEvent) {
-    // Purpose: go to the question whose position is in the button's data-pos attribute
-    onjump(Number((event.currentTarget as HTMLElement).dataset.pos))
+const scored = $derived(
+  order.map((qi: number, pos: number) => ({
+    q: questions[qi],
+    pos,
+    record: answers[questions[qi].id],
+  })),
+)
+const correct = $derived(scored.filter((s: any) => s.record?.correct).length)
+const missed = $derived(scored.filter((s: any) => !s.record?.correct))
+const domains = $derived.by(() => {
+  // Purpose: tally right and total answers per blueprint domain
+  const rows = new Map<string, { right: number; total: number }>()
+  for (const { q, record } of scored) {
+    const domain = ofType("domain")(q.tags)
+    const key = domain ? label(domain) : "Untagged"
+    const row = rows.get(key) ?? { right: 0, total: 0 }
+    row.total++
+    if (record?.correct) row.right++
+    rows.set(key, row)
   }
+  return [...rows].sort(([a], [b]) => a.localeCompare(b))
+})
+
+function jump(event: MouseEvent) {
+  // Purpose: go to the question whose position is in the button's data-pos attribute
+  onjump(Number((event.currentTarget as HTMLElement).dataset.pos))
+}
 </script>
 
 <section aria-labelledby="results-title">

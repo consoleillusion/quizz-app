@@ -1,11 +1,11 @@
 ---
 // /: the exams (tags of type exam) as cards, each linking to its quizzes. JSON with ?format=json.
 import Layout from "../layouts/Layout.astro"
-import {json, wantsJson} from "../lib/rest.ts"
-import {listExams} from "../lib/quizzes.ts"
+import { listExams } from "../lib/quizzes.ts"
+import { json, wantsJson } from "../lib/rest.ts"
 
 const exams = await listExams()
-if (wantsJson(Astro.request)) return json({items: exams})
+if (wantsJson(Astro.request)) return json({ items: exams })
 ---
 <Layout title="Exams">
   <h1>Exams</h1>
