@@ -85,7 +85,7 @@
   function marker(i: number) {
     // Purpose: status prefix for a question in the jump list
     const a = answers[questions[order[i]].id]
-    return a ? (a.correct ? "✓" : "✗") : "·"
+    return a ? (a.correct ? "✓" : "✗") : " "
   }
 
   onMount(async () => {
