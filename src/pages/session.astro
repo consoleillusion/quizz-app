@@ -6,13 +6,7 @@
 //           2. {loginId, finishLoginRequest, publicKey, proof}  → 201 with the user; starts a session
 //   DELETE  log out (forms send POST with _method=DELETE).  Form: 303 to /session.  JSON: 204.
 import Layout from "../layouts/Layout.astro"
-import {
-  endSession,
-  finishLogin,
-  safeNext,
-  startLogin,
-  startSession,
-} from "../lib/auth.ts"
+import { endSession, finishLogin, safeNext, startLogin, startSession } from "../lib/auth.ts"
 import {
   effectiveMethod,
   HttpError,
@@ -30,9 +24,7 @@ if (!allow.includes(method)) return methodNotAllowed(allow)
 
 if (method === "DELETE") {
   await endSession(cookies)
-  return wantsJson(request)
-    ? new Response(null, { status: 204 })
-    : seeOther("/session")
+  return wantsJson(request) ? new Response(null, { status: 204 }) : seeOther("/session")
 }
 if (method === "POST") {
   try {
@@ -48,9 +40,7 @@ if (method === "POST") {
   }
 }
 if (wantsJson(request))
-  return locals.user
-    ? json(locals.user)
-    : jsonError(new HttpError(401, "Not logged in"))
+  return locals.user ? json(locals.user) : jsonError(new HttpError(401, "Not logged in"))
 const next = url.searchParams.get("next") ?? "/quiz"
 ---
 <Layout title={locals.user ? "Account" : "Log in"}>

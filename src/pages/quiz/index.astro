@@ -32,9 +32,7 @@ if (request.method === "POST") {
   } catch (e) {
     if (!(e instanceof HttpError)) throw e
     if (asJson) return jsonError(e)
-    formErrors = e.errors.length
-      ? e.errors
-      : [{ field: "", message: e.message }]
+    formErrors = e.errors.length ? e.errors : [{ field: "", message: e.message }]
     Astro.response.status = e.status
   }
 }

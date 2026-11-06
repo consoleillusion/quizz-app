@@ -9,14 +9,7 @@ export type Tag = {
   description?: string
 }
 
-export const tagTypes = [
-  "exam",
-  "domain",
-  "objective",
-  "topic",
-  "generic",
-  "vendor",
-] as const
+export const tagTypes = ["exam", "domain", "objective", "topic", "generic", "vendor"] as const
 
 export const ofType =
   (type: string) =>

@@ -13,8 +13,9 @@ const TEST_PASSWORD = "test-password"
 
 const recordFor = (username: string, password: string) => {
   // Purpose: run both sides of OPAQUE registration here and return the registration record
-  const { clientRegistrationState, registrationRequest } =
-    opaque.client.startRegistration({ password })
+  const { clientRegistrationState, registrationRequest } = opaque.client.startRegistration({
+    password,
+  })
   const { registrationResponse } = opaque.server.createRegistrationResponse({
     serverSetup: process.env.OPAQUE_SERVER_SETUP!,
     userIdentifier: opaqueIdentifier(username),
@@ -34,13 +35,11 @@ export const up = async (db: any) => {
   const schemas = await loadSchema()
   for (const drop of await rebuildDerivedSQL(db, schemas)) await db.exec(drop)
   await db.exec(
-    "ALTER TABLE session ADD COLUMN public_key jsonb DEFAULT NULL CHECK (json_type(public_key) = 'object')",
+    "ALTER TABLE session ADD COLUMN public_key jsonb DEFAULT NULL CHECK (json_type(public_key) = 'object')"
   )
   await db.batch(databaseSQL(schemas), "write")
   for (const u of await db
-    .prepare(
-      "SELECT id, username FROM user WHERE password_hash LIKE 'scrypt$%'",
-    )
+    .prepare("SELECT id, username FROM user WHERE password_hash LIKE 'scrypt$%'")
     .all())
     await db
       .prepare("UPDATE user SET password_hash = ? WHERE id = ?")

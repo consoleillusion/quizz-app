@@ -1,8 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { grade, isComplete } from "./grade.ts"
 
-const opts = (...pts: number[]) =>
-  pts.map((points, i) => ({ text: `o${i}`, points }))
+const opts = (...pts: number[]) => pts.map((points, i) => ({ text: `o${i}`, points }))
 
 describe("grade", () => {
   test("multichoice", () => {
@@ -32,10 +31,7 @@ describe("grade", () => {
   test("slotfill scores each gap", () => {
     const q = {
       type: "slotfill",
-      gaps: [
-        { accepted_tokens: ["43"] },
-        { accepted_tokens: ["80", "8080"], points: 2 },
-      ],
+      gaps: [{ accepted_tokens: ["43"] }, { accepted_tokens: ["80", "8080"], points: 2 }],
     }
     expect(grade(q, ["43", "8080"])).toEqual({
       correct: true,
@@ -49,35 +45,22 @@ describe("grade", () => {
     })
   })
   test("open honours case and number rules", () => {
+    expect(grade({ type: "open", answers: ["Running"] } as any, [" running "]).correct).toBe(true)
     expect(
-      grade({ type: "open", answers: ["Running"] } as any, [" running "])
-        .correct,
-    ).toBe(true)
-    expect(
-      grade(
-        { type: "open", answers: ["Running"], case_sensitive: true } as any,
-        ["running"],
-      ).correct,
+      grade({ type: "open", answers: ["Running"], case_sensitive: true } as any, ["running"])
+        .correct
     ).toBe(false)
     expect(
-      grade({ type: "open", answers: ["830"], answer_type: "integer" } as any, [
-        "0830",
-      ]).correct,
+      grade({ type: "open", answers: ["830"], answer_type: "integer" } as any, ["0830"]).correct
     ).toBe(true)
   })
 })
 
 describe("isComplete", () => {
   test("needs every slot filled", () => {
-    expect(isComplete({ type: "match", prompts: ["a", "b"] }, [1, null])).toBe(
-      false,
-    )
-    expect(isComplete({ type: "match", prompts: ["a", "b"] }, [1, 0])).toBe(
-      true,
-    )
-    expect(
-      isComplete({ type: "multiselect", number_of_selections: 2 }, [1]),
-    ).toBe(false)
+    expect(isComplete({ type: "match", prompts: ["a", "b"] }, [1, null])).toBe(false)
+    expect(isComplete({ type: "match", prompts: ["a", "b"] }, [1, 0])).toBe(true)
+    expect(isComplete({ type: "multiselect", number_of_selections: 2 }, [1])).toBe(false)
     expect(isComplete({ type: "multichoice" }, undefined)).toBe(false)
   })
 })

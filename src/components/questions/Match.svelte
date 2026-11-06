@@ -2,10 +2,8 @@
 // One-to-one matching: a select per prompt. Answer is [responseIndex per prompt].
 let { q, display, saved, onsubmit } = $props()
 const order: number[] = display ?? q.responses.map((_: unknown, i: number) => i)
-let picks: (number | null)[] = $state(
-  saved ? [...saved.answer] : q.prompts.map(() => null),
-)
-const complete = $derived(picks.every((p) => p !== null))
+let picks: (number | null)[] = $state(saved ? [...saved.answer] : q.prompts.map(() => null))
+const complete = $derived(picks.every(p => p !== null))
 
 function submit(event: SubmitEvent) {
   // Purpose: send the chosen pairings to the quiz

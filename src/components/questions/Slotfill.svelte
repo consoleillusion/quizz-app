@@ -1,10 +1,8 @@
 <script lang="ts">
 // Fill ⟦n⟧ slots in the exhibit from the token bank. Answer is [token per gap].
 let { q, saved, onsubmit } = $props()
-let fills: (string | null)[] = $state(
-  saved ? [...saved.answer] : q.gaps.map(() => null),
-)
-const complete = $derived(fills.every((f) => f !== null))
+let fills: (string | null)[] = $state(saved ? [...saved.answer] : q.gaps.map(() => null))
+const complete = $derived(fills.every(f => f !== null))
 
 const parts = (q.exhibit ?? "").split(/(⟦\d+⟧)/).map((part: string) => {
   const slot = part.match(/^⟦(\d+)⟧$/)
@@ -13,11 +11,7 @@ const parts = (q.exhibit ?? "").split(/(⟦\d+⟧)/).map((part: string) => {
 
 function mark(g: number) {
   // Purpose: feedback class for a slot once the question is answered
-  return saved
-    ? q.gaps[g].accepted_tokens.includes(saved.answer[g])
-      ? "ok"
-      : "bad"
-    : ""
+  return saved ? (q.gaps[g].accepted_tokens.includes(saved.answer[g]) ? "ok" : "bad") : ""
 }
 
 function takenElsewhere(token: string, g: number) {

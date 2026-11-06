@@ -14,25 +14,17 @@ interface Props {
   optional?: string[]
   hint?: Record<string, string>
 }
-const {
-  table,
-  action,
-  submit,
-  values = {},
-  errors = [],
-  optional = [],
-  hint = {},
-} = Astro.props
+const { table, action, submit, values = {}, errors = [], optional = [], hint = {} } = Astro.props
 const schema = schemas[table]
 const required: string[] = schema.required ?? []
 const fields = (Object.entries(schema.properties) as [string, any][]).filter(
-  ([, x]) => !x.readOnly && !x["x-references"],
+  ([, x]) => !x.readOnly && !x["x-references"]
 )
 const errorFor = (name: string) =>
   // Purpose: the error messages for one field, joined
   errors
-    .filter((e) => e.field === name)
-    .map((e) => e.message)
+    .filter(e => e.field === name)
+    .map(e => e.message)
     .join("; ")
 const valueOf = (name: string, x: any) =>
   // Purpose: the field's submitted value, falling back to its schema default

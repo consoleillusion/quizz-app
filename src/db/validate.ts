@@ -15,18 +15,16 @@ export const makeValidators = (schemas: any[]) => {
   const ajv = new Ajv2020({ allErrors: true, strict: true, useDefaults: false })
   addFormats(ajv)
   ajv.addVocabulary(extensionKeywords)
-  return Object.fromEntries(
-    schemas.map((schema) => [tableName(schema), ajv.compile(schema)]),
-  )
+  return Object.fromEntries(schemas.map(schema => [tableName(schema), ajv.compile(schema)]))
 }
 
 export const errorText = (errors: any[] = []) =>
   // Purpose: flatten ajv errors into one readable line
-  errors.map((e) => `${e.instancePath || "/"} ${e.message}`).join("; ")
+  errors.map(e => `${e.instancePath || "/"} ${e.message}`).join("; ")
 
 export const errorsByField = (errors: any[] = []) =>
   // Purpose: turn ajv errors into {field, message} pairs, naming the offending property
-  errors.map((e) => ({
+  errors.map(e => ({
     field:
       e.params?.missingProperty ??
       e.params?.additionalProperty ??

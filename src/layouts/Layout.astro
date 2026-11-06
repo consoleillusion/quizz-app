@@ -1,13 +1,5 @@
 ---
-import {
-  ChartLine,
-  CircleUser,
-  GraduationCap,
-  ListChecks,
-  LogIn,
-  Moon,
-  UserPlus,
-} from "lucide"
+import { ChartLine, CircleUser, GraduationCap, ListChecks, LogIn, Moon, UserPlus } from "lucide"
 // Page shell: Pico CSS styles plain HTML; a few lines below add answer feedback colours.
 import MorphIcon from "morphicons/astro"
 
@@ -15,8 +7,7 @@ interface Props {
   title: string
   description?: string
 }
-const { title, description = "Cisco certification practice quizzes" } =
-  Astro.props
+const { title, description = "Cisco certification practice quizzes" } = Astro.props
 const user = Astro.locals.user
 const next = encodeURIComponent(Astro.url.pathname)
 // Theme colours: set here, exposed as CSS variables on <html>, and mapped onto Pico's variables below.

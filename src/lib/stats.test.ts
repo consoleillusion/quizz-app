@@ -48,12 +48,7 @@ const meta: Meta = {
     z2: { slug: "quiz-1", title: "Practice Quiz 1", tags: [] },
   },
 }
-const at = (
-  iso: string,
-  question_id: string,
-  quiz_id: string,
-  correct: boolean,
-) => ({
+const at = (iso: string, question_id: string, quiz_id: string, correct: boolean) => ({
   user_id: "u",
   quiz_id,
   question_type: "x",
@@ -76,14 +71,12 @@ describe("scope", () => {
       at("2026-10-01T11:00:00Z", "q1", "z2", false),
       at("2026-10-01T12:00:00Z", "q1", "old-quiz", true),
     ]
-    expect(
-      answersInScope(answers, "quiz:z2", meta).map((a) => a.correct),
-    ).toEqual([false, true])
+    expect(answersInScope(answers, "quiz:z2", meta).map(a => a.correct)).toEqual([false, true])
     expect(answersInScope(answers, "all", meta).length).toBe(3)
   })
   test("options group used tags by type, in natural order, then quizzes", () => {
     const groups = Object.fromEntries(
-      scopeOptions(meta).map((g) => [g.label, g.options.map((o) => o.label)]),
+      scopeOptions(meta).map(g => [g.label, g.options.map(o => o.label)])
     )
     expect(groups.Exams).toEqual(["ENAUTO"])
     expect(groups.Objectives).toEqual(["2.3 RESTCONF", "2.10 Ten"])
@@ -115,9 +108,7 @@ describe("time", () => {
     })
   })
   test("buckets cover the range with no gaps", () => {
-    expect(
-      bucketStarts({ from: now - 3 * 86400000, to: now }, "day").length,
-    ).toBe(4)
+    expect(bucketStarts({ from: now - 3 * 86400000, to: now }, "day").length).toBe(4)
   })
   test("series counts answers, accuracy per bucket and running accuracy", () => {
     const answers = [

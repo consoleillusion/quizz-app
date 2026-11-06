@@ -2,22 +2,11 @@
 // The quiz for one quiz: navigation, shuffling, saving answers and feedback.
 // Runs client-only (client:only) because shuffles and IndexedDB are browser-side.
 
-import {
-  ChevronLeft,
-  ChevronRight,
-  CircleCheck,
-  CircleX,
-  RotateCcw,
-} from "lucide"
+import { ChevronLeft, ChevronRight, CircleCheck, CircleX, RotateCcw } from "lucide"
 import { MorphIcon } from "morphicons/svelte"
 import { onMount } from "svelte"
 import { grade } from "../lib/grade.ts"
-import {
-  type AnswerRecord,
-  clearAnswers,
-  loadAnswers,
-  saveAnswer,
-} from "../lib/progress.ts"
+import { type AnswerRecord, clearAnswers, loadAnswers, saveAnswer } from "../lib/progress.ts"
 import { number, ofType } from "../lib/tags.ts"
 import Match from "./questions/Match.svelte"
 import Multichoice from "./questions/Multichoice.svelte"
@@ -54,7 +43,7 @@ let ready = $state(false)
 
 const q = $derived(questions[order[pos]])
 const answered = $derived(Object.keys(answers).length)
-const correct = $derived(Object.values(answers).filter((a) => a.correct).length)
+const correct = $derived(Object.values(answers).filter(a => a.correct).length)
 const saved = $derived(q ? answers[q.id] : undefined)
 
 function shuffled(xs: number[]) {
@@ -82,11 +71,9 @@ function arrange() {
       const list = x.options ?? x.responses
       return [
         x.id,
-        list && quiz.randomize_option_order
-          ? shuffled(indexes(list.length))
-          : undefined,
+        list && quiz.randomize_option_order ? shuffled(indexes(list.length)) : undefined,
       ]
-    }),
+    })
   )
 }
 
@@ -139,11 +126,9 @@ onMount(async () => {
   arrange()
   const ids = new Set(questions.map((x: any) => x.id))
   answers = Object.fromEntries(
-    (await loadAnswers(quiz.id))
-      .filter((r) => ids.has(r.question_id))
-      .map((r) => [r.question_id, r]),
+    (await loadAnswers(quiz.id)).filter(r => ids.has(r.question_id)).map(r => [r.question_id, r])
   )
-  const firstOpen = order.findIndex((i) => !answers[questions[i].id])
+  const firstOpen = order.findIndex(i => !answers[questions[i].id])
   pos = firstOpen === -1 ? 0 : firstOpen
   ready = true
 })

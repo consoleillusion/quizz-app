@@ -6,10 +6,7 @@ import { join } from "path"
 export const backup = async (db: any, directory = "backups") => {
   // Purpose: copy the live database to a timestamped file with VACUUM INTO and return its path
   mkdirSync(directory, { recursive: true })
-  const path = join(
-    directory,
-    `${new Date().toISOString().replace(/[:.]/g, "-")}.db`,
-  )
+  const path = join(directory, `${new Date().toISOString().replace(/[:.]/g, "-")}.db`)
   await db.exec(`VACUUM INTO '${path.replaceAll("'", "''")}'`)
   return path
 }

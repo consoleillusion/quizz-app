@@ -11,12 +11,10 @@ let { q, saved, onsubmit } = $props()
 type SortableItem = { id: number }
 
 let items = $state<SortableItem[]>(
-  (saved ? [...saved.answer] : q.items.map((_: unknown, i: number) => i)).map(
-    (id) => ({ id }),
-  ),
+  (saved ? [...saved.answer] : q.items.map((_: unknown, i: number) => i)).map(id => ({ id }))
 )
 
-let sequence = $derived(items.map((item) => item.id))
+let sequence = $derived(items.map(item => item.id))
 let isSaved = $derived(!!saved)
 
 function handleDndConsider(e: CustomEvent<{ items: SortableItem[] }>) {

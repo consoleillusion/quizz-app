@@ -3,8 +3,7 @@
 import { beforeAll, expect, test } from "bun:test"
 import * as opaque from "@serenity-kit/opaque"
 
-let auth: typeof import("./auth.ts"),
-  client: typeof import("./opaque-client.ts")
+let auth: typeof import("./auth.ts"), client: typeof import("./opaque-client.ts")
 const publicKey = {
   kty: "OKP",
   crv: "Ed25519",
@@ -27,8 +26,9 @@ beforeAll(async () => {
 
 const signUp = async (username: string, password: string) => {
   // Purpose: what the browser does to sign up, minus the network and IndexedDB
-  const { clientRegistrationState, registrationRequest } =
-    opaque.client.startRegistration({ password })
+  const { clientRegistrationState, registrationRequest } = opaque.client.startRegistration({
+    password,
+  })
   const { registrationResponse } = await auth.registrationResponse({
     username,
     registrationRequest,
@@ -76,7 +76,7 @@ test("sign up, then log in with the right password", async () => {
 
 test("a taken username is refused at the first sign-up step", async () => {
   await expect(
-    auth.registrationResponse({ username: "ALICE", registrationRequest: "x" }),
+    auth.registrationResponse({ username: "ALICE", registrationRequest: "x" })
   ).rejects.toMatchObject({ status: 409 })
 })
 
@@ -109,7 +109,7 @@ test("a login attempt can't be reused, and the key must be bound to the login", 
       finishLoginRequest,
       publicKey: other,
       proof: await client.proofFor(sessionKey, publicKey.x),
-    }),
+    })
   ).rejects.toMatchObject({ status: 401 })
   await expect(
     auth.finishLogin({
@@ -117,13 +117,14 @@ test("a login attempt can't be reused, and the key must be bound to the login", 
       finishLoginRequest,
       publicKey,
       proof: await client.proofFor(sessionKey, publicKey.x),
-    }),
+    })
   ).rejects.toMatchObject({ status: 401 })
 })
 
 test("a public key that isn't an Ed25519 JWK is refused", async () => {
-  const { clientRegistrationState, registrationRequest } =
-    opaque.client.startRegistration({ password: "another password" })
+  const { clientRegistrationState, registrationRequest } = opaque.client.startRegistration({
+    password: "another password",
+  })
   const { registrationResponse } = await auth.registrationResponse({
     username: "bob",
     registrationRequest,
@@ -139,6 +140,6 @@ test("a public key that isn't an Ed25519 JWK is refused", async () => {
       username: "bob",
       registrationRecord,
       publicKey: { kty: "RSA" },
-    }),
+    })
   ).rejects.toMatchObject({ status: 422 })
 })

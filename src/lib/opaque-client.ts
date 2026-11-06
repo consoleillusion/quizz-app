@@ -12,10 +12,8 @@ const requireSecureContext = () => {
   // Purpose: fail clearly where WebCrypto is missing: browsers only provide it on HTTPS or localhost
   if (!globalThis.crypto?.subtle)
     throw Object.assign(
-      new Error(
-        "This page must be opened over HTTPS (or on localhost) to sign up or log in.",
-      ),
-      { errors: [] },
+      new Error("This page must be opened over HTTPS (or on localhost) to sign up or log in."),
+      { errors: [] }
     )
 }
 
@@ -48,11 +46,9 @@ export const proofFor = async (sessionKey: string, x: string) => {
     new TextEncoder().encode(sessionKey),
     { name: "HMAC", hash: "SHA-256" },
     false,
-    ["sign"],
+    ["sign"]
   )
-  return base64url(
-    await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(x)),
-  )
+  return base64url(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(x)))
 }
 
 const saveSigningKey = (privateKey: CryptoKey, kid: string) =>
@@ -71,11 +67,10 @@ const saveSigningKey = (privateKey: CryptoKey, kid: string) =>
 
 const newSessionKey = async () => {
   // Purpose: make the new session's Ed25519 key pair, store the private half, return the public half as a JWK
-  const { privateKey, publicKey } = (await crypto.subtle.generateKey(
-    { name: "Ed25519" },
-    false,
-    ["sign", "verify"],
-  )) as CryptoKeyPair
+  const { privateKey, publicKey } = (await crypto.subtle.generateKey({ name: "Ed25519" }, false, [
+    "sign",
+    "verify",
+  ])) as CryptoKeyPair
   const { x } = await crypto.subtle.exportKey("jwk", publicKey)
   const kid = crypto.randomUUID()
   await saveSigningKey(privateKey, kid)
@@ -96,8 +91,9 @@ export const signUp = async ({
   // Purpose: register an account with OPAQUE and start its session; returns the new user
   requireSecureContext()
   await opaque.ready
-  const { clientRegistrationState, registrationRequest } =
-    opaque.client.startRegistration({ password })
+  const { clientRegistrationState, registrationRequest } = opaque.client.startRegistration({
+    password,
+  })
   const { registrationResponse } = await post("/user", {
     username,
     email,
@@ -119,13 +115,7 @@ export const signUp = async ({
   })
 }
 
-export const logIn = async ({
-  username,
-  password,
-}: {
-  username: string
-  password: string
-}) => {
+export const logIn = async ({ username, password }: { username: string; password: string }) => {
   // Purpose: log in with OPAQUE and start a session bound to a fresh signing key; returns the user
   requireSecureContext()
   await opaque.ready
@@ -142,8 +132,7 @@ export const logIn = async ({
     password,
     keyStretching,
   })
-  if (!finished)
-    throw Object.assign(new Error("Wrong username or password"), { errors: [] })
+  if (!finished) throw Object.assign(new Error("Wrong username or password"), { errors: [] })
   const publicKey = await newSessionKey()
   return post("/session", {
     loginId,

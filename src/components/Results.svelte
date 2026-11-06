@@ -9,7 +9,7 @@ const scored = $derived(
     q: questions[qi],
     pos,
     record: answers[questions[qi].id],
-  })),
+  }))
 )
 const correct = $derived(scored.filter((s: any) => s.record?.correct).length)
 const missed = $derived(scored.filter((s: any) => !s.record?.correct))

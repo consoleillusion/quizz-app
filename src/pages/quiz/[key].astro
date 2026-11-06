@@ -4,13 +4,7 @@ import Quiz from "../../components/Quiz.svelte"
 //   GET  HTML: the quiz player.  JSON: the quiz with its questions (stored form, no rendering).
 import Layout from "../../layouts/Layout.astro"
 import { getQuestions, getQuiz, withRendering } from "../../lib/quizzes.ts"
-import {
-  HttpError,
-  json,
-  jsonError,
-  methodNotAllowed,
-  wantsJson,
-} from "../../lib/rest.ts"
+import { HttpError, json, jsonError, methodNotAllowed, wantsJson } from "../../lib/rest.ts"
 
 const allow = ["GET"]
 const { request, params } = Astro

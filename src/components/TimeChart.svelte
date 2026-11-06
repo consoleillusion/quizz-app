@@ -37,8 +37,7 @@ function options(width: number): uPlot.Options {
     },
     series: [
       {
-        label:
-          bucket === "hour" ? "Hour" : bucket === "week" ? "Week of" : "Day",
+        label: bucket === "hour" ? "Hour" : bucket === "week" ? "Week of" : "Day",
       },
       {
         label: "Answered",
@@ -70,7 +69,7 @@ function options(width: number): uPlot.Options {
       {
         ...axis,
         scale: "pct",
-        values: (_u, ticks) => ticks.map((t) => `${t}%`),
+        values: (_u, ticks) => ticks.map(t => `${t}%`),
       },
       { ...axis, scale: "n", side: 1, grid: { show: false } },
     ],
@@ -87,7 +86,7 @@ function draw() {
   chart = new uPlot(
     options(host.clientWidth),
     [data.x, data.answered, data.accuracy, data.running],
-    host,
+    host
   )
 }
 
@@ -104,7 +103,7 @@ onMount(() => {
     chart?.setSize({
       width: host.clientWidth,
       height: heightFor(host.clientWidth),
-    }),
+    })
   )
   observer.observe(host)
   return () => {

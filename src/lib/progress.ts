@@ -45,21 +45,20 @@ const upgrade = (db: IDBDatabase, tx: IDBTransaction, ownerId: string) => {
       })
   if (!current.indexNames.contains("by_user_quiz"))
     current.createIndex("by_user_quiz", ["user_id", "quiz_id"])
-  if (!current.indexNames.contains("by_user"))
-    current.createIndex("by_user", "user_id")
+  if (!current.indexNames.contains("by_user")) current.createIndex("by_user", "user_id")
   const log = db.objectStoreNames.contains(LOG)
     ? tx.objectStore(LOG)
     : db.createObjectStore(LOG, { autoIncrement: true })
   if (!log.indexNames.contains("by_user")) log.createIndex("by_user", "user_id")
-  log.openCursor().onsuccess = (e) => {
+  log.openCursor().onsuccess = e => {
     // Purpose: stamp log records made before answers were per-user
     const c = (e.target as IDBRequest<IDBCursorWithValue>).result
     if (!c) return
     if (!c.value.user_id) c.update({ ...c.value, user_id: ownerId })
     c.continue()
   }
-  for (const name of LEGACY.filter((n) => db.objectStoreNames.contains(n))) {
-    tx.objectStore(name).getAll().onsuccess = (e) => {
+  for (const name of LEGACY.filter(n => db.objectStoreNames.contains(n))) {
+    tx.objectStore(name).getAll().onsuccess = e => {
       // Purpose: copy a legacy store's records into the current store, then drop the legacy store
       for (const r of (e.target as IDBRequest<any[]>).result) {
         const quiz_id = r.quiz_id ?? r.question_set_id
@@ -78,7 +77,7 @@ const upgrade = (db: IDBDatabase, tx: IDBTransaction, ownerId: string) => {
 
 const open = (ownerId: string) =>
   // Purpose: open the database at the current version, upgrading it when needed
-  new Promise<IDBDatabase | null>((resolve) => {
+  new Promise<IDBDatabase | null>(resolve => {
     try {
       const r = indexedDB.open(DB_NAME, VERSION)
       r.onupgradeneeded = () => upgrade(r.result, r.transaction!, ownerId)
@@ -95,13 +94,11 @@ const reassign = async (db: IDBDatabase, from: string, to: string) => {
   const tx = db.transaction([CURRENT, LOG], "readwrite")
   const current = tx.objectStore(CURRENT),
     log = tx.objectStore(LOG)
-  for (const r of (await request(
-    current.index("by_user").getAll(from),
-  )) as AnswerRecord[]) {
+  for (const r of (await request(current.index("by_user").getAll(from))) as AnswerRecord[]) {
     current.delete([r.user_id, r.quiz_id, r.question_id])
     current.put({ ...r, user_id: to })
   }
-  log.index("by_user").openCursor(from).onsuccess = (e) => {
+  log.index("by_user").openCursor(from).onsuccess = e => {
     // Purpose: re-stamp each log record of the old id
     const c = (e.target as IDBRequest<IDBCursorWithValue>).result
     if (c) {
@@ -109,7 +106,7 @@ const reassign = async (db: IDBDatabase, from: string, to: string) => {
       c.continue()
     }
   }
-  await new Promise((done) => {
+  await new Promise(done => {
     tx.oncomplete = done
     tx.onerror = done
   })
@@ -124,9 +121,7 @@ const session = () => {
     const db = await open(adopt ?? id)
     if (db && adopt) {
       await reassign(db, adopt, id)
-      const all = await request(
-        db.transaction(LOG).objectStore(LOG).index("by_user").getAll(id),
-      )
+      const all = await request(db.transaction(LOG).objectStore(LOG).index("by_user").getAll(id))
       for (let i = 0; i < all.length; i += 500)
         await pushAnswers(all.slice(i, i + 500)).catch(() => false)
     }
@@ -150,9 +145,7 @@ export const loadAnswers = async (quizId: string): Promise<AnswerRecord[]> => {
   const { s, userId } = await store(CURRENT, "readonly")
   return s
     ? request(s.index("by_user_quiz").getAll([userId, quizId]))
-    : [...memory.current.values()].filter(
-        (r) => r.user_id === userId && r.quiz_id === quizId,
-      )
+    : [...memory.current.values()].filter(r => r.user_id === userId && r.quiz_id === quizId)
 }
 
 export const saveAnswer = async (input: Omit<AnswerRecord, "user_id">) => {
@@ -163,14 +156,11 @@ export const saveAnswer = async (input: Omit<AnswerRecord, "user_id">) => {
     const tx = db.transaction([CURRENT, LOG], "readwrite")
     tx.objectStore(CURRENT).put(record)
     tx.objectStore(LOG).add(record)
-    await new Promise((done) => {
+    await new Promise(done => {
       tx.oncomplete = done
     })
   } else {
-    memory.current.set(
-      `${userId}/${record.quiz_id}/${record.question_id}`,
-      record,
-    )
+    memory.current.set(`${userId}/${record.quiz_id}/${record.question_id}`, record)
     memory.log.push(record)
   }
   pushAnswers([record]).catch(() => {}) // best effort; the dashboard's sync resends anything missed
@@ -184,10 +174,8 @@ export const clearAnswers = async (quizId: string) => {
       if (r.user_id === userId && r.quiz_id === quizId) memory.current.delete(k)
     return
   }
-  const keys = await request(
-    s.index("by_user_quiz").getAllKeys([userId, quizId]),
-  )
-  await Promise.all(keys.map((k) => request(s.delete(k))))
+  const keys = await request(s.index("by_user_quiz").getAllKeys([userId, quizId]))
+  await Promise.all(keys.map(k => request(s.delete(k))))
 }
 
 const logKey = (r: { question_id: string; answered_at: string }) =>
@@ -201,23 +189,19 @@ const byTime = (a: AnswerRecord, b: AnswerRecord) =>
 export const loadLog = async (): Promise<AnswerRecord[]> => {
   // Purpose: the current user's full answer history, first copying in current answers the log lacks
   const { db, userId } = await session()
-  if (!db) return memory.log.filter((r) => r.user_id === userId).sort(byTime)
+  if (!db) return memory.log.filter(r => r.user_id === userId).sort(byTime)
   const logged: AnswerRecord[] = await request(
-    db.transaction(LOG).objectStore(LOG).index("by_user").getAll(userId),
+    db.transaction(LOG).objectStore(LOG).index("by_user").getAll(userId)
   )
   const current: AnswerRecord[] = await request(
-    db
-      .transaction(CURRENT)
-      .objectStore(CURRENT)
-      .index("by_user")
-      .getAll(userId),
+    db.transaction(CURRENT).objectStore(CURRENT).index("by_user").getAll(userId)
   )
   const seen = new Set(logged.map(logKey))
-  const missing = current.filter((r) => !seen.has(logKey(r)))
+  const missing = current.filter(r => !seen.has(logKey(r)))
   if (missing.length) {
     const tx = db.transaction(LOG, "readwrite")
     for (const r of missing) tx.objectStore(LOG).add(r)
-    await new Promise((done) => {
+    await new Promise(done => {
       tx.oncomplete = done
     })
   }
@@ -247,19 +231,16 @@ export const syncLog = async (): Promise<{
     headers: { accept: "application/json" },
   }).catch(() => null)
   if (!r?.ok) return { answers: local, synced: false }
-  const remote: AnswerRecord[] = (await r.json()).filter(
-    (a: AnswerRecord) => a.user_id === userId,
-  )
+  const remote: AnswerRecord[] = (await r.json()).filter((a: AnswerRecord) => a.user_id === userId)
   const localKeys = new Set(local.map(logKey)),
     remoteKeys = new Set(remote.map(logKey))
-  const toServer = local.filter((a) => !remoteKeys.has(logKey(a)))
-  for (let i = 0; i < toServer.length; i += 500)
-    await pushAnswers(toServer.slice(i, i + 500))
-  const fromServer = remote.filter((a) => !localKeys.has(logKey(a)))
+  const toServer = local.filter(a => !remoteKeys.has(logKey(a)))
+  for (let i = 0; i < toServer.length; i += 500) await pushAnswers(toServer.slice(i, i + 500))
+  const fromServer = remote.filter(a => !localKeys.has(logKey(a)))
   if (db && fromServer.length) {
     const tx = db.transaction(LOG, "readwrite")
     for (const a of fromServer) tx.objectStore(LOG).add(a)
-    await new Promise((done) => {
+    await new Promise(done => {
       tx.oncomplete = done
     })
   } else memory.log.push(...fromServer)

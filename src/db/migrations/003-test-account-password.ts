@@ -9,8 +9,9 @@ const USERNAME = "abcd1234",
 export const up = async (db: any) => {
   // Purpose: re-register the test account's OPAQUE record with its fixed password
   await opaque.ready
-  const { clientRegistrationState, registrationRequest } =
-    opaque.client.startRegistration({ password: PASSWORD })
+  const { clientRegistrationState, registrationRequest } = opaque.client.startRegistration({
+    password: PASSWORD,
+  })
   const { registrationResponse } = opaque.server.createRegistrationResponse({
     serverSetup: process.env.OPAQUE_SERVER_SETUP!,
     userIdentifier: opaqueIdentifier(USERNAME),
@@ -23,8 +24,6 @@ export const up = async (db: any) => {
     keyStretching,
   })
   await db
-    .prepare(
-      "UPDATE user SET password_hash = ? WHERE username = ? COLLATE NOCASE",
-    )
+    .prepare("UPDATE user SET password_hash = ? WHERE username = ? COLLATE NOCASE")
     .run([`opaque$${registrationRecord}`, USERNAME])
 }

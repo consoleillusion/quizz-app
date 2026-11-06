@@ -3,12 +3,7 @@
 // Registration and login each take two requests; login keeps the server's state between them in
 // login_attempt, so no state lives in the process. Every session stores the Ed25519 public key the
 // browser made for it (for signing requests later), bound to the login by an HMAC under OPAQUE's session key.
-import {
-  createHash,
-  createHmac,
-  randomBytes,
-  timingSafeEqual,
-} from "node:crypto"
+import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto"
 import * as opaque from "@serenity-kit/opaque"
 import type { AstroCookies } from "astro"
 import { db } from "../db/db.ts"
@@ -66,19 +61,16 @@ const requireString = (input: Record<string, unknown>, field: string) => {
   // Purpose: a non-empty string field from a request body, or a 422 naming it
   const value = input[field]
   if (typeof value !== "string" || !value)
-    throw new HttpError(422, `${field} is required`, [
-      { field, message: "is required" },
-    ])
+    throw new HttpError(422, `${field} is required`, [{ field, message: "is required" }])
   return value
 }
 
 const requirePublicKey = (publicKey: unknown) => {
   // Purpose: the session's public signing key, or a 422 when it isn't an Ed25519 JWK
   const errors = validate("session", { public_key: publicKey }).filter(
-    (e) => e.field === "public_key",
+    e => e.field === "public_key"
   )
-  if (errors.length)
-    throw new HttpError(422, "publicKey must be an Ed25519 JWK", errors)
+  if (errors.length) throw new HttpError(422, "publicKey must be an Ed25519 JWK", errors)
   return publicKey
 }
 
@@ -103,13 +95,8 @@ const newAccount = async (input: Record<string, unknown>) => {
         ]),
     ...validate("user", row),
   ]
-  if (errors.length)
-    throw new HttpError(422, "Can't create that account", errors)
-  if (
-    await db
-      .prepare("SELECT 1 FROM user WHERE username = ? COLLATE NOCASE")
-      .get([row.username])
-  )
+  if (errors.length) throw new HttpError(422, "Can't create that account", errors)
+  if (await db.prepare("SELECT 1 FROM user WHERE username = ? COLLATE NOCASE").get([row.username]))
     throw new HttpError(409, `The username ${row.username} is taken`, [
       { field: "username", message: "is already taken" },
     ])
@@ -129,7 +116,7 @@ export const registrationResponse = async (input: Record<string, unknown>) => {
       serverSetup,
       userIdentifier: opaqueIdentifier(username),
       registrationRequest,
-    }),
+    })
   )
 }
 
@@ -140,9 +127,7 @@ export const register = async (input: Record<string, unknown>) => {
   const publicKey = requirePublicKey(input.publicKey)
   await insertRow("user", { ...row, password_hash: RECORD + record })
   return {
-    user: publicUser(
-      await db.prepare("SELECT * FROM user WHERE id = ?").get([row.id]),
-    ),
+    user: publicUser(await db.prepare("SELECT * FROM user WHERE id = ?").get([row.id])),
     publicKey,
   }
 }
@@ -164,7 +149,7 @@ export const startLogin = async (input: Record<string, unknown>) => {
       userIdentifier: opaqueIdentifier(username),
       registrationRecord,
       startLoginRequest,
-    }),
+    })
   )
   const expires = new Date(Date.now() + LOGIN_SECONDS * 1000).toISOString()
   const loginId = await insertRow("login_attempt", {
@@ -183,7 +168,7 @@ export const finishLogin = async (input: Record<string, unknown>) => {
     typeof input.loginId === "string" &&
     (await db
       .prepare(
-        "DELETE FROM login_attempt WHERE id = ? AND expires_at > CURRENT_TIMESTAMP RETURNING username, server_login_state",
+        "DELETE FROM login_attempt WHERE id = ? AND expires_at > CURRENT_TIMESTAMP RETURNING username, server_login_state"
       )
       .get([input.loginId]))
   if (!attempt || typeof input.finishLoginRequest !== "string") throw wrong
@@ -214,7 +199,7 @@ export const startSession = async (
   cookies: AstroCookies,
   user: User,
   publicKey: unknown,
-  secure: boolean,
+  secure: boolean
 ) => {
   // Purpose: create a session for the user, holding the session's public signing key, and set its cookie
   const token = randomBytes(32).toString("base64url")
@@ -237,16 +222,11 @@ export const startSession = async (
 export const endSession = async (cookies: AstroCookies) => {
   // Purpose: delete the current session and clear its cookie
   const token = cookies.get(SESSION_COOKIE)?.value
-  if (token)
-    await db
-      .prepare("DELETE FROM session WHERE token_hash = ?")
-      .run([sha256(token)])
+  if (token) await db.prepare("DELETE FROM session WHERE token_hash = ?").run([sha256(token)])
   cookies.delete(SESSION_COOKIE, { path: "/" })
 }
 
-export const sessionUser = async (
-  cookies: AstroCookies,
-): Promise<User | null> => {
+export const sessionUser = async (cookies: AstroCookies): Promise<User | null> => {
   // Purpose: the logged-in user for the request's session cookie, if the session is still valid
   const token = cookies.get(SESSION_COOKIE)?.value
   if (!token) return null
@@ -265,6 +245,4 @@ export const requireUser = (user: User | null) => {
 
 export const safeNext = (next: unknown) =>
   // Purpose: a same-site path to return to after logging in; anything else goes to /quiz
-  typeof next === "string" && next.startsWith("/") && !next.startsWith("//")
-    ? next
-    : "/quiz"
+  typeof next === "string" && next.startsWith("/") && !next.startsWith("//") ? next : "/quiz"

@@ -33,17 +33,13 @@ let hi = $state(Number(params.get("to")) || 0)
 const groups = scopeOptions(meta)
 const inScope = $derived(answersInScope(log, scope, meta))
 const extent = $derived(answerExtent(inScope))
-const span = $derived(
-  extent ? clampRange({ from: lo, to: hi }, extent) : { from: 0, to: 0 },
-)
-const step = $derived(
-  extent && extent.to - extent.from > 7 * 86_400_000 ? 3_600_000 : 60_000,
-)
+const span = $derived(extent ? clampRange({ from: lo, to: hi }, extent) : { from: 0, to: 0 })
+const step = $derived(extent && extent.to - extent.from > 7 * 86_400_000 ? 3_600_000 : 60_000)
 const bucket = $derived(autoBucket(span))
 const shown = $derived(answersInRange(inScope, span))
 const data = $derived(series(shown, span, bucket))
 const scopeIds = $derived(
-  Object.keys(meta.questions).filter((id) => questionInScope(scope, meta)(id)),
+  Object.keys(meta.questions).filter(id => questionInScope(scope, meta)(id))
 )
 const stats = $derived(summary(shown, scopeIds))
 const recent = $derived(shown.slice(-50).reverse())

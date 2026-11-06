@@ -5,19 +5,8 @@
 //         1. {username, email?, id?, registrationRequest}                → {registrationResponse}
 //         2. {username, email?, id?, registrationRecord, publicKey}      → 201 with the user; starts a session
 import Layout from "../layouts/Layout.astro"
-import {
-  register,
-  registrationResponse,
-  safeNext,
-  startSession,
-} from "../lib/auth.ts"
-import {
-  HttpError,
-  json,
-  jsonError,
-  methodNotAllowed,
-  wantsJson,
-} from "../lib/rest.ts"
+import { register, registrationResponse, safeNext, startSession } from "../lib/auth.ts"
+import { HttpError, json, jsonError, methodNotAllowed, wantsJson } from "../lib/rest.ts"
 
 const allow = ["GET", "POST"]
 const { request, url, cookies, locals } = Astro
@@ -26,8 +15,7 @@ if (!allow.includes(request.method)) return methodNotAllowed(allow)
 if (request.method === "POST") {
   try {
     const input = await request.json().catch(() => ({}))
-    if (!("registrationRecord" in input))
-      return json(await registrationResponse(input))
+    if (!("registrationRecord" in input)) return json(await registrationResponse(input))
     const { user, publicKey } = await register(input)
     await startSession(cookies, user, publicKey, url.protocol === "https:")
     return json(user, 201, { location: "/user" })
@@ -37,9 +25,7 @@ if (request.method === "POST") {
   }
 }
 if (wantsJson(request))
-  return locals.user
-    ? json(locals.user)
-    : jsonError(new HttpError(401, "Not logged in"))
+  return locals.user ? json(locals.user) : jsonError(new HttpError(401, "Not logged in"))
 const next = url.searchParams.get("next") ?? "/quiz"
 ---
 <Layout title="Sign up">

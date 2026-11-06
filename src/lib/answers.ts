@@ -37,9 +37,7 @@ export const storeAnswers = async (userId: string, body: unknown) => {
   const batch = Array.isArray(body) ? body : [body]
   if (batch.length > MAX_BATCH)
     throw new HttpError(413, `Send at most ${MAX_BATCH} answers at a time`)
-  const known = new Set(
-    (await db.prepare("SELECT id FROM quiz").all()).map((r: any) => r.id),
-  )
+  const known = new Set((await db.prepare("SELECT id FROM quiz").all()).map((r: any) => r.id))
   let stored = 0,
     duplicate = 0
   const skipped: { index: number; reason: string }[] = []
@@ -50,16 +48,12 @@ export const storeAnswers = async (userId: string, body: unknown) => {
     if (item?.user_id !== userId) {
       skipped.push({
         index,
-        reason: item?.user_id
-          ? "belongs to another user"
-          : "user_id is required",
+        reason: item?.user_id ? "belongs to another user" : "user_id is required",
       })
       continue
     }
     const picked = Object.fromEntries(
-      fields
-        .filter((f) => item?.[f] !== undefined && item?.[f] !== null)
-        .map((f) => [f, item[f]]),
+      fields.filter(f => item?.[f] !== undefined && item?.[f] !== null).map(f => [f, item[f]])
     )
     if (picked.quiz_id && !known.has(picked.quiz_id)) delete picked.quiz_id
     const row = { user_id: userId, ...picked }
@@ -67,26 +61,24 @@ export const storeAnswers = async (userId: string, body: unknown) => {
     if (errors.length) {
       skipped.push({
         index,
-        reason: errors.map((e) => `${e.field} ${e.message}`).join("; "),
+        reason: errors.map(e => `${e.field} ${e.message}`).join("; "),
       })
       continue
     }
     try {
       const r = await insert.run([
         userId,
-        ...fields.map((f) =>
+        ...fields.map(f =>
           f === "answer"
             ? JSON.stringify(row[f as keyof typeof row])
-            : (row[f as keyof typeof row] ?? null),
+            : (row[f as keyof typeof row] ?? null)
         ),
       ])
       r.changes ? stored++ : duplicate++
     } catch (e: any) {
       skipped.push({
         index,
-        reason: /question_id not found/.test(e.message)
-          ? "question no longer exists"
-          : e.message,
+        reason: /question_id not found/.test(e.message) ? "question no longer exists" : e.message,
       })
     }
   }

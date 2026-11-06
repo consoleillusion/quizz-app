@@ -41,8 +41,7 @@ export const ensureTag = async (tag: NewTag) => {
     .get([tag.type, tag.name])
   if (found) return found.id as string
   const errors = validate("tag", tag)
-  if (!isEmpty(errors))
-    throw new HttpError(422, `Tag ${tag.type}:${tag.name} is not valid`, errors)
+  if (!isEmpty(errors)) throw new HttpError(422, `Tag ${tag.type}:${tag.name} is not valid`, errors)
   return insertRow("tag", tag)
 }
 
@@ -73,25 +72,19 @@ export const objectiveTags = (objective: string): TagRef[] => {
 export const createQuestion = async ({ type, tags, ...row }: NewQuestion) => {
   // Purpose: validate and store one question with its tags; returns its id
   const table = tableFor(type)
-  const schemaProblems = map(
-    (e: any) => `${e.field} ${e.message}`,
-    validate(table, row),
-  )
+  const schemaProblems = map((e: any) => `${e.field} ${e.message}`, validate(table, row))
   const problems = isEmpty(schemaProblems) ? rules[type](row) : schemaProblems
   if (!isEmpty(problems))
     throw new HttpError(
       422,
-      `Question is not valid: ${problems.join("; ")} (${String(row.text).slice(0, 60)})`,
+      `Question is not valid: ${problems.join("; ")} (${String(row.text).slice(0, 60)})`
     )
   if (!any((t: TagRef) => t.type === "objective", tags))
-    throw new HttpError(
-      422,
-      `Question needs an objective tag (${String(row.text).slice(0, 60)})`,
-    )
+    throw new HttpError(422, `Question needs an objective tag (${String(row.text).slice(0, 60)})`)
   const ids = await Promise.all(map(tagId, uniq(tags)))
   const id = await insertRow(table, row)
   const link = db.prepare(
-    "INSERT INTO question_tag (question_type, question_id, tag_id) VALUES (?, ?, ?)",
+    "INSERT INTO question_tag (question_type, question_id, tag_id) VALUES (?, ?, ?)"
   )
   for (const t of uniq(ids)) await link.run([type, id, t])
   return id
@@ -105,21 +98,15 @@ export const addQuiz = async ({
 }: NewQuiz) => {
   // Purpose: store a quiz with its tags, tag rules and explicitly chosen questions; returns its id
   const errors = validate("quiz", meta)
-  if (!isEmpty(errors))
-    throw new HttpError(422, `Quiz ${meta.slug} is not valid`, errors)
+  if (!isEmpty(errors)) throw new HttpError(422, `Quiz ${meta.slug} is not valid`, errors)
   const id = await insertRow("quiz", meta)
   const tagIds = await Promise.all(map(tagId, tags))
   const ruleIds = await Promise.all(map(tagId, ruleTags))
   for (const t of uniq(tagIds))
-    await db
-      .prepare("INSERT INTO quiz_tag (quiz_id, tag_id) VALUES (?, ?)")
-      .run([id, t])
+    await db.prepare("INSERT INTO quiz_tag (quiz_id, tag_id) VALUES (?, ?)").run([id, t])
   for (const t of uniq(ruleIds))
-    await db
-      .prepare("INSERT INTO quiz_rule (quiz_id, tag_id) VALUES (?, ?)")
-      .run([id, t])
-  const item =
-    db.prepare(`INSERT INTO quiz_question (quiz_id, question_type, question_id, position)
+    await db.prepare("INSERT INTO quiz_rule (quiz_id, tag_id) VALUES (?, ?)").run([id, t])
+  const item = db.prepare(`INSERT INTO quiz_question (quiz_id, question_type, question_id, position)
     SELECT ?, question_type, id, ? FROM question WHERE id = ?`)
   for (const [i, q] of questions.entries()) await item.run([id, i + 1, q])
   return id
