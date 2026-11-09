@@ -108,7 +108,7 @@ BEGIN
 END`
 }
 
-const questionColumns = ["text", "exhibit", "explanation"]
+const questionColumns = ["text", "exhibit", "explanation", "author", "bloom", "difficulty"]
 
 export const questionViewSQL = (schemas: any[]) =>
   // Purpose: render a view that unions the shared columns of every question table

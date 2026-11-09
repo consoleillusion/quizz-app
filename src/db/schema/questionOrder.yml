@@ -19,5 +19,7 @@ properties:
     uniqueItems: true
     items: { type: "integer", minimum: 0 }
   explanation: { $ref: "./common/schema.yml#/$defs/explanation" }
+  author: { $ref: "./common/schema.yml#/$defs/author" }
   bloom: { $ref: "./common/schema.yml#/$defs/bloom" }
+  difficulty: { $ref: "./common/schema.yml#/$defs/difficulty" }
   links: { $ref: "./common/schema.yml#/$defs/links" }

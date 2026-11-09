@@ -16,7 +16,8 @@ import Order from "./questions/Order.svelte"
 import Slotfill from "./questions/Slotfill.svelte"
 import Results from "./Results.svelte"
 
-let { quiz, questions } = $props()
+let { quiz, questions, resume = true, onanswer } = $props()
+// resume: restore this quiz's saved answers and offer Restart. onanswer: called with each answer record.
 
 const components: Record<string, any> = {
   multichoice: Multichoice,
@@ -90,6 +91,7 @@ async function submit(answer: any[]) {
     answered_at: new Date().toISOString(),
   }
   answers[q.id] = record
+  onanswer?.(record)
   await saveAnswer($state.snapshot(record))
 }
 
@@ -125,9 +127,10 @@ onMount(async () => {
   // Purpose: arrange the quiz and restore saved answers, then resume at the first unanswered question
   arrange()
   const ids = new Set(questions.map((x: any) => x.id))
-  answers = Object.fromEntries(
-    (await loadAnswers(quiz.id)).filter(r => ids.has(r.question_id)).map(r => [r.question_id, r])
-  )
+  if (resume)
+    answers = Object.fromEntries(
+      (await loadAnswers(quiz.id)).filter(r => ids.has(r.question_id)).map(r => [r.question_id, r])
+    )
   const firstOpen = order.findIndex(i => !answers[questions[i].id])
   pos = firstOpen === -1 ? 0 : firstOpen
   ready = true
@@ -151,7 +154,7 @@ onMount(async () => {
       {#each order as _, i}<option value={i}>{marker(i)} Q{i + 1}</option>{/each}
     </select>
     <button type="button" onclick={() => go(pos + 1)} disabled={pos === order.length - 1}><span class="icon-label">Next</span> <MorphIcon icon={ChevronRight} size="1.25em" /></button>
-    <button type="button" onclick={restart}><span class="icon-label">Restart</span><MorphIcon icon={RotateCcw} size="1.25em" /></button>
+    {#if resume}<button type="button" onclick={restart}><span class="icon-label">Restart</span><MorphIcon icon={RotateCcw} size="1.25em" /></button>{/if}
   </div>
 
   <article id="question" aria-live="polite">

@@ -3,7 +3,7 @@
 //   GET   HTML: the sign-up form.  JSON: the logged-in user, or 401.
 //   POST  OPAQUE sign-up, JSON only (the page's script drives it; the password never leaves the browser):
 //         1. {username, email?, id?, registrationRequest}                → {registrationResponse}
-//         2. {username, email?, id?, registrationRecord, publicKey}      → 201 with the user; starts a session
+//         2. {username, email?, id?, registrationRecord, publicKey}      → 201 with the user plus serverPublicKey; starts a session
 import Layout from "../layouts/Layout.astro"
 import { register, registrationResponse, safeNext, startSession } from "../lib/auth.ts"
 import { HttpError, json, jsonError, methodNotAllowed, wantsJson } from "../lib/rest.ts"
@@ -16,9 +16,9 @@ if (request.method === "POST") {
   try {
     const input = await request.json().catch(() => ({}))
     if (!("registrationRecord" in input)) return json(await registrationResponse(input))
-    const { user, publicKey } = await register(input)
-    await startSession(cookies, user, publicKey, url.protocol === "https:")
-    return json(user, 201, { location: "/user" })
+    const { user, publicKey, serverKey } = await register(input)
+    await startSession(cookies, user, publicKey, serverKey, url.protocol === "https:")
+    return json({ ...user, serverPublicKey: serverKey.jwk }, 201, { location: "/user" })
   } catch (e) {
     if (!(e instanceof HttpError)) throw e
     return jsonError(e)

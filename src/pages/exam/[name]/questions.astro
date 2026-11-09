@@ -1,0 +1,22 @@
+---
+// /exam/<name>/questions: the exam's questions (JSON only).
+//   GET                      {questions: [[id, domain position], ...]}  every question, nothing else
+//   GET ?filter[id]=a,b,c    {items: [...]}  those questions in full (at most 20), ready to play
+import { getExam, getExamQuestions, examIndex } from "../../../lib/exams.ts"
+import { withRendering } from "../../../lib/quizzes.ts"
+import { HttpError, json, jsonError, methodNotAllowed } from "../../../lib/rest.ts"
+
+const allow = ["GET"]
+const { request, params, url } = Astro
+if (!allow.includes(request.method)) return methodNotAllowed(allow)
+try {
+  const exam = await getExam(params.name!)
+  const ids = url.searchParams.get("filter[id]")
+  if (ids === null) return json({ questions: await examIndex(exam) })
+  const wanted = ids.split(",").map(s => s.trim()).filter(Boolean)
+  return json({ items: (await getExamQuestions(exam, wanted)).map(withRendering) })
+} catch (e) {
+  if (e instanceof HttpError) return jsonError(e)
+  throw e
+}
+---

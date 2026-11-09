@@ -1,0 +1,40 @@
+---
+import Exam from "../../../components/Exam.svelte"
+// /exam/<name>: one exam, e.g. /exam/cisco:300-435. All of its questions, served 10 at a time.
+//   GET  HTML: the exam player.  JSON (?format=json): the exam and its domains.
+// The player asks /exam/<name>/questions for the question index and then for each batch.
+import Layout from "../../../layouts/Layout.astro"
+import { getExam } from "../../../lib/exams.ts"
+import { HttpError, json, jsonError, methodNotAllowed, wantsJson } from "../../../lib/rest.ts"
+
+const allow = ["GET"]
+const { request, params } = Astro
+if (!allow.includes(request.method)) return methodNotAllowed(allow)
+const asJson = wantsJson(request)
+
+let exam: Awaited<ReturnType<typeof getExam>> | undefined
+try {
+  exam = await getExam(params.name!)
+} catch (e) {
+  if (!(e instanceof HttpError)) throw e
+  if (asJson) return jsonError(e)
+  Astro.response.status = e.status
+}
+if (asJson && exam) return json(exam)
+---
+<Layout title={exam?.description || exam?.name || "Exam not found"}>
+  <p><a href="/">← All exams</a></p>
+  {exam ? (
+    <>
+      <h1>{exam.description || exam.name}</h1>
+      <p>{exam.question_count} questions in {exam.domains.length} domains, served 10 at a time and weighted towards the domains you need most. <small><a href={`${exam.url}?format=json`}>JSON</a></small></p>
+      <Exam client:only="svelte" exam={exam} />
+      <noscript><p>This exam needs JavaScript.</p></noscript>
+    </>
+  ) : (
+    <>
+      <h1>Exam not found</h1>
+      <p>There's no exam called <code>{params.name}</code>.</p>
+    </>
+  )}
+</Layout>

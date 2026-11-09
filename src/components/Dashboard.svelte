@@ -110,7 +110,7 @@ onMount(async () => {
 {#if !ready}
   <p>Loading your answers…</p>
 {:else if !log.length}
-  <p>No answers yet. <a href="/quiz">Pick a quiz</a> and your progress will show up here.</p>
+  <p>No answers yet. <a href="/">Pick an exam</a> and your progress will show up here.</p>
 {:else}
   {#if extent}
     <fieldset class="timeline">

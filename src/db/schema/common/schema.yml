@@ -13,6 +13,14 @@ $defs:
   explanation:
     type: "string"
     description: "Why the correct answer is correct, shown after the learner answers. Markdown."
+  difficulty:
+    type: "integer"
+    minimum: 1
+    maximum: 5
+    description: "How hard the question is for a typical candidate: 1 very easy, 2 easy, 3 moderate, 4 hard, 5 very hard. Null when not rated."
+  author:
+    type: "string"
+    description: "Who wrote the question: the name of the model that generated it (e.g. sonnet5.5), or a person. Null when unknown."
   bloom:
     type: "integer"
     minimum: 1

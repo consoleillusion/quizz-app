@@ -3,9 +3,10 @@ $schema: "https://json-schema.org/draft/2020-12/schema"
 title: "Session"
 type: "object"
 additionalProperties: false
-description: "A login session. The browser holds a random token in a cookie; only its SHA-256 is stored. public_key is the Ed25519 key the browser generated for this session, for signing its requests."
+description: "A login session. The browser holds a random token in a cookie; only its SHA-256 is stored. public_key is the Ed25519 key the browser generated for this session; server_secret_key is the server's own, for signing replies."
 required: ["user_id", "token_hash", "expires_at"]
 x-unique: [["token_hash"]]
+x-private: ["server_secret_key"]
 properties:
   user_id:
     type: "string"
@@ -20,3 +21,7 @@ properties:
   public_key:
     description: "The session's public signing key, made fresh by the browser at each registration or login."
     $ref: "./common/jwk.yml"
+  server_secret_key:
+    description: "The server's secret signing key for this session (tweetnacl, base64url), made at registration or login. Its public half goes to the browser."
+    type: "string"
+    pattern: "^[A-Za-z0-9_-]{86}$"

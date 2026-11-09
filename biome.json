@@ -70,7 +70,9 @@
       "!dist",
       "!build",
       "!.next",
-      "!coverage"
+      "!coverage",
+      "!**/*.svelte",
+      "!**/*.astro"
     ]
   }
 }

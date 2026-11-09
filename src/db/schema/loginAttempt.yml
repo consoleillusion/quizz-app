@@ -12,6 +12,9 @@ properties:
   server_login_state:
     type: "string"
     minLength: 1
+  public_key:
+    description: "The browser's public signing key from the first login request; the second request proves it belongs to this login."
+    $ref: "./common/jwk.yml"
   expires_at:
     type: "string"
     format: "date-time"

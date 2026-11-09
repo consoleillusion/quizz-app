@@ -46,7 +46,9 @@
     "svelte": "^5.57.3",
     "svelte-dnd-action": "^0.9.80",
     "ts-japi": "^1.12.6",
-    "uplot": "^1.6.32"
+    "tweetnacl": "^1.0.3",
+    "uplot": "^1.6.32",
+    "wider-format": "github:consoleillusion/formatter-ts"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.6",

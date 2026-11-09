@@ -2,13 +2,15 @@
 // The password never reaches the server: user.password_hash holds "opaque$<registration record>".
 // Registration and login each take two requests; login keeps the server's state between them in
 // login_attempt, so no state lives in the process. Every session stores the Ed25519 public key the
-// browser made for it (for signing requests later), bound to the login by an HMAC under OPAQUE's session key.
-import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto"
+// browser made for it, bound to the login by a proof under OPAQUE's session key, plus a key pair the
+// server made for it (tweetnacl, same as the browser; no WebCrypto). The server's public half goes back.
+import { createHash, randomBytes, timingSafeEqual } from "node:crypto"
 import * as opaque from "@serenity-kit/opaque"
 import type { AstroCookies } from "astro"
 import { db } from "../db/db.ts"
 import { HttpError } from "./rest.ts"
 import { insertRow, validate } from "./schemas.ts"
+import { clientProof, serverProof, signingKey } from "./signing.ts"
 import { isUuidV7, uuidv7 } from "./uuid.ts"
 
 export type User = {
@@ -30,10 +32,6 @@ if (!serverSetup) throw new Error("OPAQUE_SERVER_SETUP is not set (see .env)")
 export const opaqueIdentifier = (username: string) =>
   // Purpose: the identifier OPAQUE binds a record to: the username, trimmed and lower-cased like logins
   username.trim().toLowerCase()
-
-export const proofFor = (sessionKey: string, x: string) =>
-  // Purpose: HMAC-SHA256 of a session public key's `x` under OPAQUE's session key, base64url
-  createHmac("sha256", sessionKey).update(x).digest("base64url")
 
 const sha256 = (s: string) =>
   // Purpose: hex SHA-256 of a string, used to store session tokens
@@ -121,7 +119,8 @@ export const registrationResponse = async (input: Record<string, unknown>) => {
 }
 
 export const register = async (input: Record<string, unknown>) => {
-  // Purpose: registration step 2: store the account with its OPAQUE record; returns the user and session key
+  // Purpose: registration step 2: store the account with its OPAQUE record; returns the user, the browser's
+  // public key and the server's new session key pair
   const row = await newAccount(input)
   const record = requireString(input, "registrationRecord")
   const publicKey = requirePublicKey(input.publicKey)
@@ -129,14 +128,16 @@ export const register = async (input: Record<string, unknown>) => {
   return {
     user: publicUser(await db.prepare("SELECT * FROM user WHERE id = ?").get([row.id])),
     publicKey,
+    serverKey: signingKey(),
   }
 }
 
 export const startLogin = async (input: Record<string, unknown>) => {
-  // Purpose: login step 1: answer the browser and keep the server's state for step 2. Unknown
+  // Purpose: login step 1: answer the browser and keep the server's state and the browser's public key for step 2. Unknown
   // usernames get OPAQUE's fake answer, so this step doesn't reveal which accounts exist.
   const username = requireString(input, "username").trim()
   const startLoginRequest = requireString(input, "startLoginRequest")
+  const publicKey = requirePublicKey(input.publicKey)
   const row = await db
     .prepare("SELECT password_hash FROM user WHERE username = ? COLLATE NOCASE")
     .get([username])
@@ -155,20 +156,21 @@ export const startLogin = async (input: Record<string, unknown>) => {
   const loginId = await insertRow("login_attempt", {
     username,
     server_login_state: serverLoginState,
+    public_key: publicKey,
     expires_at: expires,
   })
   return { loginId, loginResponse }
 }
 
 export const finishLogin = async (input: Record<string, unknown>) => {
-  // Purpose: login step 2: check the password proof and that the session key is bound to this login;
-  // returns the user and session key. The attempt is deleted whatever happens, so it can't be replayed.
+  // Purpose: login step 2: check the password proof and that the browser's key is bound to this login;
+  // returns the user, the browser's key, and the server's new session key pair with its proof. The attempt is deleted whatever happens, so it can't be replayed.
   const wrong = new HttpError(401, "Wrong username or password")
   const attempt =
     typeof input.loginId === "string" &&
     (await db
       .prepare(
-        "DELETE FROM login_attempt WHERE id = ? AND expires_at > CURRENT_TIMESTAMP RETURNING username, server_login_state"
+        "DELETE FROM login_attempt WHERE id = ? AND expires_at > CURRENT_TIMESTAMP RETURNING username, server_login_state, json(public_key) AS public_key"
       )
       .get([input.loginId]))
   if (!attempt || typeof input.finishLoginRequest !== "string") throw wrong
@@ -183,8 +185,8 @@ export const finishLogin = async (input: Record<string, unknown>) => {
       throw wrong
     }
   })()
-  const publicKey = requirePublicKey(input.publicKey) as { x: string }
-  const expected = Buffer.from(proofFor(sessionKey, publicKey.x)),
+  const publicKey = JSON.parse(attempt.public_key) as { x: string }
+  const expected = Buffer.from(clientProof(sessionKey, publicKey.x)),
     given = Buffer.from(String(input.proof ?? ""))
   if (given.length !== expected.length || !timingSafeEqual(given, expected))
     throw new HttpError(401, "The session key isn't bound to this login")
@@ -192,16 +194,23 @@ export const finishLogin = async (input: Record<string, unknown>) => {
     .prepare("SELECT * FROM user WHERE username = ? COLLATE NOCASE")
     .get([attempt.username])
   if (!user) throw wrong
-  return { user: publicUser(user), publicKey }
+  const serverKey = signingKey()
+  return {
+    user: publicUser(user),
+    publicKey,
+    serverKey,
+    serverProof: serverProof(sessionKey, serverKey.jwk.x),
+  }
 }
 
 export const startSession = async (
   cookies: AstroCookies,
   user: User,
   publicKey: unknown,
+  serverKey: ReturnType<typeof signingKey>,
   secure: boolean
 ) => {
-  // Purpose: create a session for the user, holding the session's public signing key, and set its cookie
+  // Purpose: create a session for the user, holding both signing keys (the browser's public, the server's secret), and set its cookie
   const token = randomBytes(32).toString("base64url")
   const expires = new Date(Date.now() + SESSION_DAYS * 86_400_000)
   await insertRow("session", {
@@ -209,6 +218,7 @@ export const startSession = async (
     token_hash: sha256(token),
     expires_at: expires.toISOString(),
     public_key: publicKey,
+    server_secret_key: serverKey.secretKey,
   })
   cookies.set(SESSION_COOKIE, token, {
     path: "/",

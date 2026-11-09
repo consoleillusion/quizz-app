@@ -81,6 +81,16 @@ export const createQuestion = async ({ type, tags, ...row }: NewQuestion) => {
     )
   if (!any((t: TagRef) => t.type === "objective", tags))
     throw new HttpError(422, `Question needs an objective tag (${String(row.text).slice(0, 60)})`)
+  const unmatched = tags.filter(
+    (t: TagRef) =>
+      t.type === "exam" &&
+      !any((o: TagRef) => o.type === "objective" && o.name.startsWith(`${t.name}:`), tags)
+  )
+  if (!isEmpty(unmatched))
+    throw new HttpError(
+      422,
+      `Question is tagged for exam ${unmatched.map((t: TagRef) => t.name).join(", ")} but has no objective of that exam (${String(row.text).slice(0, 60)})`
+    )
   const ids = await Promise.all(map(tagId, uniq(tags)))
   const id = await insertRow(table, row)
   const link = db.prepare(

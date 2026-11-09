@@ -50,20 +50,6 @@ export const listQuizzes = async ({
   return { items: items.map(toQuiz), total: total as number }
 }
 
-export const listExams = async () => {
-  // Purpose: every exam tag with how many quizzes carry it, ordered by name
-  const rows = await db
-    .prepare(
-      `SELECT t.name, t.description, (SELECT count(*) FROM quiz_tag qt WHERE qt.tag_id = t.id) AS quiz_count
-     FROM tag t WHERE t.type = 'exam' ORDER BY t.name`
-    )
-    .all()
-  return rows.map((row: any) => ({
-    ...row,
-    url: `/quiz?filter[tag]=${encodeURIComponent(row.name)}`,
-  }))
-}
-
 export const getQuiz = async (key: string) => {
   // Purpose: one quiz by slug or id, or a 404
   const row = await db

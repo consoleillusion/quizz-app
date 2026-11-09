@@ -2,8 +2,8 @@
 // /session: logging in and out.
 //   GET     HTML: login form, or who you are with a log-out button.  JSON: the session's user, or 401.
 //   POST    OPAQUE login, JSON only (the page's script drives it; the password never leaves the browser):
-//           1. {username, startLoginRequest}                    → {loginId, loginResponse}
-//           2. {loginId, finishLoginRequest, publicKey, proof}  → 201 with the user; starts a session
+//           1. {username, startLoginRequest, publicKey}   → {loginId, loginResponse}
+//           2. {loginId, finishLoginRequest, proof}       → 201 with the user plus serverPublicKey and serverProof; starts a session
 //   DELETE  log out (forms send POST with _method=DELETE).  Form: 303 to /session.  JSON: 204.
 import Layout from "../layouts/Layout.astro"
 import { endSession, finishLogin, safeNext, startLogin, startSession } from "../lib/auth.ts"
@@ -30,10 +30,10 @@ if (method === "POST") {
   try {
     const input = await request.json().catch(() => ({}))
     if (!("finishLoginRequest" in input)) return json(await startLogin(input))
-    const { user, publicKey } = await finishLogin(input)
+    const { user, publicKey, serverKey, serverProof } = await finishLogin(input)
     await endSession(cookies)
-    await startSession(cookies, user, publicKey, url.protocol === "https:")
-    return json(user, 201, { location: "/session" })
+    await startSession(cookies, user, publicKey, serverKey, url.protocol === "https:")
+    return json({ ...user, serverPublicKey: serverKey.jwk, serverProof }, 201, { location: "/session" })
   } catch (e) {
     if (!(e instanceof HttpError)) throw e
     return jsonError(e)

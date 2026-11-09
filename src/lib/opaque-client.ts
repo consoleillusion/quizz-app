@@ -1,21 +1,14 @@
 // Browser side of OPAQUE sign-up and login (@serenity-kit/opaque): the password never leaves the browser.
-// Each sign-up and login also makes a fresh Ed25519 signing key for the new session: the private key
-// is non-extractable and kept in IndexedDB, and only the public key (a JWK) is sent to the server.
+// Each sign-up and login also makes a fresh Ed25519 signing key pair with tweetnacl (no WebCrypto, so plain
+// http works): the public half goes to the server, the secret half is kept in localStorage along with the
+// server's session public key, which the server sends back.
 import * as opaque from "@serenity-kit/opaque"
+import { clientProof, serverProof, signingKey } from "./signing.ts"
 
 // Argon2id stretching of the password before OPAQUE; changing it breaks every existing account.
 export const keyStretching = {
   "argon2id-custom": { memory: 2 ** 16, iterations: 4, parallelism: 2 },
 } as const
-
-const requireSecureContext = () => {
-  // Purpose: fail clearly where WebCrypto is missing: browsers only provide it on HTTPS or localhost
-  if (!globalThis.crypto?.subtle)
-    throw Object.assign(
-      new Error("This page must be opened over HTTPS (or on localhost) to sign up or log in."),
-      { errors: [] }
-    )
-}
 
 const post = async (url: string, body: object) => {
   // Purpose: POST JSON and return the reply, or throw an Error carrying the server's message and field errors
@@ -32,50 +25,12 @@ const post = async (url: string, body: object) => {
   return data
 }
 
-const base64url = (bytes: ArrayBuffer) =>
-  // Purpose: unpadded base64url text of some bytes
-  btoa(String.fromCharCode(...new Uint8Array(bytes)))
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "")
-
-export const proofFor = async (sessionKey: string, x: string) => {
-  // Purpose: HMAC-SHA256 of the session public key's `x` under OPAQUE's session key (the server checks the same)
-  const key = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(sessionKey),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"]
+const keepKeys = (key: ReturnType<typeof signingKey>, serverPublicKey: object) =>
+  // Purpose: remember this session's secret signing key and the server's session public key, replacing the previous session's
+  localStorage.setItem(
+    "session-key",
+    JSON.stringify({ kid: key.jwk.kid, secretKey: key.secretKey, serverPublicKey })
   )
-  return base64url(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(x)))
-}
-
-const saveSigningKey = (privateKey: CryptoKey, kid: string) =>
-  // Purpose: keep the session's private signing key in IndexedDB, replacing the previous session's
-  new Promise<void>((resolve, reject) => {
-    const open = indexedDB.open("session-key", 1)
-    open.onupgradeneeded = () => open.result.createObjectStore("keys")
-    open.onerror = () => reject(open.error)
-    open.onsuccess = () => {
-      const tx = open.result.transaction("keys", "readwrite")
-      tx.objectStore("keys").put({ kid, privateKey }, "current")
-      tx.oncomplete = () => resolve()
-      tx.onerror = () => reject(tx.error)
-    }
-  })
-
-const newSessionKey = async () => {
-  // Purpose: make the new session's Ed25519 key pair, store the private half, return the public half as a JWK
-  const { privateKey, publicKey } = (await crypto.subtle.generateKey({ name: "Ed25519" }, false, [
-    "sign",
-    "verify",
-  ])) as CryptoKeyPair
-  const { x } = await crypto.subtle.exportKey("jwk", publicKey)
-  const kid = crypto.randomUUID()
-  await saveSigningKey(privateKey, kid)
-  return { kty: "OKP", crv: "Ed25519", x: x!, use: "sig", kid }
-}
 
 export const signUp = async ({
   username,
@@ -89,7 +44,6 @@ export const signUp = async ({
   id?: string
 }) => {
   // Purpose: register an account with OPAQUE and start its session; returns the new user
-  requireSecureContext()
   await opaque.ready
   const { clientRegistrationState, registrationRequest } = opaque.client.startRegistration({
     password,
@@ -106,25 +60,30 @@ export const signUp = async ({
     password,
     keyStretching,
   })
-  return post("/user", {
+  // Registration keeps no server state between its requests, so the key travels with the second one.
+  const key = signingKey()
+  const reply = await post("/user", {
     username,
     email,
     id,
     registrationRecord,
-    publicKey: await newSessionKey(),
+    publicKey: key.jwk,
   })
+  keepKeys(key, reply.serverPublicKey)
+  return reply
 }
 
 export const logIn = async ({ username, password }: { username: string; password: string }) => {
-  // Purpose: log in with OPAQUE and start a session bound to a fresh signing key; returns the user
-  requireSecureContext()
+  // Purpose: log in with OPAQUE and start a session bound to a fresh signing key pair; returns the user
   await opaque.ready
+  const key = signingKey()
   const { clientLoginState, startLoginRequest } = opaque.client.startLogin({
     password,
   })
   const { loginId, loginResponse } = await post("/session", {
     username,
     startLoginRequest,
+    publicKey: key.jwk,
   })
   const finished = opaque.client.finishLogin({
     clientLoginState,
@@ -133,11 +92,15 @@ export const logIn = async ({ username, password }: { username: string; password
     keyStretching,
   })
   if (!finished) throw Object.assign(new Error("Wrong username or password"), { errors: [] })
-  const publicKey = await newSessionKey()
-  return post("/session", {
+  const reply = await post("/session", {
     loginId,
     finishLoginRequest: finished.finishLoginRequest,
-    publicKey,
-    proof: await proofFor(finished.sessionKey, publicKey.x),
+    proof: clientProof(finished.sessionKey, key.jwk.x),
   })
+  if (reply.serverProof !== serverProof(finished.sessionKey, reply.serverPublicKey?.x))
+    throw Object.assign(new Error("The server's session key isn't bound to this login"), {
+      errors: [],
+    })
+  keepKeys(key, reply.serverPublicKey)
+  return reply
 }

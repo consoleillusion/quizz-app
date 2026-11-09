@@ -1,31 +1,28 @@
 // OPAQUE sign-up and login end to end: the server functions against a scratch in-memory database,
-// driven by the same OPAQUE client calls, key stretching and proof the browser uses.
+// driven by the same OPAQUE client calls, key stretching, tweetnacl keys and proofs the browser uses.
 import { beforeAll, expect, test } from "bun:test"
 import * as opaque from "@serenity-kit/opaque"
 
 let auth: typeof import("./auth.ts"), client: typeof import("./opaque-client.ts")
-const publicKey = {
-  kty: "OKP",
-  crv: "Ed25519",
-  x: "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo",
-  use: "sig",
-  kid: "test",
-}
+let signing: typeof import("./signing.ts"), db: any
+// Purpose: a fresh browser signing key, as the browser makes at each sign-up and login
+const key = () => signing.signingKey()
 
 beforeAll(async () => {
   await opaque.ready
   process.env.DB_PATH = ":memory:"
   process.env.OPAQUE_SERVER_SETUP = opaque.server.createSetup()
-  const { db } = await import("../db/db.ts")
+  ;({ db } = await import("../db/db.ts"))
   const { databaseSQL } = await import("../db/ddl.ts")
   const { loadSchema } = await import("../db/loadSchema.ts")
   await db.batch(databaseSQL(await loadSchema()), "write")
   auth = await import("./auth.ts")
   client = await import("./opaque-client.ts")
+  signing = await import("./signing.ts")
 })
 
 const signUp = async (username: string, password: string) => {
-  // Purpose: what the browser does to sign up, minus the network and IndexedDB
+  // Purpose: what the browser does to sign up, minus the network and localStorage
   const { clientRegistrationState, registrationRequest } = opaque.client.startRegistration({
     password,
   })
@@ -39,17 +36,18 @@ const signUp = async (username: string, password: string) => {
     password,
     keyStretching: client.keyStretching,
   })
-  return auth.register({ username, registrationRecord, publicKey })
+  const k = key()
+  return { k, ...(await auth.register({ username, registrationRecord, publicKey: k.jwk })) }
 }
 
-const logIn = async (username: string, password: string, key = publicKey) => {
+const logIn = async (username: string, password: string) => {
   // Purpose: what the browser does to log in; null when the browser itself detects a wrong password
-  const { clientLoginState, startLoginRequest } = opaque.client.startLogin({
-    password,
-  })
+  const k = key()
+  const { clientLoginState, startLoginRequest } = opaque.client.startLogin({ password })
   const { loginId, loginResponse } = await auth.startLogin({
     username,
     startLoginRequest,
+    publicKey: k.jwk,
   })
   const finished = opaque.client.finishLogin({
     clientLoginState,
@@ -58,20 +56,39 @@ const logIn = async (username: string, password: string, key = publicKey) => {
     keyStretching: client.keyStretching,
   })
   if (!finished) return null
-  return auth.finishLogin({
+  const reply = await auth.finishLogin({
     loginId,
     finishLoginRequest: finished.finishLoginRequest,
-    publicKey: key,
-    proof: await client.proofFor(finished.sessionKey, key.x),
+    proof: signing.clientProof(finished.sessionKey, k.jwk.x),
   })
+  return { k, finished, ...reply }
 }
 
-test("sign up, then log in with the right password", async () => {
-  const { user } = await signUp("Alice", "correct horse battery")
-  expect(user.username).toBe("Alice")
+test("sign up hands back the browser's key and a fresh server key pair", async () => {
+  const r = await signUp("Alice", "correct horse battery")
+  expect(r.user.username).toBe("Alice")
+  expect(r.publicKey).toEqual(r.k.jwk)
+  expect(r.serverKey.jwk.x).not.toBe(r.k.jwk.x)
+  expect(signing.unb64url(r.serverKey.secretKey).length).toBe(64)
+})
+
+test("log in with the right password: keys exchanged and the server's proof checks out", async () => {
   const login = await logIn("alice", "correct horse battery")
-  expect(login?.user.id).toBe(user.id)
-  expect(login?.publicKey).toEqual(publicKey)
+  expect(login?.publicKey).toEqual(login?.k.jwk)
+  expect(login?.serverProof).toBe(
+    signing.serverProof(login!.finished.sessionKey, login!.serverKey.jwk.x)
+  )
+})
+
+test("a session stores the browser's public key and the server's secret key", async () => {
+  const login = (await logIn("alice", "correct horse battery"))!
+  const cookies = { set() {}, get: () => undefined, delete() {} } as any
+  await auth.startSession(cookies, login.user, login.publicKey, login.serverKey, false)
+  const row = await db
+    .prepare("SELECT json(public_key) AS public_key, server_secret_key FROM session ORDER BY created_at DESC")
+    .get()
+  expect(JSON.parse(row.public_key)).toEqual(login.k.jwk)
+  expect(row.server_secret_key).toBe(login.serverKey.secretKey)
 })
 
 test("a taken username is refused at the first sign-up step", async () => {
@@ -85,43 +102,46 @@ test("a wrong password or unknown user fails without saying which", async () => 
   expect(await logIn("nobody", "whatever password")).toBeNull()
 })
 
-test("a login attempt can't be reused, and the key must be bound to the login", async () => {
-  const { clientLoginState, startLoginRequest } = opaque.client.startLogin({
-    password: "correct horse battery",
-  })
-  const { loginId, loginResponse } = await auth.startLogin({
-    username: "alice",
-    startLoginRequest,
-  })
-  const { finishLoginRequest, sessionKey } = opaque.client.finishLogin({
-    clientLoginState,
-    loginResponse,
-    password: "correct horse battery",
-    keyStretching: client.keyStretching,
-  })!
-  const other = {
-    ...publicKey,
-    x: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+test("a login attempt can't be reused, and the browser's key must be bound to the login", async () => {
+  const attempt = async () => {
+    const k = key()
+    const { clientLoginState, startLoginRequest } = opaque.client.startLogin({
+      password: "correct horse battery",
+    })
+    const { loginId, loginResponse } = await auth.startLogin({
+      username: "alice",
+      startLoginRequest,
+      publicKey: k.jwk,
+    })
+    const { finishLoginRequest, sessionKey } = opaque.client.finishLogin({
+      clientLoginState,
+      loginResponse,
+      password: "correct horse battery",
+      keyStretching: client.keyStretching,
+    })!
+    return { k, loginId, finishLoginRequest, sessionKey }
   }
+  const a = await attempt()
+  const other = key()
+  // proof for a different key than the one sent in step 1
   await expect(
     auth.finishLogin({
-      loginId,
-      finishLoginRequest,
-      publicKey: other,
-      proof: await client.proofFor(sessionKey, publicKey.x),
+      loginId: a.loginId,
+      finishLoginRequest: a.finishLoginRequest,
+      proof: signing.clientProof(a.sessionKey, other.jwk.x),
     })
   ).rejects.toMatchObject({ status: 401 })
+  // the attempt is spent even though it failed
   await expect(
     auth.finishLogin({
-      loginId,
-      finishLoginRequest,
-      publicKey,
-      proof: await client.proofFor(sessionKey, publicKey.x),
+      loginId: a.loginId,
+      finishLoginRequest: a.finishLoginRequest,
+      proof: signing.clientProof(a.sessionKey, a.k.jwk.x),
     })
   ).rejects.toMatchObject({ status: 401 })
 })
 
-test("a public key that isn't an Ed25519 JWK is refused", async () => {
+test("a public key that isn't an Ed25519 JWK is refused at sign-up and at login", async () => {
   const { clientRegistrationState, registrationRequest } = opaque.client.startRegistration({
     password: "another password",
   })
@@ -136,10 +156,10 @@ test("a public key that isn't an Ed25519 JWK is refused", async () => {
     keyStretching: client.keyStretching,
   })
   await expect(
-    auth.register({
-      username: "bob",
-      registrationRecord,
-      publicKey: { kty: "RSA" },
-    })
+    auth.register({ username: "bob", registrationRecord, publicKey: { kty: "RSA" } })
+  ).rejects.toMatchObject({ status: 422 })
+  const { startLoginRequest } = opaque.client.startLogin({ password: "x" })
+  await expect(
+    auth.startLogin({ username: "alice", startLoginRequest, publicKey: { kty: "RSA" } })
   ).rejects.toMatchObject({ status: 422 })
 })
