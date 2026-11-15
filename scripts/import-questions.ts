@@ -8,6 +8,7 @@
 import { decode } from "@toon-format/toon"
 import { db } from "../src/db/db.ts"
 import { createQuestion, ensureTag, objectiveTags, transaction, type NewQuestion } from "../src/lib/questions.ts"
+import { examOf, fits } from "./lib/exam-scope.ts"
 
 const args = Bun.argv.slice(2)
 const valueFlags = ["--exam-rename", "--author"]
@@ -124,11 +125,13 @@ for (const file of files)
   for (const [block, rows] of Object.entries(decode(await Bun.file(file).text()) as Record<string, any[]>))
     data[block] = [...(data[block] ?? []), ...rows]
 const items: NewQuestion[] = []
+const homeOf = new Map<NewQuestion, string>() // the exam a question is written for: the first objective listed
 for (const [type, rows] of Object.entries(data)) {
   if (!build[type]) continue // e.g. an audit table
   for (const r of rows) {
     const exhibit = exhibitText(r.exhibit)
-    items.push({
+    const first = r.tags.split("|").find((t: string) => t.startsWith("objective:"))!.slice("objective:".length)
+    const item: NewQuestion = {
       type,
       tags: tagsOf(r.tags),
       text: r.text,
@@ -138,13 +141,29 @@ for (const [type, rows] of Object.entries(data)) {
       ...(Number.isInteger(r.bloom) ? { bloom: r.bloom } : {}),
       ...(Number.isInteger(r.difficulty) ? { difficulty: r.difficulty } : {}),
       ...((r.author || author) ? { author: r.author || author } : {}),
-    })
+    }
+    homeOf.set(item, examOf(rename ? first.replaceAll(rename[0], rename[1]) : first))
+    items.push(item)
   }
 }
+
+const scopeErrors = items.flatMap(q => {
+  // Purpose: the exams a question is tagged for although it mentions a technology outside the exam's scope
+  const corpus = JSON.stringify({ ...q, tags: undefined })
+  return q.tags.filter(t => t.type === "exam" && t.name !== homeOf.get(q) && !fits(t.name, corpus)).map(t => `  ${t.name}: ${String(q.text).slice(0, 90)}`)
+})
+if (scopeErrors.length) throw new Error(`Questions outside the scope of an exam they are tagged for:\n${scopeErrors.join("\n")}`)
 
 const exists = async (text: string) =>
   // Purpose: true when a question with exactly this text is already stored
   Boolean(await db.prepare("SELECT 1 FROM question WHERE text = ?").get([text]))
+
+// questions that start the same way as one that is already stored are probably the same question: list them
+const norm = (t: string) => t.toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim().slice(0, 70)
+const known = new Map<string, string>()
+for (const r of (await db.prepare("SELECT text FROM question").all()) as any[]) known.set(norm(r.text), r.text)
+const similar = items.filter(q => known.has(norm(q.text as string)) && known.get(norm(q.text as string)) !== q.text)
+if (similar.length) console.log(`Warning: ${similar.length} questions start like a stored question:\n${similar.map(q => `  ${String(q.text).slice(0, 100)}`).join("\n")}`)
 
 let stored = 0,
   skipped = 0

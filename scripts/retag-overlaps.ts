@@ -2,17 +2,17 @@
 // difficulty for the questions that gain tags.
 //   DB_PATH=<db> bun scripts/retag-overlaps.ts [--dry-run]
 // A rule says: a question tagged with objective FROM also serves objectives TO of another exam, when its
-// text matches WHEN (or always, with no WHEN). Only close topics are mapped: knowing one should help with
+// text matches WHEN (or always, with no WHEN) and it fits that exam's scope (lib/exam-scope.ts). Only close topics are mapped: knowing one should help with
 // the other. Tags are only added, never removed, and a run can be repeated. Bloom and difficulty are only
 // filled where empty, from the objective's verb, the question type and its exhibit (a rule-based estimate).
 // Stop the dev server first: the database file can only be opened once.
 import { db } from "../src/db/db.ts"
 import { objectiveTags, transaction } from "../src/lib/questions.ts"
+import { examOf, fits } from "./lib/exam-scope.ts"
 
 const A = "cisco:300-435",
   B = "cisco:350-901",
-  C = "cisco:300-635",
-  S = "isc2:cissp"
+  C = "cisco:300-635"
 type Rule = { from: string; to: string[]; when?: RegExp }
 const o = (exam: string, n: string) => `${exam}:${n}`
 
@@ -35,8 +35,6 @@ const rules: Rule[] = [
   { from: o(A, "3.2"), to: [o(B, "1.6")], when: /pagination|offset|rate.?limit|429|retry-after|token|expire|401|authenticat/i },
   { from: o(A, "3.3"), to: [o(C, "2.2")] },
   { from: o(A, "3.4"), to: [o(B, "1.1"), o(C, "2.3")] },
-  { from: o(A, "3.5"), to: [o(S, "4.1")], when: /segment/i },
-  { from: o(A, "3.5"), to: [o(S, "4.2")], when: /802\.1x|posture|\bnac\b|network access control/i },
   { from: o(A, "3.6"), to: [o(B, "1.6")], when: /429|pagination|401|403|404|rate.?limit|status code|retry|5\d\d/i },
   { from: o(A, "4.1"), to: [o(B, "3.4"), o(C, "4.2")], when: /pyats|genie|learn|diff|validat/i },
   { from: o(A, "4.2"), to: [o(B, "2.4"), o(C, "4.1")] },
@@ -45,7 +43,6 @@ const rules: Rule[] = [
   { from: o(A, "4.6"), to: [o(B, "3.2")], when: /webhook/i },
   { from: o(A, "5.2"), to: [o(B, "4.1"), o(C, "5.1")] },
   { from: o(A, "5.3"), to: [o(B, "4.2"), o(C, "5.2")] },
-  { from: o(A, "5.3"), to: [o(S, "3.7")], when: /poison|adversarial|prompt injection|injection/i },
   { from: o(A, "5.4"), to: [o(B, "4.3"), o(C, "5.3")] },
   // 350-901 AUTOCOR -> 300-435, 300-635, CISSP
   { from: o(B, "1.1"), to: [o(C, "2.3")] },
@@ -62,19 +59,14 @@ const rules: Rule[] = [
   { from: o(B, "2.1"), to: [o(C, "2.1")] },
   { from: o(B, "2.2"), to: [o(C, "2.1")], when: /gitlab|pipeline|ci\/cd|\bci\b/i },
   { from: o(B, "2.3"), to: [o(C, "2.1")], when: /gitlab|pipeline|ci\/cd|\bci\b/i },
-  { from: o(B, "2.3"), to: [o(S, "8.2")], when: /sast|dast|security scan|dependency scan|secret scan/i },
   { from: o(B, "2.4"), to: [o(A, "4.2"), o(C, "4.1")] },
   { from: o(B, "2.6"), to: [o(C, "4.5")] },
   { from: o(B, "2.7"), to: [o(A, "1.3")], when: /json/i },
   { from: o(B, "3.1"), to: [o(A, "4.5"), o(C, "4.3")] },
   { from: o(B, "3.2"), to: [o(A, "4.6")], when: /webhook/i },
-  { from: o(B, "3.2"), to: [o(S, "7.2")], when: /siem|centrali[sz]ed log|log aggregation|syslog server/i },
   { from: o(B, "3.4"), to: [o(A, "4.1"), o(C, "4.2")] },
-  { from: o(B, "3.5"), to: [o(S, "3.6")], when: /\bpki\b|certificate authority|intermediate|chain of trust|trust store|root ca|\bcsr\b/i },
-  { from: o(B, "3.6"), to: [o(S, "8.5")], when: /input validation|injection|sanitiz|parameteri[sz]|allow-?list|hard-?cod/i },
   { from: o(B, "4.1"), to: [o(A, "5.2"), o(C, "5.1")] },
   { from: o(B, "4.2"), to: [o(A, "5.3"), o(C, "5.2")] },
-  { from: o(B, "4.2"), to: [o(S, "3.7")], when: /poison|adversarial|prompt injection|injection/i },
   { from: o(B, "4.3"), to: [o(A, "5.4"), o(C, "5.3")] },
   { from: o(B, "4.4"), to: [o(C, "5.3")] },
   { from: o(B, "4.5"), to: [o(A, "5.2"), o(C, "5.1")] },
@@ -135,6 +127,8 @@ await transaction(async () => {
       for (const rule of rules) {
         if (!objectives.has(rule.from) || (rule.when && !rule.when.test(corpus))) continue
         for (const target of rule.to) {
+          // only close topics, and only when the question could appear on the other exam
+          if (!fits(examOf(target), corpus)) continue
           for (const t of objectiveTags(target)) {
             const tag = tagByKey.get(`${t.type}:${t.name}`)
             if (!tag) throw new Error(`Missing tag ${t.type}:${t.name}`)
