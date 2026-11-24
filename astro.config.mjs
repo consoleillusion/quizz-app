@@ -4,6 +4,7 @@ import {defineConfig} from "astro/config"
 import {loadEnv} from "vite"
 import svelte from "@astrojs/svelte"
 import node from "@astrojs/node"
+import vercel from "@astrojs/vercel"
 
 // .env isn't in process.env when Astro runs under Node, so read it explicitly.
 const env = loadEnv(process.env.NODE_ENV ?? "development", process.cwd(), "")
@@ -13,11 +14,15 @@ process.env.OPAQUE_SERVER_SETUP ??= env.OPAQUE_SERVER_SETUP
 // wacss ships its sources and generates its stylesheet (`bun run wacss`) inside its own folder; these aliases give
 // them the import paths of its documentation: wacss/components/<Name>/<Name>.<ext> and wacss/wacss.css.
 const wacss = fileURLToPath(new URL("./node_modules/wacss/", import.meta.url))
+const onVercel = Boolean(process.env.VERCEL ?? env.VERCEL)
 
 // https://astro.build/config
 export default defineConfig({
   output: "server",
-  adapter: node({mode: "standalone"}),
+  // Vercel can't run the standalone Node server; local builds keep using it.
+  adapter: onVercel ? vercel() : node({mode: "standalone"}),
+  // The app keeps logins in its own cookie/DB sessions; Astro's filesystem sessions can't write on Vercel.
+  session: false,
   integrations: [svelte()],
   trailingSlash: "never",
   server: {host: true, port: Number(env.ASTRO_PORT ?? 4321)},

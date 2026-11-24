@@ -26,6 +26,19 @@ bun run build && bun run start   # production server on $PORT (default 4359)
 
 Only one process can open `.db` at a time, so stop the server before running database scripts other than `db:backup`.
 
+## Vercel
+
+Vercel builds pick the Vercel adapter automatically; local builds keep the standalone Node server (`bun run build && bun run start`). Vercel has no writable local database, so the app needs a remote Turso database:
+
+```sh
+bun run db:backup   # then import the newest backup
+turso db create --tursodb quizapp --from-file backups/<timestamp>.db
+turso db show quizapp --url
+turso db tokens create quizapp
+```
+
+Use the **Turso** engine, not libSQL: the schema uses custom types (`uuid`, `jsonb`, `boolean`), views and `uuid7()`. Set `DB_URL` and `DB_AUTH_TOKEN` in the Vercel project from the last two commands, plus the existing `OPAQUE_SERVER_SETUP` (it must match the imported accounts). The variables must be available at build time too, because the table schemas are read from the database during the build. For `vercel deploy --prebuilt`, build with `VERCEL=1 bun run build`.
+
 
 ## Database
 
