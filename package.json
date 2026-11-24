@@ -6,8 +6,9 @@
     "bun": ">=1.4"
   },
   "scripts": {
-    "dev": "bun --bun astro dev",
-    "build": "bun --bun astro build",
+    "wacss": "bun node_modules/wacss/scripts/generate-tokens.ts",
+    "dev": "bun run wacss && bun --bun astro dev",
+    "build": "bun run wacss && bun --bun astro build",
     "preview": "bun --bun astro preview",
     "db:init": "bun src/db/init.ts",
     "db:sql": "bun src/db/init.ts --print",
@@ -44,15 +45,14 @@
     "nunjucks": "^3.2.4",
     "ramda": "^0.32.0",
     "svelte": "^5.57.3",
-    "svelte-dnd-action": "^0.9.80",
     "ts-japi": "^1.12.6",
     "tweetnacl": "^1.0.3",
     "uplot": "^1.6.32",
-    "wacss": "github:consoleillusion/wacss",
-    "wider-format": "github:consoleillusion/formatter-ts"
+    "wacss": "github:consoleillusion/wacss"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.6",
+    "sass": "^1.108.2",
     "drizzle-kit": "^1.0.0-rc.5",
     "tsx": "^4.23.15"
   }

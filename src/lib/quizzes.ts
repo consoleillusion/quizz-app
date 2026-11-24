@@ -99,7 +99,7 @@ export const getQuestions = async (quizId: string) => {
 }
 
 export const withRendering = (q: any) => {
-  // Purpose: add HTML for every Markdown field, and plain labels for <option> lists, for the quiz player
+  // Purpose: add HTML for every Markdown field, and plain labels for <option> and sortable-list items, for the quiz player
   const html: Record<string, string | string[]> = { text: toHtml(q.text) }
   if (q.explanation) html.explanation = toHtml(q.explanation)
   if (q.options) html.options = q.options.map((o: any) => toHtml(o.text))
@@ -107,7 +107,10 @@ export const withRendering = (q: any) => {
   return {
     ...q,
     html,
-    plain: q.responses ? { responses: q.responses.map(toPlain) } : {},
+    plain: {
+      ...(q.responses ? { responses: q.responses.map(toPlain) } : {}),
+      ...(q.items ? { items: q.items.map(toPlain) } : {}),
+    },
   }
 }
 

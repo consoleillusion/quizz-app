@@ -4,6 +4,8 @@
 // lives in this browser (and is merged with the server's when signed in).
 
 import { onMount } from "svelte"
+import Button from "wacss/components/Button/Button.svelte"
+import Notice from "wacss/components/Notice/Notice.svelte"
 import {
   BATCH,
   domainShares,
@@ -105,30 +107,34 @@ onMount(async () => {
 {#if loading}
   <p>Loading exam…</p>
 {:else}
-  {#if failure}<p class="bad">{failure}</p>{/if}
-  {#if batch.length}
-    <details>
-      <summary>Your results by domain</summary>
-      <table>
-        <thead><tr><th>Domain</th><th>Answers</th><th>Right</th><th>Next draw</th></tr></thead>
-        <tbody>
-          {#each rows as r}
-            <tr><td>{r.title}</td><td>{r.asked}</td><td>{r.percent === null ? "–" : `${r.percent}%`}</td><td>{r.share}%</td></tr>
-          {/each}
-        </tbody>
-      </table>
-      <small>The next 10 questions are drawn in these proportions: domains you get wrong more, or have been asked less, come up more often.</small>
-    </details>
-    <p><small>Set {batchNo}</small></p>
-    {#key batchNo}
-      <Quiz quiz={player} questions={batch} resume={false} {onanswer} />
-    {/key}
-    {#if answeredInBatch === batch.length}
-      <button type="button" onclick={nextBatch}>Next {BATCH} questions</button>
+  <div class="stack">
+    {#if failure}<Notice variant="danger" role="alert" text={failure} />{/if}
+    {#if batch.length}
+      <details>
+        <summary>Your results by domain</summary>
+        <div class="stack">
+          <div class="scroll"><table>
+            <thead><tr><th>Domain</th><th>Answers</th><th>Right</th><th>Next draw</th></tr></thead>
+            <tbody>
+              {#each rows as r}
+                <tr><td>{r.title}</td><td>{r.asked}</td><td>{r.percent === null ? "–" : `${r.percent}%`}</td><td>{r.share}%</td></tr>
+              {/each}
+            </tbody>
+          </table></div>
+          <small>The next 10 questions are drawn in these proportions: domains you get wrong more, or have been asked less, come up more often.</small>
+        </div>
+      </details>
+      <small>Set {batchNo}</small>
+      {#key batchNo}
+        <Quiz quiz={player} questions={batch} resume={false} {onanswer} />
+      {/key}
+      {#if answeredInBatch === batch.length}
+        <div class="cluster"><Button variant="primary" label={`Next ${BATCH} questions`} onclick={nextBatch} /></div>
+      {/if}
+    {:else if failure}
+      <div class="cluster"><Button label="Try again" onclick={nextBatch} /></div>
+    {:else}
+      <p>This exam has no questions yet.</p>
     {/if}
-  {:else if failure}
-    <button type="button" onclick={nextBatch}>Try again</button>
-  {:else}
-    <p>This exam has no questions yet.</p>
-  {/if}
+  </div>
 {/if}

@@ -1,5 +1,6 @@
 ---
 // /: the exams (tags of type exam) as cards, each linking to its question pool. JSON with ?format=json.
+import Card from "wacss/components/Card/Card.astro"
 import Layout from "../layouts/Layout.astro"
 import { listExams } from "../lib/exams.ts"
 import { json, wantsJson } from "../lib/rest.ts"
@@ -9,12 +10,12 @@ if (wantsJson(Astro.request)) return json({ items: exams })
 ---
 <Layout title="Exams">
   <h1>Exams</h1>
-  <section class="cards">
+  <section class="grid">
     {exams.map(exam => (
-      <article>
+      <Card figure={{ component: "Stat", data: { value: exam.question_count, label: "questions" } }}>
         <h3><a href={exam.url}>{exam.description || exam.name}</a></h3>
-        <small>{exam.name} · {exam.question_count} questions · {exam.domain_count} domains</small>
-      </article>
+        <small>{exam.name} · {exam.domain_count} domains</small>
+      </Card>
     ))}
   </section>
 </Layout>

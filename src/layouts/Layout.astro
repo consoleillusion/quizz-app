@@ -1,7 +1,8 @@
 ---
-import { ChartLine, CircleUser, GraduationCap, ListChecks, LogIn, Moon, UserPlus } from "lucide"
-// Page shell: Pico CSS styles plain HTML; a few lines below add answer feedback colours.
-import MorphIcon from "morphicons/astro"
+// Page shell: wacss styles plain HTML through one global stylesheet; the palette and mode are attributes on <html>.
+import "wacss/wacss.css"
+import NavBar from "wacss/components/NavBar/NavBar.astro"
+import Page from "wacss/components/Page/Page.astro"
 
 interface Props {
   title: string
@@ -9,96 +10,68 @@ interface Props {
 }
 const { title, description = "Cisco certification practice quizzes" } = Astro.props
 const user = Astro.locals.user
-const next = encodeURIComponent(Astro.url.pathname)
-// Theme colours: set here, exposed as CSS variables on <html>, and mapped onto Pico's variables below.
-const theme = {
-  primary: "#6b8a6e",
-  primaryHover: "#58745b",
-  darkBackground: "#1c1c1b",
-  darkSurface: "#262624",
-}
+const path = Astro.url.pathname
+const next = encodeURIComponent(path)
+// The palette every page uses; the names are in wacss's palettes.dhall.
+const palette = "matcha"
+const links = [
+  { href: "/", label: "Exams" },
+  { href: "/dashboard", label: "Dashboard" },
+]
+const account = user
+  ? [{ component: "Link", data: { href: "/session", label: user.username, "data-user": user.username } }]
+  : [
+      { component: "Link", data: { href: `/session?next=${next}`, label: "Log in" } },
+      { component: "Link", data: { href: `/user?next=${next}`, label: "Sign up" } },
+    ]
 ---
 <!doctype html>
-<html lang="en">
+<html lang="en" data-palette={palette}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.1.1/css/pico.min.css" />
     <script is:inline>
-      // Apply the saved theme before first paint; Pico follows the system setting when none is saved.
-      try { const theme = localStorage.getItem("theme"); if (theme) document.documentElement.dataset.theme = theme } catch {}
+      // Apply the saved mode before first paint; wacss follows the system setting when none is saved.
+      try { const mode = localStorage.getItem("wacss:mode"); if (mode) document.documentElement.dataset.mode = mode } catch {}
     </script>
     <title>{title} · Exam Practice</title>
   </head>
-  <body data-user-id={user?.id}>
-    <header class="container">
-      <nav>
-        <ul><li><a href="/"><strong><MorphIcon icon={GraduationCap} size="1.25em" /> Exam Practice</strong></a></li></ul>
-        <ul>
-          <li><a href="/"><MorphIcon icon={ListChecks} size="1.25em" /> <span class="icon-label">Exams</span></a></li>
-          <li><a href="/dashboard"><MorphIcon icon={ChartLine} size="1.25em" /> <span class="icon-label">Dashboard</span></a></li>
-          {user
-            ? <li><a href="/session" data-user={user.username}><MorphIcon icon={CircleUser} size="1.25em" /> <span class="icon-label">{user.username}</span></a></li>
-            : <><li><a href={`/session?next=${next}`}><MorphIcon icon={LogIn} size="1.25em" /> <span class="icon-label">Log in</span></a></li><li><a href={`/user?next=${next}`}><MorphIcon icon={UserPlus} size="1.25em" /> <span class="icon-label">Sign up</span></a></li></>}
-          <li><button type="button" class="outline secondary" data-theme-toggle aria-label="Switch light or dark theme"><MorphIcon icon={Moon} size="1.25em" /></button></li>
-        </ul>
-      </nav>
-    </header>
-    <main class="container"><slot /></main>
+  <Page data-user-id={user?.id}>
+    <NavBar
+      title="Exam Practice"
+      href="/"
+      current={path}
+      links={links}
+      end={[...account, { component: "Button", data: { id: "mode", variant: "tertiary", "aria-live": "polite" } }]}
+    />
+    <main class="center stack box"><slot /></main>
     <script>
-      import {Moon, Sun} from "lucide"
-      const html = document.documentElement
-      const toggle = document.querySelector("[data-theme-toggle]") as HTMLButtonElement
-      const icon = toggle.querySelector("morph-icon") as HTMLElement & {set: (i: unknown) => void, morphTo: (i: unknown) => void}
-      const showing = () =>
-        // Purpose: the theme on screen now: the saved choice, else the system setting
-        html.dataset.theme ?? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
-      const iconFor = (theme: string) =>
-        // Purpose: the icon for the theme a click would switch to
-        theme === "dark" ? Sun : Moon
-      customElements.whenDefined("morph-icon").then(() => icon.set(iconFor(showing())))
-      toggle.addEventListener("click", () => {
-        // Purpose: flip between light and dark, remember the choice, and morph the icon to match
-        html.dataset.theme = showing() === "dark" ? "light" : "dark"
-        try { localStorage.setItem("theme", html.dataset.theme) } catch {}
-        icon.morphTo(iconFor(html.dataset.theme))
+      const root = document.documentElement
+      const button = document.getElementById("mode")!
+      const isLight = () =>
+        // Purpose: the mode in effect: the one chosen, else the system's
+        root.dataset.mode ? root.dataset.mode === "light" : matchMedia("(prefers-color-scheme: light)").matches
+      const show = () => {
+        // Purpose: say which mode is on
+        button.textContent = isLight() ? "☀ Light mode on" : "☾ Dark mode on"
+      }
+      button.addEventListener("click", () => {
+        // Purpose: switch to the other mode and remember it
+        root.dataset.mode = isLight() ? "dark" : "light"
+        try { localStorage.setItem("wacss:mode", root.dataset.mode) } catch {}
+        show()
       })
+      show()
     </script>
-  </body>
+  </Page>
 </html>
 
-<style is:global define:vars={theme}>
-  /* Selectors here are (0,2,1), out-ranking Pico's (0,2,0) theme selectors whatever order the stylesheets load in. */
-  html[lang]:root {
-    --pico-primary: var(--primary);
-    --pico-primary-background: var(--primary);
-    --pico-primary-border: var(--primary);
-    --pico-primary-underline: color-mix(in srgb, var(--primary) 50%, transparent);
-    --pico-primary-hover: var(--primaryHover);
-    --pico-primary-hover-background: var(--primaryHover);
-    --pico-primary-hover-border: var(--primaryHover);
-    --pico-primary-hover-underline: var(--primaryHover);
-    --pico-primary-focus: color-mix(in srgb, var(--primary) 40%, transparent);
-    --pico-primary-inverse: #fff;
-  }
-  html:root[data-theme="dark"] { --pico-background-color: var(--darkBackground); --pico-card-background-color: var(--darkSurface); --pico-card-sectioning-background-color: var(--darkSurface); }
-  @media (prefers-color-scheme: dark) {
-    html:root:not([data-theme]) { --pico-background-color: var(--darkBackground); --pico-card-background-color: var(--darkSurface); --pico-card-sectioning-background-color: var(--darkSurface); }
-  }
-  /* Icons sit on the text baseline; on narrow screens nav and button labels collapse to their icons. */
-  morph-icon, svg.lucide { vertical-align: -0.2em; }
-  @media (max-width: 36rem) {
-    .icon-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-    nav ul { gap: 0; }
-  }
-  /* Card lists: as many columns as fit at 18rem or more, one column on phones. */
-  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr)); gap: var(--pico-spacing); margin-bottom: var(--pico-spacing); }
-  .cards > article { margin: 0; }
-  .ok { color: var(--pico-ins-color); }
-  .bad { color: var(--pico-del-color); }
-  .pre { white-space: pre-wrap; }
-  .md > p:only-child, .prompt > p:only-child { margin: 0; }
-  label.option { display: block; }
-  select.slot { display: inline-block; width: auto; height: auto; margin: 0; padding: 0 2rem 0 0.4rem; }
+<style is:global>
+  /* Answer feedback: an intent tint with its text derived from it, as wacss derives a component's text. */
+  .ok, .bad { color: oklch(from var(--tint) calc(1 - l) c h); background: var(--tint); }
+  .ok { --tint: var(--color-positive-tint); }
+  .bad { --tint: var(--color-danger-tint); }
+  /* Wide tables scroll inside their own box. */
+  .scroll { overflow-x: auto; }
 </style>

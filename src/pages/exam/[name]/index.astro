@@ -1,4 +1,5 @@
 ---
+import Notice from "wacss/components/Notice/Notice.svelte"
 import Exam from "../../../components/Exam.svelte"
 // /exam/<name>: one exam, e.g. /exam/cisco:300-435. All of its questions, served 10 at a time.
 //   GET  HTML: the exam player.  JSON (?format=json): the exam and its domains.
@@ -29,7 +30,7 @@ if (asJson && exam) return json(exam)
       <h1>{exam.description || exam.name}</h1>
       <p>{exam.question_count} questions in {exam.domains.length} domains, served 10 at a time and weighted towards the domains you need most. <small><a href={`${exam.url}?format=json`}>JSON</a></small></p>
       <Exam client:only="svelte" exam={exam} />
-      <noscript><p>This exam needs JavaScript.</p></noscript>
+      <noscript><Notice variant="informational" text="This exam needs JavaScript." /></noscript>
     </>
   ) : (
     <>

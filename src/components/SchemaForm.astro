@@ -1,8 +1,16 @@
 ---
-// A form generated from a table's JSON Schema: one native input per property, with the
+// A form generated from a table's JSON Schema: one wacss input per property, with the
 // schema's constraints (required, pattern, lengths, ranges, enums) as HTML attributes.
-// x-widget: "textarea" on a property renders a textarea.
+// x-widget: "textarea" on a property renders a textarea. A field that failed validation is
+// marked aria-invalid, and its messages are listed in a notice above the form.
 import { sentenceCase } from "change-case"
+import Button from "wacss/components/Button/Button.svelte"
+import Checkbox from "wacss/components/Checkbox/Checkbox.svelte"
+import NumberInput from "wacss/components/NumberInput/NumberInput.svelte"
+import Select from "wacss/components/Select/Select.svelte"
+import TextArea from "wacss/components/TextArea/TextArea.svelte"
+import TextInput from "wacss/components/TextInput/TextInput.svelte"
+import Notice from "wacss/components/Notice/Notice.svelte"
 import { schemas } from "../lib/schemas.ts"
 
 interface Props {
@@ -20,47 +28,35 @@ const required: string[] = schema.required ?? []
 const fields = (Object.entries(schema.properties) as [string, any][]).filter(
   ([, x]) => !x.readOnly && !x["x-references"]
 )
-const errorFor = (name: string) =>
-  // Purpose: the error messages for one field, joined
-  errors
-    .filter(e => e.field === name)
-    .map(e => e.message)
-    .join("; ")
+const messages = errors.map(e => (e.field ? `${sentenceCase(e.field)} ${e.message}` : e.message))
+const invalid = (name: string) =>
+  // Purpose: the aria-invalid attribute for a field that has an error
+  errors.some(e => e.field === name) ? "true" : undefined
 const valueOf = (name: string, x: any) =>
   // Purpose: the field's submitted value, falling back to its schema default
   values[name] ?? x.default ?? ""
 ---
-<form method="post" action={action} novalidate={false}>
-  {errors.some(e => !fields.some(([name]) => name === e.field)) && (
-    <p class="bad">{errors.filter(e => !fields.some(([name]) => name === e.field)).map(e => e.message).join("; ")}</p>
-  )}
+{messages.length > 0 && (
+  <Notice variant="danger" heading="The form has errors">
+    <ul>{messages.map(m => <li>{m}</li>)}</ul>
+  </Notice>
+)}
+<form class="stack" method="post" action={action}>
   {fields.map(([name, x]) => {
     const id = `${table}-${name}`
     const isRequired = required.includes(name) && !optional.includes(name)
-    const help = hint[name] ?? x.description
+    const common = { id, name, label: `${sentenceCase(name)}${isRequired ? " *" : ""}`, help: hint[name] ?? x.description, required: isRequired, "aria-invalid": invalid(name) }
     return x.type === "boolean" ? (
-      <p>
-        <label><input type="checkbox" id={id} name={name} value="true" checked={Boolean(valueOf(name, x))} /> {sentenceCase(name)}</label>
-        {errorFor(name) && <small class="bad">{errorFor(name)}</small>}
-      </p>
+      <Checkbox {...common} label={sentenceCase(name)} required={false} value="true" checked={Boolean(valueOf(name, x))} />
+    ) : x.enum ? (
+      <Select id={id} name={name} label={common.label} options={x.enum} value={String(valueOf(name, x))} required={isRequired} aria-invalid={invalid(name)} />
+    ) : x["x-widget"] === "textarea" ? (
+      <TextArea {...common} rows={3} minlength={x.minLength} maxlength={x.maxLength} value={String(valueOf(name, x))} />
+    ) : x.type === "integer" || x.type === "number" ? (
+      <NumberInput {...common} min={x.minimum} max={x.maximum} step={x.type === "integer" ? 1 : "any"} value={valueOf(name, x)} />
     ) : (
-      <p>
-        <label for={id}>{sentenceCase(name)}{isRequired && " *"}</label>
-        {x.enum ? (
-          <select id={id} name={name} required={isRequired}>
-            {x.enum.map((v: string) => <option value={v} selected={valueOf(name, x) === v}>{v}</option>)}
-          </select>
-        ) : x["x-widget"] === "textarea" ? (
-          <textarea id={id} name={name} required={isRequired} minlength={x.minLength} maxlength={x.maxLength} rows="3">{valueOf(name, x)}</textarea>
-        ) : x.type === "integer" || x.type === "number" ? (
-          <input type="number" id={id} name={name} required={isRequired} min={x.minimum} max={x.maximum} step={x.type === "integer" ? 1 : "any"} value={valueOf(name, x)} />
-        ) : (
-          <input type="text" id={id} name={name} required={isRequired} minlength={x.minLength} maxlength={x.maxLength} pattern={x.pattern} value={valueOf(name, x)} />
-        )}
-        {help && <small>{help}</small>}
-        {errorFor(name) && <small class="bad">{errorFor(name)}</small>}
-      </p>
+      <TextInput {...common} minlength={x.minLength} maxlength={x.maxLength} pattern={x.pattern} value={String(valueOf(name, x))} />
     )
   })}
-  <button>{submit}</button>
+  <div class="cluster"><Button type="submit" variant="primary" label={submit} /></div>
 </form>

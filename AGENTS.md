@@ -67,7 +67,7 @@ The goal is to build a learning and quiz app.
 
 - Meta-framework: [Astro](<https://docs.astro.build/)
 - Interactive Components: [Svelte](<https://docs.astro.build/en/guides/integrations-guide/svelte/>)
-- CSS Framework: [Pico CSS](<https://picocss.com/docs/>)
+- CSS Framework: [wacss](https://github.com/consoleillusion/wacss), one generated global stylesheet (`bun run wacss`, run by `dev` and `build`) plus components imported as `wacss/components/<Name>/<Name>.svelte`; palette and mode are `data-palette` and `data-mode` on `<html>`
 - Icons: [Lucide Icons](https://lucide.dev/icons/) with [Morphicons](https://www.morphicons.com/)
   **Backend & Data**
 - Database: [Turso](<https://docs.turso.tech/sdk/ts/reference>)

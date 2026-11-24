@@ -4,6 +4,9 @@
 //   POST  OPAQUE sign-up, JSON only (the page's script drives it; the password never leaves the browser):
 //         1. {username, email?, id?, registrationRequest}                → {registrationResponse}
 //         2. {username, email?, id?, registrationRecord, publicKey}      → 201 with the user plus serverPublicKey; starts a session
+import Button from "wacss/components/Button/Button.svelte"
+import Notice from "wacss/components/Notice/Notice.svelte"
+import TextInput from "wacss/components/TextInput/TextInput.svelte"
 import Layout from "../layouts/Layout.astro"
 import { register, registrationResponse, safeNext, startSession } from "../lib/auth.ts"
 import { HttpError, json, jsonError, methodNotAllowed, wantsJson } from "../lib/rest.ts"
@@ -32,25 +35,14 @@ const next = url.searchParams.get("next") ?? "/quiz"
   <h1>Sign up</h1>
   {locals.user && <p>You're logged in as <strong>{locals.user.username}</strong>. <a href="/session">Log out</a> to create another account.</p>}
   <p>Answers you've already given in this browser move into your new account, and from then on your progress follows you between devices.</p>
-  <noscript><p class="bad">Signing up needs JavaScript: your password is processed in the browser and never sent to the server.</p></noscript>
-  <form data-signup data-next={safeNext(next)}>
-    <p class="bad" data-error aria-live="polite"></p>
-    <p>
-      <label for="username">Username</label>
-      <input id="username" name="username" required minlength="2" maxlength="32" pattern="[A-Za-z0-9._\-]+" autocomplete="username" />
-      <small>Letters, digits, dot, dash or underscore.</small>
-    </p>
-    <p>
-      <label for="password">Password</label>
-      <!-- No name attribute: the password is never submitted with the form. -->
-      <input id="password" type="password" required minlength="8" autocomplete="new-password" />
-      <small>At least 8 characters.</small>
-    </p>
-    <p>
-      <label for="email">Email (optional)</label>
-      <input id="email" name="email" type="email" autocomplete="email" />
-    </p>
-    <button>Create account</button>
+  <noscript><Notice variant="danger" role="alert" text="Signing up needs JavaScript: your password is processed in the browser and never sent to the server." /></noscript>
+  <form class="stack" data-signup data-next={safeNext(next)}>
+    <Notice variant="danger" role="alert" data-error hidden />
+    <TextInput id="username" name="username" label="Username" help="Letters, digits, dot, dash or underscore." required minlength={2} maxlength={32} pattern="[A-Za-z0-9._\-]+" autocomplete="username" />
+    <!-- No name attribute: the password is never submitted with the form. -->
+    <TextInput id="password" type="password" label="Password" help="At least 8 characters." required minlength={8} autocomplete="new-password" />
+    <TextInput id="email" name="email" type="email" label="Email (optional)" autocomplete="email" />
+    <div class="cluster"><Button type="submit" variant="primary" label="Create account" /></div>
   </form>
   <p>Already have an account? <a href={`/session?next=${encodeURIComponent(next)}`}>Log in</a></p>
 </Layout>
@@ -65,13 +57,14 @@ const next = url.searchParams.get("next") ?? "/quiz"
     // Purpose: sign up with OPAQUE under this browser's id (so its answers join the account), then go on
     event.preventDefault()
     const button = form.querySelector("button")!
-    button.setAttribute("aria-busy", "true"); button.disabled = true; error.textContent = ""
+    button.setAttribute("aria-busy", "true"); button.disabled = true; error.textContent = ""; error.hidden = true
     const value = (id: string) => (form.querySelector(`#${id}`) as HTMLInputElement).value
     try {
       await signUp({username: value("username"), password: value("password"), email: value("email") || undefined, id: document.body.dataset.userId ? undefined : anonymousId()})
       location.assign(form.dataset.next!)
     } catch (e: any) {
       error.textContent = [e.message, ...(e.errors ?? []).map((x: any) => `${x.field} ${x.message}`)].join(". ")
+      error.hidden = false
       button.removeAttribute("aria-busy"); button.disabled = false
     }
   })

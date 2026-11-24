@@ -1,5 +1,8 @@
 <script lang="ts">
 // Single choice: radio buttons. Answer is [optionIndex] in stored order.
+import Button from "wacss/components/Button/Button.svelte"
+import Fieldset from "wacss/components/Fieldset/Fieldset.svelte"
+
 let { q, display, saved, onsubmit } = $props()
 const order: number[] = display ?? q.options.map((_: unknown, i: number) => i)
 let choice: number | null = $state(saved?.answer[0] ?? null)
@@ -18,15 +21,14 @@ function submit(event: SubmitEvent) {
 }
 </script>
 
-<form onsubmit={submit}>
-  <fieldset disabled={!!saved}>
-    <legend>Choose one</legend>
+<form class="stack" onsubmit={submit}>
+  <Fieldset legend="Choose one">
     {#each order as i, k (i)}
-      <label class="option {mark(i)}">
-        <input type="radio" name={q.id} value={i} bind:group={choice} />
-        <b>{String.fromCharCode(65 + k)}.</b> <span class="md">{@html q.html.options[i]}</span>
+      <label class="cluster {mark(i)}">
+        <input type="radio" name={q.id} value={i} bind:group={choice} disabled={!!saved} />
+        <b>{String.fromCharCode(65 + k)}.</b> <span>{@html q.html.options[i]}</span>
       </label>
     {/each}
-  </fieldset>
-  {#if !saved}<button disabled={choice === null}>Check answer</button>{/if}
+  </Fieldset>
+  {#if !saved}<div class="cluster"><Button type="submit" variant="primary" label="Check answer" disabled={choice === null} /></div>{/if}
 </form>

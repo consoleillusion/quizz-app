@@ -1,4 +1,5 @@
 ---
+import Notice from "wacss/components/Notice/Notice.svelte"
 import Quiz from "../../components/Quiz.svelte"
 // /quiz/<slug or id>: one quiz.
 //   GET  HTML: the quiz player.  JSON: the quiz with its questions (stored form, no rendering).
@@ -39,7 +40,7 @@ const player = quiz && {
       {questions.length
         ? <Quiz client:only="svelte" quiz={player} questions={questions.map(withRendering)} />
         : <p>This quiz has no questions yet.</p>}
-      <noscript><p>This quiz needs JavaScript.</p></noscript>
+      <noscript><Notice variant="informational" text="This quiz needs JavaScript." /></noscript>
     </>
   ) : (
     <>

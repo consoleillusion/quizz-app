@@ -1,4 +1,6 @@
 ---
+import Card from "wacss/components/Card/Card.astro"
+import Pagination from "wacss/components/Pagination/Pagination.svelte"
 import SchemaForm from "../../components/SchemaForm.astro"
 // /quiz: the quiz collection.
 //   GET  /quiz[?page=&limit=&filter[tag]=]   cards (HTML) or {items, total, page, limit, pages, links} (JSON)
@@ -41,28 +43,26 @@ const paging = pageParams(url)
 const tag = url.searchParams.get("filter[tag]")
 const { items, total } = await listQuizzes({ ...paging, tag })
 const page = collection(url, items, total, paging)
+// The paging links keep every other query parameter; Pagination fills in the page number.
+const pagePattern = `${url.pathname}?${[...[...url.searchParams].filter(([k]) => k !== "page").map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`), "page={page}"].join("&")}`
 if (asJson) return json(page)
 ---
 <Layout title="Quizzes">
   <h1>Quizzes{tag && <> · {tag}</>}</h1>
   <p>{total} quizzes · page {page.page} of {page.pages} · <a href={`${page.links.self}&format=json`}>JSON</a></p>
 
-  <section class="cards">
+  <section class="grid">
     {page.items.map(quiz => (
-        <article>
-          <h3><a href={quiz.url}>{quiz.title}</a></h3>
-          <p>{quiz.description}</p>
-          <small>{quiz.question_count} questions{quiz.tags.length ? ` · ${quiz.tags.map((t: {name: string}) => t.name).join(", ")}` : ""}</small><br />
-          <small data-progress={quiz.id} data-total={quiz.question_count}></small>
-        </article>
+      <Card figure={{ component: "Stat", data: { value: quiz.question_count, label: "questions" } }}>
+        <h3><a href={quiz.url}>{quiz.title}</a></h3>
+        <p>{quiz.description}</p>
+        {quiz.tags.length > 0 && <small>{quiz.tags.map((t: {name: string}) => t.name).join(", ")}</small>}
+        <small data-progress={quiz.id} data-total={quiz.question_count}></small>
+      </Card>
     ))}
   </section>
 
-  <nav aria-label="Pages">
-    <ul><li>{page.links.prev ? <a href={page.links.prev} rel="prev">← Previous</a> : "← Previous"}</li></ul>
-    <ul><li>Page {page.page} of {page.pages}</li></ul>
-    <ul><li>{page.links.next ? <a href={page.links.next} rel="next">Next →</a> : "Next →"}</li></ul>
-  </nav>
+  <Pagination page={page.page} pages={page.pages} href={pagePattern} />
 
   <details open={formErrors.length > 0}>
     <summary>Create a quiz</summary>

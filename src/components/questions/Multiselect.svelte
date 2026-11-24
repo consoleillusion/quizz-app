@@ -1,5 +1,8 @@
 <script lang="ts">
 // Choose n: checkboxes. Answer is [optionIndex, ...] in stored order.
+import Button from "wacss/components/Button/Button.svelte"
+import Fieldset from "wacss/components/Fieldset/Fieldset.svelte"
+
 let { q, display, saved, onsubmit } = $props()
 const order: number[] = display ?? q.options.map((_: unknown, i: number) => i)
 let chosen: number[] = $state(saved ? [...saved.answer] : [])
@@ -19,15 +22,14 @@ function submit(event: SubmitEvent) {
 }
 </script>
 
-<form onsubmit={submit}>
-  <fieldset disabled={!!saved}>
-    <legend>Choose {q.number_of_selections}</legend>
+<form class="stack" onsubmit={submit}>
+  <Fieldset legend={`Choose ${q.number_of_selections}`}>
     {#each order as i, k (i)}
-      <label class="option {mark(i)}">
-        <input type="checkbox" value={i} bind:group={chosen} disabled={full && !chosen.includes(i)} />
-        <b>{String.fromCharCode(65 + k)}.</b> <span class="md">{@html q.html.options[i]}</span>
+      <label class="cluster {mark(i)}">
+        <input type="checkbox" value={i} bind:group={chosen} disabled={!!saved || (full && !chosen.includes(i))} />
+        <b>{String.fromCharCode(65 + k)}.</b> <span>{@html q.html.options[i]}</span>
       </label>
     {/each}
-  </fieldset>
-  {#if !saved}<button disabled={chosen.length !== q.number_of_selections}>Check answer</button>{/if}
+  </Fieldset>
+  {#if !saved}<div class="cluster"><Button type="submit" variant="primary" label="Check answer" disabled={chosen.length !== q.number_of_selections} /></div>{/if}
 </form>

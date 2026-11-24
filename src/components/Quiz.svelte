@@ -2,9 +2,13 @@
 // The quiz for one quiz: navigation, shuffling, saving answers and feedback.
 // Runs client-only (client:only) because shuffles and IndexedDB are browser-side.
 
-import { ChevronLeft, ChevronRight, CircleCheck, CircleX, RotateCcw } from "lucide"
+import { CircleCheck, CircleX } from "lucide"
 import { MorphIcon } from "morphicons/svelte"
 import { onMount } from "svelte"
+import Button from "wacss/components/Button/Button.svelte"
+import Notice from "wacss/components/Notice/Notice.svelte"
+import Progress from "wacss/components/Progress/Progress.svelte"
+import Select from "wacss/components/Select/Select.svelte"
 import { grade } from "../lib/grade.ts"
 import { type AnswerRecord, clearAnswers, loadAnswers, saveAnswer } from "../lib/progress.ts"
 import { number, ofType } from "../lib/tags.ts"
@@ -142,39 +146,36 @@ onMount(async () => {
 {#if !ready}
   <p>Loading quiz…</p>
 {:else}
+  <div class="stack">
+    <Progress label="Progress" value={answered} max={questions.length} text={`${correct} correct of ${answered} answered (${questions.length} total)`} />
 
-  <p>
-    <progress max={questions.length} value={answered}></progress><br />
-    {correct} correct of {answered} answered ({questions.length} total)
-  </p>
+    <div class="cluster" role="group" aria-label="Question navigation">
+      <Button label="← Previous" onclick={() => go(pos - 1)} disabled={pos === 0} />
+      <Select label="Jump to question" value={String(pos)} onchange={v => go(Number(v))}
+        options={order.map((_, i) => ({ value: String(i), label: `${marker(i)} Q${i + 1}` }))} />
+      <Button label="Next →" onclick={() => go(pos + 1)} disabled={pos === order.length - 1} />
+      {#if resume}<Button variant="tertiary" label="Restart" onclick={restart} />{/if}
+    </div>
 
-  <div role="group" aria-label="Question navigation">
-    <button type="button" onclick={() => go(pos - 1)} disabled={pos === 0}><span class="icon-label">Previous</span><MorphIcon icon={ChevronLeft} size="1.25em" /></button>
-    <select aria-label="Jump to question" value={pos} onchange={e => go(Number(e.currentTarget.value))}>
-      {#each order as _, i}<option value={i}>{marker(i)} Q{i + 1}</option>{/each}
-    </select>
-    <button type="button" onclick={() => go(pos + 1)} disabled={pos === order.length - 1}><span class="icon-label">Next</span> <MorphIcon icon={ChevronRight} size="1.25em" /></button>
-    {#if resume}<button type="button" onclick={restart}><span class="icon-label">Restart</span><MorphIcon icon={RotateCcw} size="1.25em" /></button>{/if}
-  </div>
+    <article id="question" class="stack" aria-live="polite">
+        <small>Question {pos + 1} of {questions.length} · {typeLabels[q.type]} · Objective {number(ofType("objective")(q.tags))}</small>
+        <div>{@html q.html.text}</div>
+        {#if q.exhibit && q.type !== "slotfill"}<pre>{q.exhibit}</pre>{/if}
+        {#key q.id}
+          {@const Component = components[q.type]}
+          <Component {q} display={displays[q.id]} {saved} onsubmit={submit} />
+        {/key}
+        {#if saved}
+          <Notice variant={saved.correct ? "positive" : "danger"}>
+            <strong><MorphIcon icon={saved.correct ? CircleCheck : CircleX} size="1.25em" /> {saved.correct ? "Correct." : "Not quite."}</strong>
+            {#if q.html.explanation}{@html q.html.explanation}{/if}
+          </Notice>
+          {#if pos < order.length - 1}<div class="cluster"><Button variant="primary" label="Next question →" onclick={() => go(pos + 1)} /></div>{/if}
+        {/if}
+    </article>
 
-  <article id="question" aria-live="polite">
-    <header><small>Question {pos + 1} of {questions.length} · {typeLabels[q.type]} · Objective {number(ofType("objective")(q.tags))}</small></header>
-    <div class="prompt">{@html q.html.text}</div>
-    {#if q.exhibit && q.type !== "slotfill"}<pre>{q.exhibit}</pre>{/if}
-    {#key q.id}
-      {@const Component = components[q.type]}
-      <Component {q} display={displays[q.id]} {saved} onsubmit={submit} />
-    {/key}
-    {#if saved}
-      <p class={saved.correct ? "ok" : "bad"}>
-        <strong><MorphIcon icon={saved.correct ? CircleCheck : CircleX} size="1.25em" /> {saved.correct ? "Correct." : "Not quite."}</strong>
-        {#if q.html.explanation}{@html q.html.explanation}{/if}
-      </p>
-      {#if pos < order.length - 1}<button type="button" onclick={() => go(pos + 1)}>Next question <MorphIcon icon={ChevronRight} size="1.25em" /></button>{/if}
+    {#if answered === questions.length}
+      <Results {questions} {order} {answers} onjump={go} />
     {/if}
-  </article>
-
-  {#if answered === questions.length}
-    <Results {questions} {order} {answers} onjump={go} />
-  {/if}
+  </div>
 {/if}

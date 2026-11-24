@@ -1,5 +1,7 @@
 <script lang="ts">
 // End-of-set summary: score, breakdown by blueprint domain, and links to missed questions.
+import Button from "wacss/components/Button/Button.svelte"
+import Stat from "wacss/components/Stat/Stat.svelte"
 import { label, number, ofType } from "../lib/tags.ts"
 
 let { questions, order, answers, onjump } = $props()
@@ -26,16 +28,15 @@ const domains = $derived.by(() => {
   }
   return [...rows].sort(([a], [b]) => a.localeCompare(b))
 })
-
-function jump(event: MouseEvent) {
-  // Purpose: go to the question whose position is in the button's data-pos attribute
-  onjump(Number((event.currentTarget as HTMLElement).dataset.pos))
-}
 </script>
 
-<section aria-labelledby="results-title">
-  <h2 id="results-title">Results: {correct}/{questions.length} ({Math.round((correct / questions.length) * 100)}%)</h2>
-  <div class="overflow-auto"><table>
+<section class="stack" aria-labelledby="results-title">
+  <h2 id="results-title">Results</h2>
+  <div class="cluster">
+    <Stat value={`${correct}/${questions.length}`} label="correct" />
+    <Stat value={`${Math.round((correct / questions.length) * 100)}%`} label="score" />
+  </div>
+  <div class="scroll"><table>
     <thead><tr><th>Domain</th><th>Score</th></tr></thead>
     <tbody>
       {#each domains as [label, row]}
@@ -47,7 +48,7 @@ function jump(event: MouseEvent) {
     <h3>Missed</h3>
     <ul>
       {#each missed as {q, pos}}
-        <li><button type="button" class="outline secondary" data-pos={pos} onclick={jump}>Q{pos + 1}</button> {number(ofType("objective")(q.tags))}: {@html q.html.text}</li>
+        <li><Button variant="tertiary" label={`Q${pos + 1}`} onclick={() => onjump(pos)} /> {number(ofType("objective")(q.tags))}: {@html q.html.text}</li>
       {/each}
     </ul>
   {/if}

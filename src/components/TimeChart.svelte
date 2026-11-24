@@ -9,22 +9,23 @@ let { data, bucket } = $props()
 let host: HTMLDivElement
 let chart: uPlot | undefined
 
-// Mid-greys and saturated lines read on both the light and dark themes.
-const colors = {
-  correct: "#2e9e5b",
-  running: "#5b7fd6",
-  answered: "rgba(128, 128, 128, 0.35)",
-  axis: "#888",
-  grid: "rgba(128, 128, 128, 0.2)",
-}
-const axis = {
-  stroke: colors.axis,
-  grid: { stroke: colors.grid },
-  ticks: { stroke: colors.grid },
+const colors = () => {
+  // Purpose: the chart's colors from the page's wacss tokens, read from its own element so they follow the palette and mode
+  const style = getComputedStyle(host)
+  const faint = (percent: number) => `color-mix(in oklab, ${style.color} ${percent}%, transparent)`
+  return {
+    correct: style.getPropertyValue("--chart-1").trim(),
+    running: style.getPropertyValue("--chart-2").trim(),
+    answered: faint(35),
+    axis: style.color,
+    grid: faint(20),
+  }
 }
 
 function options(width: number): uPlot.Options {
   // Purpose: chart options for the current width: series styling, axes and scales
+  const c = colors()
+  const axis = { stroke: c.axis, grid: { stroke: c.grid }, ticks: { stroke: c.grid } }
   return {
     width,
     height: heightFor(width),
@@ -42,15 +43,15 @@ function options(width: number): uPlot.Options {
       {
         label: "Answered",
         scale: "n",
-        stroke: colors.answered,
-        fill: colors.answered,
+        stroke: c.answered,
+        fill: c.answered,
         paths: uPlot.paths.bars!({ size: [0.6, 40] }),
         points: { show: false },
       },
       {
         label: "Correct %",
         scale: "pct",
-        stroke: colors.correct,
+        stroke: c.correct,
         width: 2,
         spanGaps: false,
         value: (_u, v) => (v == null ? "–" : `${v}%`),
@@ -58,7 +59,7 @@ function options(width: number): uPlot.Options {
       {
         label: "Running %",
         scale: "pct",
-        stroke: colors.running,
+        stroke: c.running,
         width: 2,
         dash: [6, 4],
         value: (_u, v) => (v == null ? "–" : `${v}%`),
@@ -106,8 +107,15 @@ onMount(() => {
     })
   )
   observer.observe(host)
+  // The palette and mode are attributes on <html>; redraw in the new colors when either changes.
+  const recolor = new MutationObserver(draw)
+  recolor.observe(document.documentElement, { attributes: true, attributeFilter: ["data-mode", "data-palette"] })
+  const system = matchMedia("(prefers-color-scheme: light)")
+  system.addEventListener("change", draw)
   return () => {
     observer.disconnect()
+    recolor.disconnect()
+    system.removeEventListener("change", draw)
     chart?.destroy()
   }
 })
