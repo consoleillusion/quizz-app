@@ -48,6 +48,7 @@
     "ts-japi": "^1.12.6",
     "tweetnacl": "^1.0.3",
     "uplot": "^1.6.32",
+    "wacss": "github:consoleillusion/wacss",
     "wider-format": "github:consoleillusion/formatter-ts"
   },
   "devDependencies": {
