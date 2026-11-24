@@ -132,16 +132,22 @@ export const questionViewSQL = (schemas: any[]) =>
 export const quizMemberSQL = () =>
   // Purpose: render a view of every quiz's questions: chosen explicitly (with a position) or matched by its tag rules
   `CREATE VIEW IF NOT EXISTS quiz_member AS
+WITH rule_counts AS (
+  SELECT r.quiz_id, count(*) AS n, max(z.rule_match) AS rule_match
+  FROM quiz_rule r
+  JOIN quiz z ON z.id = r.quiz_id
+  GROUP BY r.quiz_id
+)
 SELECT quiz_id, question_type, question_id, min(position) AS position
 FROM
   ( SELECT quiz_id, question_type, question_id, position FROM quiz_question
     UNION ALL
     SELECT r.quiz_id, qt.question_type, qt.question_id, NULL
     FROM quiz_rule r
-    JOIN quiz z ON z.id = r.quiz_id
+    JOIN rule_counts rc ON rc.quiz_id = r.quiz_id
     JOIN question_tag qt ON qt.tag_id = r.tag_id
     GROUP BY r.quiz_id, qt.question_type, qt.question_id
-    HAVING z.rule_match = 'any' OR count(DISTINCT r.tag_id) = (SELECT count(*) FROM quiz_rule r2 WHERE r2.quiz_id = r.quiz_id)
+    HAVING rc.rule_match = 'any' OR count(DISTINCT r.tag_id) = rc.n
   )
 GROUP BY quiz_id, question_type, question_id`
 

@@ -31,13 +31,16 @@ const main = async () => {
   const pending = difference(await available(), await applied(db))
   if (Bun.argv.includes("--status")) return console.log({ applied: await applied(db), pending })
   if (!pending.length) return console.log("No pending migrations.")
-  console.log(`Backed up to ${await backup(db)}`)
+  // VACUUM INTO writes a local file, which a remote server can't do; Turso keeps its own backups.
+  if (!process.env.DB_URL) console.log(`Backed up to ${await backup(db)}`)
   for (const name of pending) {
     const { up } = await import(join(directory, `${name}.ts`))
     await up(db)
-    await db.exec(
-      "CREATE TABLE IF NOT EXISTS migration (id uuid PRIMARY KEY DEFAULT (uuid7()), name TEXT NOT NULL UNIQUE, created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP) STRICT"
-    )
+    // The remote database already has this portable table; its DDL uses custom types it can't parse.
+    if (!process.env.DB_URL)
+      await db.exec(
+        "CREATE TABLE IF NOT EXISTS migration (id uuid PRIMARY KEY DEFAULT (uuid7()), name TEXT NOT NULL UNIQUE, created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP) STRICT"
+      )
     await db.prepare("INSERT INTO migration (name) VALUES (?)").run([name])
     console.log(`Applied ${name}`)
   }
