@@ -30,14 +30,22 @@ Only one process can open `.db` at a time, so stop the server before running dat
 
 Vercel builds pick the Vercel adapter automatically; local builds keep the standalone Node server (`bun run build && bun run start`). Vercel has no writable local database, so the app needs a remote Turso database:
 
+Use the **Turso** engine, not libSQL: the schema uses custom types (`uuid`, `jsonb`, `boolean`), views and `uuid7()`. `turso db create --from-file` cannot read that file (its checkpoint step doesn't enable custom types), so create an empty database and copy the rows with the app's drivers:
+
 ```sh
-bun run db:backup   # then import the newest backup
-turso db create --tursodb quizapp --from-file backups/<timestamp>.db
+bun run db:backup
 turso db show quizapp --url
 turso db tokens create quizapp
+
+export DB_URL='turso://...'
+export DB_AUTH_TOKEN='...'
+bun run db:init              # creates tables, views and triggers from src/db/schema
+bun scripts/copy-to-turso.ts # copies rows from the local .db
 ```
 
-Use the **Turso** engine, not libSQL: the schema uses custom types (`uuid`, `jsonb`, `boolean`), views and `uuid7()`. Set `DB_URL` and `DB_AUTH_TOKEN` in the Vercel project from the last two commands, plus the existing `OPAQUE_SERVER_SETUP` (it must match the imported accounts). The variables must be available at build time too, because the table schemas are read from the database during the build. For `vercel deploy --prebuilt`, build with `VERCEL=1 bun run build`.
+If the dashboard reports "group not found", create or pick a group first: `turso group list`, then `turso group create --location <code> <group>` (free accounts get one group). Pass `--group <group>` to `turso db create`, or select the group in the dashboard.
+
+Set the same `DB_URL` and `DB_AUTH_TOKEN` in the Vercel project, plus the existing `OPAQUE_SERVER_SETUP` (it must match the imported accounts). The variables must be available at build time too, because the table schemas are read from the database during the build. For `vercel deploy --prebuilt`, build with `VERCEL=1 bun run build`.
 
 
 ## Database
