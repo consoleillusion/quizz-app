@@ -219,6 +219,12 @@ export const tableSchemaUpsertSQL = (schema: any) =>
   `INSERT INTO table_schema (table_name, jsonschema) VALUES (${sqlString(tableName(schema))}, ${sqlString(JSON.stringify(schema))})
 ON CONFLICT (table_name) DO UPDATE SET jsonschema = excluded.jsonschema`
 
+// Question tags are looked up by either end of the link; the unique index starts with question_type.
+export const questionTagIndexesSQL = [
+  "CREATE INDEX IF NOT EXISTS question_tag_tag_id_question_id ON question_tag (tag_id, question_id)",
+  "CREATE INDEX IF NOT EXISTS question_tag_question_id_tag_id ON question_tag (question_id, tag_id)",
+]
+
 export const databaseSQL = (
   schemas: any[],
   record: (table: string) => boolean = () => true,
@@ -230,6 +236,7 @@ export const databaseSQL = (
   const referencing = tables.filter(refersToQuestions)
   return [
     ...tables.map(s => createTableSQL(s, portable)),
+    ...questionTagIndexesSQL,
     questionViewSQL(tables),
     quizMemberSQL(),
     quizSummarySQL(),
