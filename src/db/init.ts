@@ -46,18 +46,21 @@ const main = async () => {
   // Purpose: validate the schemas, create anything missing, and report (not fix) schema drift
   const schemas = await loadSchema()
   makeValidators(schemas) // throws if any schema is invalid
-  if (Bun.argv.includes("--print")) return console.log(databaseSQL(schemas).join(";\n\n") + ";")
+  // Turso Cloud doesn't enable the custom types used by local .db files.
+  const portable = Boolean(process.env.DB_URL)
+  if (Bun.argv.includes("--print"))
+    return console.log(databaseSQL(schemas, () => true, portable).join(";\n\n") + ";")
   const { db } = await import("./db.ts")
   const stored = await storedSchemas(db)
   // Record schemas only for tables this run creates; a stored schema is changed only by a migration.
   await db.batch(
-    databaseSQL(schemas, (table: string) => !(table in stored)),
+    databaseSQL(schemas, (table: string) => !(table in stored), portable),
     "write"
   )
   const tables = await db
     .prepare("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name")
     .all()
-  console.log(`${process.env.DB_PATH ?? ".db"}: ${tables.length} tables`)
+  console.log(`${process.env.DB_URL ?? process.env.DB_PATH ?? ".db"}: ${tables.length} tables`)
   const problems = drift(stored, schemas)
   if (problems.length)
     console.warn(

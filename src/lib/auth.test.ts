@@ -11,6 +11,7 @@ const key = () => signing.signingKey()
 beforeAll(async () => {
   await opaque.ready
   process.env.DB_PATH = ":memory:"
+  delete process.env.DB_URL // keep tests off any configured remote database
   process.env.OPAQUE_SERVER_SETUP = opaque.server.createSetup()
   ;({ db } = await import("../db/db.ts"))
   const { databaseSQL } = await import("../db/ddl.ts")

@@ -27,12 +27,8 @@ try {
 }
 if (existing) throw new Error(`Remote database already has ${existing} tags; use a fresh database`)
 
-await destination.exec(
-  "CREATE TABLE IF NOT EXISTS migration (id uuid PRIMARY KEY DEFAULT (uuid7()), name TEXT NOT NULL UNIQUE, created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP) STRICT"
-)
-
 const schemas = await loadSchema()
-const tables = [...sortByDependency(schemas).map(tableName), "table_schema", "migration"]
+const tables = sortByDependency(schemas).map(tableName)
 
 for (const table of tables) {
   const columns = (await local.prepare(`PRAGMA table_info(${table})`).all()).map(

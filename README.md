@@ -30,18 +30,20 @@ Only one process can open `.db` at a time, so stop the server before running dat
 
 Vercel builds pick the Vercel adapter automatically; local builds keep the standalone Node server (`bun run build && bun run start`). Vercel has no writable local database, so the app needs a remote Turso database:
 
-Use the **Turso** engine, not libSQL: the schema uses custom types (`uuid`, `jsonb`, `boolean`), views and `uuid7()`. `turso db create --from-file` cannot read that file (its checkpoint step doesn't enable custom types), so create an empty database and copy the rows with the app's drivers:
+Use the **Turso** engine, not libSQL: the app needs `uuid7()` and JSON functions. `turso db create --from-file` cannot read the local file (its checkpoint step doesn't enable custom types), so create an empty database and copy the rows with the app's drivers:
 
 ```sh
 bun run db:backup
-turso db show quizapp --url
-turso db tokens create quizapp
+turso db show <database> --url
+turso db tokens create <database>
 
 export DB_URL='turso://...'
 export DB_AUTH_TOKEN='...'
 bun run db:init              # creates tables, views and triggers from src/db/schema
 bun scripts/copy-to-turso.ts # copies rows from the local .db
 ```
+
+`db:init` detects `DB_URL` and generates portable SQLite types (`TEXT`/`INTEGER`) because Turso Cloud doesn't enable the custom types used by local `.db` files. Data is stored as strings/numbers in both; no app code depends on the declared type.
 
 If the dashboard reports "group not found", create or pick a group first: `turso group list`, then `turso group create --location <code> <group>` (free accounts get one group). Pass `--group <group>` to `turso db create`, or select the group in the dashboard.
 

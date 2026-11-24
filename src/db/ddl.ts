@@ -34,20 +34,24 @@ export const sqlLiteral = (v: unknown): string | number =>
         ? sqlString(v)
         : sqlString(JSON.stringify(v))
 
-export const columnType = (x: any) =>
-  // Purpose: map a JSON Schema property to a Turso column type
+export const columnType = (x: any, portable = false) =>
+  // Purpose: map a JSON Schema property to a Turso column type; portable mode avoids custom types
   x.format === "uuid"
-    ? "uuid"
+    ? portable
+      ? "TEXT"
+      : "uuid"
     : x.format === "date-time"
-      ? "timestamp"
+      ? portable
+        ? "TEXT"
+        : "timestamp"
       : ((
           {
             string: "TEXT",
             integer: "INTEGER",
             number: "REAL",
-            boolean: "boolean",
-            object: "jsonb",
-            array: "jsonb",
+            boolean: portable ? "INTEGER" : "boolean",
+            object: portable ? "TEXT" : "jsonb",
+            array: portable ? "TEXT" : "jsonb",
           } as any
         )[x.type] ?? "TEXT")
 
@@ -66,14 +70,14 @@ export const columnChecks = (name: string, x: any) =>
   ])
 
 export const columnSQL =
-  (required: string[]) =>
+  (required: string[], portable = false) =>
   ([name, x]: [string, any]) => {
     // Purpose: render one column definition from a schema property
     const isRequired = required.includes(name)
     const checks = columnChecks(name, x)
     return nonEmpty([
       name,
-      columnType(x),
+      columnType(x, portable),
       isRequired ? "NOT NULL" : "",
       // Nullable columns need an explicit DEFAULT NULL: Turso fills omitted uuid columns with a random UUID.
       has("default", x) ? `DEFAULT ${sqlLiteral(x.default)}` : isRequired ? "" : "DEFAULT NULL",
@@ -84,15 +88,19 @@ export const columnSQL =
     ]).join(" ")
   }
 
-export const createTableSQL = (schema: any) => {
+export const createTableSQL = (schema: any, portable = false) => {
   // Purpose: render CREATE TABLE for one schema, including generated id and timestamp columns
   const name = tableName(schema)
   const props = toPairs(schema.properties ?? {}) as [string, any][]
   const lines = [
-    "id uuid PRIMARY KEY DEFAULT (uuid7())",
-    ...props.map(columnSQL(schema.required ?? [])),
-    "created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP",
-    "updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP",
+    portable ? "id TEXT PRIMARY KEY DEFAULT (uuid_str(uuid7()))" : "id uuid PRIMARY KEY DEFAULT (uuid7())",
+    ...props.map(columnSQL(schema.required ?? [], portable)),
+    portable
+      ? "created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP"
+      : "created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP",
+    portable
+      ? "updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP"
+      : "updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP",
     ...(schema["x-unique"] ?? []).map((cols: string[]) => `UNIQUE (${cols.join(", ")})`),
   ]
   return `CREATE TABLE IF NOT EXISTS ${name} (\n  ${lines.join(",\n  ")}\n) STRICT`
@@ -205,13 +213,17 @@ export const tableSchemaUpsertSQL = (schema: any) =>
   `INSERT INTO table_schema (table_name, jsonschema) VALUES (${sqlString(tableName(schema))}, ${sqlString(JSON.stringify(schema))})
 ON CONFLICT (table_name) DO UPDATE SET jsonschema = excluded.jsonschema`
 
-export const databaseSQL = (schemas: any[], record: (table: string) => boolean = () => true) => {
+export const databaseSQL = (
+  schemas: any[],
+  record: (table: string) => boolean = () => true,
+  portable = false
+) => {
   // Purpose: render every statement needed to build the database, in execution order. Everything is
   // CREATE ... IF NOT EXISTS; `record` picks which tables' schemas are written to table_schema.
   const tables = sortByDependency(schemas)
   const referencing = tables.filter(refersToQuestions)
   return [
-    ...tables.map(createTableSQL),
+    ...tables.map(s => createTableSQL(s, portable)),
     questionViewSQL(tables),
     quizMemberSQL(),
     quizSummarySQL(),
