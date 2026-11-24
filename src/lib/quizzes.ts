@@ -12,8 +12,26 @@ const isUuid = (key: string) =>
 
 const tagObject = "json_object('type', t.type, 'name', t.name, 'description', t.description)"
 
+const membersSQL = (quiz: string) =>
+  // Purpose: one quiz's explicit and rule-matched questions with positions; `quiz` is an SQL expression or ?
+  `WITH rc AS (
+    SELECT count(*) AS n, max(z.rule_match) AS rule_match
+    FROM quiz_rule r JOIN quiz z ON z.id = r.quiz_id WHERE r.quiz_id = ${quiz}
+  )
+  SELECT question_type, question_id, min(position) AS position
+  FROM (
+    SELECT question_type, question_id, position FROM quiz_question WHERE quiz_id = ${quiz}
+    UNION ALL
+    SELECT qt.question_type, qt.question_id, NULL
+    FROM quiz_rule r JOIN question_tag qt ON qt.tag_id = r.tag_id, rc
+    WHERE r.quiz_id = ${quiz}
+    GROUP BY qt.question_type, qt.question_id
+    HAVING rc.rule_match = 'any' OR count(DISTINCT r.tag_id) = rc.n
+  )
+  GROUP BY question_type, question_id`
+
 const summaryColumns = `${selectColumns("quiz", "q")}
-  , (SELECT count(*) FROM quiz_member m WHERE m.quiz_id = q.id) AS question_count
+  , (SELECT count(*) FROM (${membersSQL("q.id")})) AS question_count
   , (SELECT json_group_array(${tagObject}) FROM quiz_tag qt JOIN tag t ON t.id = qt.tag_id WHERE qt.quiz_id = q.id) AS tags
   , (SELECT json_group_array(${tagObject}) FROM quiz_rule r JOIN tag t ON t.id = r.tag_id WHERE r.quiz_id = q.id) AS rules`
 
@@ -59,13 +77,19 @@ export const getQuiz = async (key: string) => {
   return toQuiz(row)
 }
 
+const quizMembers = (quizId: string) => {
+  // Purpose: bind one quiz id into the member query
+  return { sql: membersSQL("?"), args: [quizId, quizId, quizId] }
+}
+
 const tagsByQuestion = async (quizId: string) => {
   // Purpose: the tags of every question in a quiz, keyed by question id
+  const members = quizMembers(quizId)
   const rows = await db
     .prepare(`SELECT qt.question_id, t.type, t.name, t.description
-      FROM quiz_member m JOIN question_tag qt ON qt.question_id = m.question_id AND qt.question_type = m.question_type
-      JOIN tag t ON t.id = qt.tag_id WHERE m.quiz_id = ?`)
-    .all([quizId])
+      FROM (${members.sql}) m JOIN question_tag qt ON qt.question_id = m.question_id AND qt.question_type = m.question_type
+      JOIN tag t ON t.id = qt.tag_id`)
+    .all(members.args)
   return groupBy(
     (r: any) => r.question_id,
     map((r: any) => ({ ...r }), rows)
@@ -76,13 +100,14 @@ export const getQuestions = async (quizId: string) => {
   // Purpose: a quiz's questions (explicit and tag-rule matched) from every question table, with their tags.
   // Explicit questions come first in their set order; rule-matched ones follow, oldest first.
   const tags = await tagsByQuestion(quizId)
+  const members = quizMembers(quizId)
   const perType = await Promise.all(
     questionTables.map(async ([table, schema]) => {
       const rows = await db
         .prepare(`SELECT m.position, ${selectColumns(table, "q")}
-      FROM quiz_member m JOIN ${table} q ON q.id = m.question_id
-      WHERE m.quiz_id = ? AND m.question_type = ?`)
-        .all([quizId, schema["x-question-type"]])
+      FROM (${members.sql}) m JOIN ${table} q ON q.id = m.question_id
+      WHERE m.question_type = ?`)
+        .all([...members.args, schema["x-question-type"]])
       return rows.map((r: any) => ({
         ...parseRow(table)(r),
         id: r.id,
