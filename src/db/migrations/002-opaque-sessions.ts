@@ -3,7 +3,8 @@
 //   - login_attempt holds the server's OPAQUE state between the two login requests
 //   - existing scrypt accounts (test accounts only) get an OPAQUE record for a fixed test password
 import * as opaque from "@serenity-kit/opaque"
-import { opaqueIdentifier } from "../../lib/auth.ts"
+/** The identifier OPAQUE bound a record to in this database: the username, trimmed and lower-cased. */
+const opaqueIdentifier = (username: string) => username.trim().toLowerCase()
 import { keyStretching } from "../../lib/opaque-client.ts"
 import { databaseSQL, rebuildDerivedSQL } from "../ddl.ts"
 import { loadSchema } from "../loadSchema.ts"

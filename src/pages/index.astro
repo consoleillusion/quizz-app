@@ -5,7 +5,9 @@ import Layout from "../layouts/Layout.astro"
 import { listExams } from "../lib/exams.ts"
 import { json, wantsJson } from "../lib/rest.ts"
 
-const exams = await listExams()
+const exams = await listExams(Astro.request)
+// The list changes rarely; let the CDN serve it for five minutes.
+Astro.response.headers.set("cache-control", "public, s-maxage=300, stale-while-revalidate=3600")
 if (wantsJson(Astro.request)) return json({ items: exams })
 ---
 <Layout title="Exams">

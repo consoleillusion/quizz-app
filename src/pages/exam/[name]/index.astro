@@ -15,7 +15,7 @@ const asJson = wantsJson(request)
 
 let exam: Awaited<ReturnType<typeof getExam>> | undefined
 try {
-  exam = await getExam(params.name!)
+  exam = await getExam(params.name!, request)
 } catch (e) {
   if (!(e instanceof HttpError)) throw e
   if (asJson) return jsonError(e)

@@ -1,7 +1,8 @@
 // Who the browser is answering as. Every visitor gets a UUIDv7 the first time they use the app;
 // their answers are stored under it. When they sign up, that id becomes their account id. When
-// a session is active the page tells us the account id (<body data-user-id>), and that wins.
+// a session is active its account id (from the SRS session, see account.ts) wins.
 // Stored as {id, account}: account=true means the id belongs to a signed-in account.
+import { signedInUserId } from "./account.ts"
 import { uuidv7 } from "./uuid.ts"
 
 const KEY = "enauto.identity"
@@ -27,9 +28,8 @@ const write = (identity: Identity) => {
   }
 }
 
-export const sessionUserId = () =>
-  // Purpose: the signed-in account's id as rendered by the server, or null when signed out
-  document.body.dataset.userId || null
+/** The signed-in account's id, or null when signed out. */
+export const sessionUserId = () => signedInUserId()
 
 export const resolveIdentity = () => {
   // Purpose: work out the current identity and what changed since the last page:

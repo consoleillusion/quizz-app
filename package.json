@@ -19,7 +19,10 @@
     "complexity": "node_modules/fta-cli/index.js . --json | bun node_modules/@toon-format/cli/bin/toon.mjs",
     "complexity:save": "bun run test:complexity > analysis.toon",
     "lint": "bunx biome check --write",
-    "commit": "git commit -m"
+    "commit": "git commit -m",
+    "srs:init": "bunx srs init srs/schema",
+    "srs:migrate": "bunx srs migrate",
+    "to-srs": "bun scripts/to-srs.ts"
   },
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^16.0.5",
@@ -46,6 +49,7 @@
     "morphicons": "^2.0.2",
     "nunjucks": "^3.2.4",
     "ramda": "^0.32.0",
+    "srs": "github:consoleillusion/srs#v0.6.8",
     "svelte": "^5.57.3",
     "ts-japi": "^1.12.6",
     "tweetnacl": "^1.0.3",

@@ -5,17 +5,17 @@ import Dashboard from "../components/Dashboard.svelte"
 //   GET  HTML: the dashboard.  JSON (?format=json): the question and quiz index it uses.
 import Notice from "wacss/components/Notice/Notice.svelte"
 import Layout from "../layouts/Layout.astro"
-import { questionIndex } from "../lib/quizzes.ts"
+import { questionIndex } from "../lib/catalog.ts"
 import { json, methodNotAllowed, wantsJson } from "../lib/rest.ts"
 
 const allow = ["GET"]
 if (!allow.includes(Astro.request.method)) return methodNotAllowed(allow)
-const meta = await questionIndex()
+const meta = await questionIndex(Astro.request)
 if (wantsJson(Astro.request)) return json(meta)
 ---
 <Layout title="Dashboard" description="Your quiz progress over time">
   <h1>Dashboard</h1>
   <p>Your answers over time, from this browser. Choose a scope (an exam, a domain, an objective, a tag or a quiz) and a time range.</p>
-  <Dashboard client:only="svelte" meta={meta} loggedIn={!!Astro.locals.user} />
+  <Dashboard client:only="svelte" meta={meta} />
   <noscript><Notice variant="informational" text="The dashboard needs JavaScript." /></noscript>
 </Layout>

@@ -1,0 +1,30 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+title: Answer
+type: object
+additionalProperties: false
+description: >
+  One answer a learner gave. Private to them. The browser keeps the same
+  records in IndexedDB and syncs them here when signed in.
+x-access:
+  visibility: [private]
+properties:
+  answer:
+    type: array
+    description: Option indexes (multichoice, multiselect), response or item indexes (match, order), tokens (slotfill) or the typed value (open).
+  points:
+    type: number
+  correct:
+    type: boolean
+  answered_at:
+    type: string
+    format: date-time
+required: [answer, points, correct, answered_at]
+x-relations:
+  question:
+    table: question
+    cardinality: one
+    required: true
+    onDelete: cascade
+    x-link-any: true
+x-unique-constraints:
+  - [owner, question_id, answered_at]
