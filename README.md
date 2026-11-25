@@ -19,7 +19,7 @@ Page reads go to SRS in-process (`src/lib/srs.ts`); the browser talks to `/api` 
 
 The schemas are in `srs/schema`; `bun run srs:init` turns them into `.srs/` (migrations, `schemas.json`, types). Run it again after any schema change and commit `.srs/`.
 
-- `tag`: typed (`vendor`, `exam`, `domain`, `objective`, `topic`, `generic`), named from the vendor down (`cisco`, `cisco:300-435`, `cisco:300-435:5.0`). Public.
+- `tag`: typed (`vendor`, `exam`, `domain`, `objective`, `topic`, `generic`), named from the vendor down (`cisco`, `cisco:300-435`, `cisco:300-435:5.0`). New tags are private to their owner until made public.
 - `question`: one table for every type. Common columns (`type`, `text`, `exhibit`, `explanation`, `bloom`, `difficulty`, `links`) plus a `body` holding the type's own fields, validated against that type's shape, with a table check that `body.type` matches `type`. Every question has at least one tag. Questions belong to whoever wrote them and can be shared or made public; anyone can read public ones.
 - `answer`: private to its owner; one row per answer given (`answer`, `points`, `correct`, `answered_at`, `question`).
 

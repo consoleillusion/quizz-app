@@ -225,7 +225,7 @@ CREATE TABLE IF NOT EXISTS `tag` (
   `id` blob PRIMARY KEY DEFAULT (uuid7()) NOT NULL,
   `updated_at` integer DEFAULT (cast((julianday('now') - 2440587.5)*86400000 as integer)) NOT NULL,
   `owner` blob,
-  `visibility` text DEFAULT 'public' NOT NULL,
+  `visibility` text DEFAULT 'private' NOT NULL,
   `type` text NOT NULL,
   `name` text NOT NULL,
   `description` text,

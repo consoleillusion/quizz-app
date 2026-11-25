@@ -10,7 +10,6 @@ description: >
 x-access:
   read: public
   visibility: [private, public]
-  defaultVisibility: public
 properties:
   type:
     type: string
