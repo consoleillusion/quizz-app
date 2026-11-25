@@ -10,7 +10,8 @@
  * signed-in account owns every copied row, and questions are made public.
  * With `--answers-of`, that old user's answers are copied to the signed-in
  * account; other users register again. Rows that already exist are skipped,
- * so the script can be run again after a failure. The script waits out the
+ * so the script can be run again after a failure. It exits with status 1 when
+ * any row failed. The script waits out the
  * server's rate limit; against a local server, `SRS_RATE_LIMIT_PER_MINUTE=0`
  * makes it faster.
  *
@@ -138,8 +139,11 @@ const inBatches = async <T>(items: T[], task: (item: T) => Promise<void>) => {
   for (let i = 0; i < items.length; i += size) await Promise.all(items.slice(i, i + size).map(task))
 }
 
+let anyFailed = false
+
 const report = (what: string) => {
   console.log(`${what}: ${counts.created} created, ${counts.skipped} already there, ${counts.failed} failed`)
+  if (counts.failed) anyFailed = true
   Object.assign(counts, { created: 0, skipped: 0, failed: 0 })
 }
 
@@ -191,3 +195,6 @@ if (args["answers-of"]) {
       , `answer to ${a.question_id}`))
   report(`Answers of ${args["answers-of"]}`)
 }
+
+// Exit with an error when anything failed, so a caller (scripts/publish-db.ts) can stop.
+process.exit(anyFailed ? 1 : 0)

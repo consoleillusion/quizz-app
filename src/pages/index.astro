@@ -3,7 +3,7 @@
 import Card from "wacss/components/Card/Card.astro"
 import Layout from "../layouts/Layout.astro"
 import { listExams } from "../lib/exams.ts"
-import { json, wantsJson } from "../lib/rest.ts"
+import { json, wantsJson } from "../lib/http.ts"
 
 const exams = await listExams(Astro.request)
 // The list changes rarely; let the CDN serve it for five minutes.

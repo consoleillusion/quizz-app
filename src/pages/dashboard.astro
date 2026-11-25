@@ -6,7 +6,7 @@ import Dashboard from "../components/Dashboard.svelte"
 import Notice from "wacss/components/Notice/Notice.svelte"
 import Layout from "../layouts/Layout.astro"
 import { questionIndex } from "../lib/catalog.ts"
-import { json, methodNotAllowed, wantsJson } from "../lib/rest.ts"
+import { json, methodNotAllowed, wantsJson } from "../lib/http.ts"
 
 const allow = ["GET"]
 if (!allow.includes(Astro.request.method)) return methodNotAllowed(allow)

@@ -4,7 +4,7 @@
 //   GET ?filter[id]=a,b,c    {items: [...]}  those questions in full (at most 20), ready to play
 import { getExam, getExamQuestions, examIndex } from "../../../lib/exams.ts"
 import { withRendering } from "../../../lib/catalog.ts"
-import { HttpError, json, jsonError, methodNotAllowed } from "../../../lib/rest.ts"
+import { HttpError, json, jsonError, methodNotAllowed } from "../../../lib/http.ts"
 
 const allow = ["GET"]
 const { request, params, url } = Astro

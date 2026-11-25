@@ -20,6 +20,9 @@ type Handler = (request: Request) => Promise<Response> | Response
 
 const build = async (): Promise<Handler> => {
   if (process.env.SRS_DATABASE_URL) return createHandler({ schemas, basePath: API_BASE })
+  // Vercel's filesystem is read-only, so a local database can never work there.
+  if (process.env.VERCEL)
+    throw new Error("SRS_DATABASE_URL is not set for this deployment. Add SRS_DATABASE_URL and SRS_DATABASE_TOKEN in Vercel (Settings → Environment Variables) for this environment, then redeploy.")
   const db = await openDatabase(process.env.SRS_DB_PATH ?? "srs.db")
   await applyMigrations(db, ".srs/migrations")
   const app = await createServerApp({ loaded: schemas as never, db, transport: "bearer", basePath: API_BASE })

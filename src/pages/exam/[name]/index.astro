@@ -6,7 +6,7 @@ import Exam from "../../../components/Exam.svelte"
 // The player asks /exam/<name>/questions for the question index and then for each batch.
 import Layout from "../../../layouts/Layout.astro"
 import { getExam } from "../../../lib/exams.ts"
-import { HttpError, json, jsonError, methodNotAllowed, wantsJson } from "../../../lib/rest.ts"
+import { HttpError, json, jsonError, methodNotAllowed, wantsJson } from "../../../lib/http.ts"
 
 const allow = ["GET"]
 const { request, params } = Astro
