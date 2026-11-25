@@ -29,7 +29,7 @@
         "morphicons": "^2.0.2",
         "nunjucks": "^3.2.4",
         "ramda": "^0.32.0",
-        "srs": "github:consoleillusion/srs#v0.6.8",
+        "srs": "github:consoleillusion/srs#v0.6.9",
         "svelte": "^5.57.3",
         "ts-japi": "^1.12.6",
         "tweetnacl": "^1.0.3",
@@ -1095,7 +1095,7 @@
 
     "sprintf-js": ["sprintf-js@1.0.3", "", {}, "sha512-D9cPgkvLlV3t3IzL0D0YLvGA9Ahk4PcvVwUbN0dSGr1aP0Nrt4AEnTUbuGvquEC0mA64Gqt1fzirlRs5ibXx8g=="],
 
-    "srs": ["srs@github:consoleillusion/srs#afdb8fe", { "dependencies": { "@apidevtools/json-schema-ref-parser": "^16.0.7", "@noble/ciphers": "^2.4.0", "@noble/curves": "^2.4.0", "@noble/hashes": "^2.4.0", "@serenity-kit/opaque": "^1.1.0", "@tursodatabase/database": "^0.8.3", "@tursodatabase/serverless": "^1.4.1", "ajv": "^8.20.0", "ajv-formats": "^3.0.1", "dotenv": "^18.0.10", "hono": "^4.13.18", "yaml": "^2.9.1" }, "bin": { "srs": "./src/cli.ts" } }, "consoleillusion-srs-afdb8fe", "sha512-Qg5Rw5o+XtBUCx8PdEBvZdEUNmXo+sk7z4v/lNpo0wdVhFaEEYdd4hj8+/anvJSU0TVK+ucv9XWY/h6+dvgUIA=="],
+    "srs": ["srs@github:consoleillusion/srs#e6173ea", { "dependencies": { "@apidevtools/json-schema-ref-parser": "^16.0.7", "@noble/ciphers": "^2.4.0", "@noble/curves": "^2.4.0", "@noble/hashes": "^2.4.0", "@serenity-kit/opaque": "^1.1.0", "@tursodatabase/database": "^0.8.3", "@tursodatabase/serverless": "^1.4.1", "ajv": "^8.20.0", "ajv-formats": "^3.0.1", "dotenv": "^18.0.10", "hono": "^4.13.18", "yaml": "^2.9.1" }, "bin": { "srs": "./src/cli.ts" } }, "consoleillusion-srs-e6173ea", "sha512-hsNdrm/BCeU51YNTHJ96CvGCJzDFCCUYZkP4MULMxODvOpjsX/K5R+g8ywmIkFys5f4B3tFyvPgTakk9pmirOA=="],
 
     "statuses": ["statuses@2.0.2", "", {}, "sha512-DvEy55V3DB7uknRo+4iOGT5fP1slR8wQohVdknigZPMpMstaKJQWhwiYBACJE3Ul2pTnATihhBYnRhZQHGBiRw=="],
 
