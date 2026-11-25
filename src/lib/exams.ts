@@ -8,7 +8,7 @@
  *
  * @module
  */
-import { HttpError } from "./rest.ts"
+import { HttpError } from "./http.ts"
 import { api, ApiError } from "./srs.ts"
 
 export const MAX_IDS = 20
