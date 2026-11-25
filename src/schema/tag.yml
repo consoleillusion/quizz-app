@@ -1,0 +1,35 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+title: Tag
+type: object
+additionalProperties: false
+description: >
+  A typed label for questions. Names are namespaced from the vendor down, so
+  exams from different vendors never clash: vendor cisco, exam cisco:300-435,
+  domain cisco:300-435:5.0, objective cisco:300-435:5.4. Anyone can read public
+  tags; signed-in users can make their own.
+x-access:
+  read: public
+  visibility: [private, public]
+properties:
+  type:
+    type: string
+    enum: [vendor, exam, domain, objective, topic, generic]
+    description: What kind of tag this is.
+  name:
+    type: string
+    minLength: 1
+    maxLength: 100
+    pattern: "^[a-z0-9]+([:.-][a-z0-9]+)*$"
+    description: "vendor: cisco. exam: cisco:300-435. domain: cisco:300-435:5.0. objective: cisco:300-435:5.4. topic and generic: lower-case words joined by dashes."
+  description:
+    type: string
+    maxLength: 500
+    description: Human-readable meaning, such as the blueprint wording of an objective.
+required: [type, name]
+x-unique-constraints:
+  - [type, name]
+x-relations:
+  questions:
+    table: question
+    cardinality: many
+    through: question_tag
