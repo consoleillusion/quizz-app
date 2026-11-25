@@ -64,4 +64,10 @@ Before the first deploy, and after every schema change, apply the migrations to 
 SRS_DATABASE_URL=... SRS_DATABASE_TOKEN=... bun run srs:migrate
 ```
 
-Then copy the data with `to-srs`, pointing `--server` at `https://techstudy.app/api`.
+To publish the question bank, build the database here and upload it:
+
+```sh
+bun run publish-db --username <you> --password '<password>' [--answers-of <old username>] --upload
+```
+
+It builds `techstudy-srs.db` from `.db` with SRS running in-process, stops if any row fails, prepares the file for `turso db import`, then (after you type the database name to confirm) replaces the Turso database `techstudy-srs` and prints the URL and a new token for Vercel. Without `--upload` it only builds the file. `OPAQUE_SERVER_SETUP` in `.env` must be Vercel's value, since the account is created here.

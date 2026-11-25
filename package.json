@@ -22,7 +22,8 @@
     "commit": "git commit -m",
     "srs:init": "bunx srs init srs/schema",
     "srs:migrate": "bunx srs migrate",
-    "to-srs": "bun scripts/to-srs.ts"
+    "to-srs": "bun scripts/to-srs.ts",
+    "publish-db": "bun scripts/publish-db.ts"
   },
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^16.0.5",
