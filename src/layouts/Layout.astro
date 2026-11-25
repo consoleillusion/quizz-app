@@ -9,7 +9,6 @@ interface Props {
   description?: string
 }
 const { title, description = "Cisco certification practice quizzes" } = Astro.props
-const user = Astro.locals.user
 const path = Astro.url.pathname
 const next = encodeURIComponent(path)
 // The palette every page uses; the names are in wacss's palettes.dhall.
@@ -18,12 +17,12 @@ const links = [
   { href: "/", label: "Exams" },
   { href: "/dashboard", label: "Dashboard" },
 ]
-const account = user
-  ? [{ component: "Link", data: { href: "/session", label: user.username, "data-user": user.username } }]
-  : [
-      { component: "Link", data: { href: `/session?next=${next}`, label: "Log in" } },
-      { component: "Link", data: { href: `/user?next=${next}`, label: "Sign up" } },
-    ]
+// The account lives in the browser, so the page renders the signed-out links and the script below
+// turns them into the username when a session is held.
+const account = [
+  { component: "Link", data: { href: `/session?next=${next}`, label: "Log in", "data-account": "login" } },
+  { component: "Link", data: { href: `/user?next=${next}`, label: "Sign up", "data-account": "signup" } },
+]
 ---
 <!doctype html>
 <html lang="en" data-palette={palette}>
@@ -37,7 +36,7 @@ const account = user
     </script>
     <title>{title} · Exam Practice</title>
   </head>
-  <Page data-user-id={user?.id}>
+  <Page>
     <NavBar
       title="Exam Practice"
       href="/"
@@ -46,6 +45,17 @@ const account = user
       end={[...account, { component: "Button", data: { id: "mode", variant: "tertiary", "aria-live": "polite" } }]}
     />
     <main class="center stack box"><slot /></main>
+    <script>
+      import { signedInUsername } from "../lib/account.ts"
+      const username = signedInUsername()
+      const login = document.querySelector<HTMLAnchorElement>("[data-account=login]")
+      if (username && login) {
+        login.textContent = username
+        login.href = "/session"
+        login.dataset.user = username
+        document.querySelector<HTMLElement>("[data-account=signup]")?.remove()
+      }
+    </script>
     <script>
       const root = document.documentElement
       const button = document.getElementById("mode")!

@@ -1,6 +1,7 @@
 // Test account only: abcd1234's password becomes "abcd1234" until a password-change feature exists.
 import * as opaque from "@serenity-kit/opaque"
-import { opaqueIdentifier } from "../../lib/auth.ts"
+/** The identifier OPAQUE bound a record to in this database: the username, trimmed and lower-cased. */
+const opaqueIdentifier = (username: string) => username.trim().toLowerCase()
 import { keyStretching } from "../../lib/opaque-client.ts"
 
 const USERNAME = "abcd1234",

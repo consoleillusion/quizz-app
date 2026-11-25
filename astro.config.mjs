@@ -34,7 +34,8 @@ export default defineConfig({
       ],
     },
     // wacss and bits-ui ship Svelte sources; let vite-plugin-svelte compile them in the browser bundle and on the server.
-    ssr: {noExternal: ["wacss", "bits-ui"]},
+    // srs ships TypeScript sources, which the server bundle compiles.
+    ssr: {noExternal: ["wacss", "bits-ui", "srs"]},
     optimizeDeps: {exclude: ["bits-ui"]},
   },
 })

@@ -7,6 +7,7 @@ import { MorphIcon } from "morphicons/svelte"
 import { onMount } from "svelte"
 import Slider from "wacss/components/Slider/Slider.svelte"
 import Stat from "wacss/components/Stat/Stat.svelte"
+import { signedInUserId } from "../lib/account.ts"
 import { type AnswerRecord, syncLog } from "../lib/progress.ts"
 import {
   answerExtent,
@@ -23,7 +24,8 @@ import { number } from "../lib/tags.ts"
 import TimeChart from "./TimeChart.svelte"
 
 const params = new URLSearchParams(location.search)
-let { meta, loggedIn }: { meta; loggedIn: boolean } = $props()
+let { meta }: { meta } = $props()
+const loggedIn = !!signedInUserId()
 let log: AnswerRecord[] = $state([])
 let ready = $state(false)
 let synced = $state(false)

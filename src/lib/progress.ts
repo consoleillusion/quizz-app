@@ -4,8 +4,10 @@
 //   current     the latest answer to each question in each quiz, per user (the quiz player's state;
 //               Restart clears it). Key [user_id, quiz_id, question_id].
 //   answer_log  every answer ever given, append-only, per user (the dashboard). Never cleared by Restart.
-// Records mirror the user_answer table, so they sync to the server through /answer when signed in.
+// When signed in, records sync to the account's answers in SRS (/api/answer, see account.ts).
 // Falls back to in-memory storage when IndexedDB is unavailable.
+import { ResourceServerError } from "srs/client"
+import { api, signedInUserId } from "./account.ts"
 import { resolveIdentity } from "./identity.ts"
 
 export type AnswerRecord = {
@@ -208,15 +210,68 @@ export const loadLog = async (): Promise<AnswerRecord[]> => {
   return [...logged, ...missing].sort(byTime)
 }
 
+/** The JSON:API document for one answer. The server keeps neither the quiz nor the question type. */
+const answerDocument = (r: AnswerRecord) => ({
+  data: {
+    type: "answer",
+    attributes: {
+      answer: r.answer,
+      points: r.points,
+      correct: r.correct,
+      answered_at: new Date(r.answered_at).toISOString(),
+    },
+    relationships: { question: { data: { type: "question", id: r.question_id } } },
+  },
+})
+
+/**
+ * Send answers to the signed-in account, a few at a time. An answer the server
+ * already has (same question and time) is a 409 and counts as sent; so does
+ * one to a question that no longer exists (404), which can never be stored.
+ * Returns whether every answer was sent.
+ */
 const pushAnswers = async (records: AnswerRecord[]) => {
-  // Purpose: send answers to the server; only works for the signed-in user's own records
-  if (!records.length || !document.body.dataset.userId) return false
-  const r = await fetch("/answer", {
-    method: "POST",
-    headers: { "content-type": "application/json", accept: "application/json" },
-    body: JSON.stringify(records),
-  })
-  return r.ok
+  if (!records.length || !signedInUserId()) return false
+  let ok = true
+  for (let i = 0; i < records.length; i += 8)
+    await Promise.all(
+      records.slice(i, i + 8).map(r =>
+        api()
+          .post("/answer", answerDocument(r))
+          .catch(e => {
+            if (!(e instanceof ResourceServerError && (e.status === 409 || e.status === 404))) ok = false
+          })
+      )
+    )
+  return ok
+}
+
+type AnswerResource = {
+  attributes: { answer: any[]; points: number; correct: boolean; answered_at: string }
+  relationships: { question: { data: { id: string } | null } }
+}
+
+/** Every answer the signed-in account has on the server, oldest first. */
+const remoteAnswers = async (userId: string) => {
+  const found: AnswerRecord[] = []
+  for (let page = 1; ; page++) {
+    const { data, links } = await api().get<{ data: AnswerResource[]; links?: { next?: string | null } }>(
+      `/answer?sort=answered_at&page[size]=100&page[number]=${page}&page[total]=false`
+    )
+    for (const a of data)
+      if (a.relationships.question.data)
+        found.push({
+          user_id: userId,
+          quiz_id: "",
+          question_type: "",
+          question_id: a.relationships.question.data.id,
+          answer: a.attributes.answer,
+          points: a.attributes.points,
+          correct: a.attributes.correct,
+          answered_at: a.attributes.answered_at,
+        })
+    if (!links?.next) return found
+  }
 }
 
 export const syncLog = async (): Promise<{
@@ -226,12 +281,9 @@ export const syncLog = async (): Promise<{
   // Purpose: merge the current user's history with the server's (both directions) when signed in
   const local = await loadLog()
   const { db, userId } = await session()
-  if (!document.body.dataset.userId) return { answers: local, synced: false }
-  const r = await fetch("/answer?format=json", {
-    headers: { accept: "application/json" },
-  }).catch(() => null)
-  if (!r?.ok) return { answers: local, synced: false }
-  const remote: AnswerRecord[] = (await r.json()).filter((a: AnswerRecord) => a.user_id === userId)
+  if (signedInUserId() !== userId) return { answers: local, synced: false }
+  const remote = await remoteAnswers(userId).catch(() => null)
+  if (!remote) return { answers: local, synced: false }
   const localKeys = new Set(local.map(logKey)),
     remoteKeys = new Set(remote.map(logKey))
   const toServer = local.filter(a => !remoteKeys.has(logKey(a)))
