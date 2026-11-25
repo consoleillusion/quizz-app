@@ -7,6 +7,6 @@ dist/
 *.db
 *.db-wal
 *.db-shm
-.env
+#.env, using git-crypt instead of ignoring
 *.swp
 backups/
